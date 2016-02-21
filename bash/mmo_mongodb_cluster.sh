@@ -20,7 +20,16 @@
 #           #3 - Destory the cluster (gets rid of ALL data)    #
 #           linux> mmo_teardown_cluster                        #
 #           #4 - Launch cluster processes (skips data & config)#
-#           linux> mmo_start_with_existing_data                #    
+#           linux> mmo_start_with_existing_data                #
+#                                                              #
+# Cluster Info:	3 x config servers 27019, 27020, & 27021       #
+#               3 x mongos servers 27016, 27017 & 27018        #
+#               6 x mongod servers. Split into 2 replicasets.  #
+#               rs0 30001, 30002 & 30003                       #
+#               rs1 30004, 30005 & 30006.                      #
+#               WiredTiger Storage Engine 200MB Cache.         #
+# Users details: u: admin pw: admin                            #
+#                u: pytest pw: secret                          # 
 ################################################################  
 
 #set -e;

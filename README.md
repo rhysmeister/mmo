@@ -1,2 +1,4 @@
 # mmo
-MongoDB Management Object
+MongoDB Management Objects
+
+Python library for MongoDB.

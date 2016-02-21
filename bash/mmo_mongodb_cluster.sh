@@ -9,7 +9,9 @@
 # the running mongo cluster incuding removing all data.        #
 # Intended for unit testing MMO Python code.                   #
 # Ensure the path to mongod, mongos etc is in your $PATH       #
-# variable.                                                    #
+# variable. Developed using mongodb-osx-x86_64-3.2.3, earlier  #
+# version probably won't correctly. Should work unmodifed on   #
+# GNU/Linux as well. Let me know if not.                       #
 # Usage:                                                       #
 #			#1 - source file to make mmo functions available   #
 #			linux> . mmo_mongodb_cluster.sh                    #

@@ -1,0 +1,2 @@
+# mmo
+MongoDB Management Object

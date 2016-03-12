@@ -127,7 +127,7 @@ function mmo_configure_sharding()
 	sh.addShard( "rs0/$(hostname):30001" );
 	sh.addShard( "rs1/$(hostname):30004" );
 	sh.enableSharding("test");
-	sh.shardCollection("test.messages", { "t_u": 1 } );
+	sh.shardCollection("test.sample_messages", { "t_u": 1 } );
 EOF
 }
 
@@ -243,6 +243,19 @@ function mmo_shutdown_cluster()
 	mmo_shutdown_mongos_servers && echo "Shutdown all mongos servers.";
 }
 
+function mmo_load_sample_dataset()
+{
+	DELETE_FILE_AFTER_USE=$1;
+	DATA_URL=https://raw.githubusercontent.com/mongodb/docs-assets/primer-dataset/dataset.json;
+	if [ ! -e /tmp/dataset.json ]; then
+		wget ${DATA_URL} --directory-prefix=/tmp;
+	fi;
+	mongoimport --authenticationDatabase admin --username admin --password admin --db test --collection restaurants --drop --file /tmp/dataset.json;
+	if [ ${DELETE_FILE_AFTER_USE} -eq "1" ]; then
+		rm /tmp/dataset.json;
+	fi;
+}
+
 function mmo_setup_cluster()
 {
 	mmo_create_directories && echo "OK created directories";
@@ -252,7 +265,7 @@ function mmo_setup_cluster()
 	echo "Sleeping for sixty seconds before attempting replicaset & shard configuration." && sleep 60;
 	mmo_configure_replicaset_rs0 && echo "OK configured replicaset rs0." && sleep 5;
 	mmo_configure_replicaset_rs1 && echo "OK configured replicaset rs1." && sleep 5;
-	mmo_configure_sharding && echo "OK configured Sharding and sharded test.messages by t_u.";
+	mmo_configure_sharding && echo "OK configured Sharding and sharded test.sample_messages by t_u.";
 	mmo_create_admin_user 27017 && echo "OK created cluster admin user (but auth is not enabled yet).";
 	mmo_create_admin_user 30001 && echo "OK created admin user on rs0 (but auth is not enabled yet).";
 	mmo_create_admin_user 30004 && echo "OK created admin user on rs1 (but auth is not enabled yet).";
@@ -270,5 +283,6 @@ function mmo_setup_cluster()
 	mmo_create_config_servers "$(echo '--auth --fork --keyFile keyfile.txt')" && echo "OK restarted config servers with auth enabled.";
 	mmo_create_mongos_servers "$(echo '--fork --keyFile keyfile.txt')" && echo "OK restarted mongos servers with auth enabled.";
 	mmo_create_mongod_shard_servers "$(echo '--auth --fork --keyFile keyfile.txt')" && echo "OK restarted mongod servers with auth enabled.";
+	mmo_load_sample_dataset 0 && echo "Loaded collection into test.sample_restaurants";
 	mmo_check_processes;
 }

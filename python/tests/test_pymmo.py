@@ -62,6 +62,12 @@ class TestPyMmoMethods(unittest.TestCase):
         c = m.mmo_connect()
         self.assertEquals("3.2.3", m.mmo_mongo_version(c))
 
+    def test_mmo_execute_on_cluster(selfself):
+        m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
+        c = m.mmo_connect()
+        o = m.mmo_execute_on_cluster(c, "buildinfo")
+        print o
+
 if __name__ == '__main__':
     unittest.main()
 

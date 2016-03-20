@@ -1,4 +1,5 @@
 from pymongo import MongoClient
+import re
 
 class MmoMongoCluster:
 
@@ -34,7 +35,22 @@ class MmoMongoCluster:
         """
         client = MongoClient(self.hostname, self.port)
         client[self.authentication_db].authenticate(self.username, self.password)
-        return client
+        if self.mmo_is_mongos(client) == False:
+            raise "MongoDB connection is not a mongod process"
+        else:
+            return client
+
+    def mmo_connect_mongod(self, hostname, port, username, password, authentication_db):
+        """
+        Initiates a connection to the MongoDB instance.
+        :return:
+        """
+        client = MongoClient(hostname, port)
+        client[authentication_db].authenticate(username, password)
+        if self.mmo_is_mongod(client) == False:
+            raise "MongoDB connection is not a mongod process"
+        else:
+            return client
 
     def mmo_mongos_servers(self, mmo_connection):
         """
@@ -117,5 +133,32 @@ class MmoMongoCluster:
         """
         return mmo_connection.serverStatus()["connection"]["current"]
 
+    def mmo_get_auth_details_from_connection(self, mmo_connection):
+        """
+        Extracts the username, password and authentication database from an existing mongo connection.
+        Probably need a more reliable way of doing this as connection string format might vary???
+        :return: A dictionary containing the auth details
+        """
+        credentials = str(mmo_connection._MongoClient__all_credentials).split(",")
+        quoted = re.compile("(?<=')[^']+(?=')")
+        username = quoted.findall(credentials[2])[0]
+        password = quoted.findall(credentials[3])[0]
+        authentication_database = quoted.findall(credentials[1])[0]
+        auth_dict = { "username": username, "password": password, "authentication_database": authentication_database }
+        return auth_dict
 
+    def mmo_execute_on_cluster(self, mmo_connection, command):
+        """
+        Execute a command on all shard servers (mongod) in a MongoDB Cluster. All commands are executed in the context of the admin database
+        :param mmo_connection:
+        :return: A list of dictionaries, containing hostname, port, shard and command_output, for each mongod in all shards
+        """
+        cluster_command_output = []
+        for doc in self.mmo_shard_servers(mmo_connection):
+            hostname, port, shard = doc["hostname"], doc["port"], doc["shard"]
+            auth_dic = self.mmo_get_auth_details_from_connection(mmo_connection)
+            c = self.mmo_connect_mongod(hostname, port, auth_dic["username"], auth_dic["password"], auth_dic["authentication_database"])
+            command_output = c["admin"].command(command)
+            cluster_command_output.append({ "hostname": hostname, "port": port, "shard": shard, "command_output": command_output })
+        return cluster_command_output
 

@@ -11,6 +11,7 @@ class MmoMongoCluster:
     mongos_servers = []
     config_servers = []
     shard_servers = []
+    shards = []
 
     def __init__(self, hostname, port, username, password, authentication_db):
         """
@@ -28,15 +29,27 @@ class MmoMongoCluster:
         self.password = password
         self.authentication_db = authentication_db
 
+        c = self.mmo_connect()
+
+        # Cache information about the cluster
+        self.mongos_servers = self.mmo_mongos_servers(c)
+        self.config_servers = self.mmo_config_servers(c)
+        self.shard_servers = self.mmo_shard_servers(c)
+
+        for d in self.shard_servers:
+            if d["shard"] not in self.shards:
+                self.shards.append(d["shard"])
+
+
     def mmo_connect(self):
         """
-        Initiates a connection to the MongoDB instance.
+        Initiates a connection to the MongoDB instance. We insist the connection here is a mongos
         :return:
         """
         client = MongoClient(self.hostname, self.port)
         client[self.authentication_db].authenticate(self.username, self.password)
         if self.mmo_is_mongos(client) == False:
-            raise "MongoDB connection is not a mongod process"
+            raise Exception("MongoDB connection is not a mongos process")
         else:
             return client
 
@@ -48,7 +61,7 @@ class MmoMongoCluster:
         client = MongoClient(hostname, port)
         client[authentication_db].authenticate(username, password)
         if self.mmo_is_mongod(client) == False:
-            raise "MongoDB connection is not a mongod process"
+            raise Exception("MongoDB connection is not a mongod process")
         else:
             return client
 
@@ -162,3 +175,36 @@ class MmoMongoCluster:
             cluster_command_output.append({ "hostname": hostname, "port": port, "shard": shard, "command_output": command_output })
         return cluster_command_output
 
+    def mmo_replica_state(self, mmo_connection):
+        """
+        Return a string of the current replica state for the provided MongoD connection
+        :param mmo_connection:
+        :return: A string indicating the replica state
+        """
+
+        # https://docs.mongodb.org/manual/reference/replica-states/
+        replica_states = [
+            { "id": 0, "name": "STARTUP", "description": "Not yet an active member of any set. All members start up in this state. The mongod parses the replica set configuration document while in STARTUP." },
+            { "id": 1, "name": "PRIMARY", "description": "The member in state primary is the only member that can accept write operations." },
+            { "id": 2, "name": "SECONDARY", "description": "A member in state secondary is replicating the data store. Data is available for reads, although they may be stale." },
+            { "id": 3, "name": "RECOVERING", "description": "Can vote. Members either perform startup self-checks, or transition from completing a rollback or resync." },
+            { "id": 5, "name": "STARTUP2", "description": "The member has joined the set and is running an initial sync." },
+            { "id": 6, "name": "UNKNOWN", "description": "The member's state, as seen from another member of the set, is not yet known." },
+            { "id": 7, "name": "ARBITER", "description": "Arbiters do not replicate data and exist solely to participate in elections." },
+            { "id": 8, "name": "DOWN", "description": "The member, as seen from another member of the set, is unreachable." },
+            { "id": 9, "name": "ROLLBACK", "description": "This member is actively performing a rollback. Data is not available for reads." },
+            { "id": 10, "name": "REMOVED", "description": "This member was once in a replica set but was subsequently removed." }
+        ]
+
+        if self.mmo_is_mongod(mmo_connection):
+            return replica_states[mmo_connection["admin"].command("replSetGetStatus")["myState"]]
+        else:
+            raise Exception("Not a mongod process")
+
+    def mmo_shards(self):
+        """
+        Returns a list of the shard names for the cluster
+        :param mmo_connection:
+        :return:
+        """
+        return self.shards

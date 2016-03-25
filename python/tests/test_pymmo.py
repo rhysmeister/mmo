@@ -62,11 +62,45 @@ class TestPyMmoMethods(unittest.TestCase):
         c = m.mmo_connect()
         self.assertEquals("3.2.3", m.mmo_mongo_version(c))
 
-    def test_mmo_execute_on_cluster(selfself):
+    def test_mmo_execute_on_cluster(self):
         m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
         c = m.mmo_connect()
         o = m.mmo_execute_on_cluster(c, "buildinfo")
-        print o
+        self.assertTrue("openssl" in str(o))
+
+    def test_mmo_replica_state(self):
+        m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
+        c = m.mmo_connect_mongod("localhost", 30001, "admin", "admin", "admin")
+        o = m.mmo_replica_state(c)
+        self.assertEquals(1, o["id"])
+        self.assertEquals("PRIMARY", o["name"])
+        c = m.mmo_connect_mongod("localhost", 30002, "admin", "admin", "admin")
+        o = m.mmo_replica_state(c)
+        self.assertEquals(2, o["id"])
+        self.assertEquals("SECONDARY", o["name"])
+        c = m.mmo_connect_mongod("localhost", 30003, "admin", "admin", "admin")
+        o = m.mmo_replica_state(c)
+        self.assertEquals(2, o["id"])
+        self.assertEquals("SECONDARY", o["name"])
+        c = m.mmo_connect_mongod("localhost", 30004, "admin", "admin", "admin")
+        o = m.mmo_replica_state(c)
+        self.assertEquals(1, o["id"])
+        self.assertEquals("PRIMARY", o["name"])
+        c = m.mmo_connect_mongod("localhost", 30005, "admin", "admin", "admin")
+        o = m.mmo_replica_state(c)
+        self.assertEquals(2, o["id"])
+        self.assertEquals("SECONDARY", o["name"])
+        c = m.mmo_connect_mongod("localhost", 30006, "admin", "admin", "admin")
+        o = m.mmo_replica_state(c)
+        self.assertEquals(2, o["id"])
+        self.assertEquals("SECONDARY", o["name"])
+
+
+    def test_mmo_shards(self):
+        m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
+        c = m.mmo_connect()
+        shards = m.mmo_shards()
+        self.assertEquals([ "rs0", "rs1" ], shards)
 
 if __name__ == '__main__':
     unittest.main()

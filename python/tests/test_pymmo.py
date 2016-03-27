@@ -66,6 +66,7 @@ class TestPyMmoMethods(unittest.TestCase):
         m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
         c = m.mmo_connect()
         o = m.mmo_execute_on_cluster(c, "buildinfo")
+        self.assertEquals(6, len(o))
         self.assertTrue("openssl" in str(o))
 
     def test_mmo_replica_state(self):
@@ -95,12 +96,39 @@ class TestPyMmoMethods(unittest.TestCase):
         self.assertEquals(2, o["id"])
         self.assertEquals("SECONDARY", o["name"])
 
+    def test_mmo_execute_on_primaries(self):
+        m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
+        c = m.mmo_connect()
+        o = m.mmo_execute_on_primaries(c, "buildinfo")
+        self.assertEquals(2, len(o))
+        self.assertTrue("openssl" in str(o))
+
+    def test_mmo_execute_on_secondaries(self):
+        m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
+        c = m.mmo_connect()
+        o = m.mmo_execute_on_secondaries(c, "buildinfo")
+        self.assertEquals(4, len(o))
+        self.assertTrue("openssl" in str(o))
 
     def test_mmo_shards(self):
         m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
         c = m.mmo_connect()
         shards = m.mmo_shards()
         self.assertEquals([ "rs0", "rs1" ], shards)
+
+    def test_mmo_replication_status(self):
+        m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
+        c = m.mmo_connect()
+        o = m.mmo_replication_status(c)
+        self.assertEquals(2, len(o))
+        self.assertTrue("lastHeartbeatRecv" in str(o))
+
+    def test_mmo_replication_status_summary(self):
+        m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
+        c = m.mmo_connect()
+        o = m.mmo_replication_status_summary(c)
+        self.assertEquals(6, len(o))
+        self.assertTrue("slaveDelay" in str(o))
 
 if __name__ == '__main__':
     unittest.main()

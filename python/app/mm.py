@@ -12,6 +12,10 @@ History:
 import inspect
 import os
 import sys
+import argparse
+
+
+from bgcolours import bgcolours
 
 execfile(os.path.dirname(os.path.abspath(inspect.stack()[0][1]))  + "/../pymmo/pymmo.py")
 
@@ -22,46 +26,58 @@ def display_cluster_state(mmo):
     :param mmo: A instance of the MmoMongoCluster class
     :return:
     """
-    c = mmo.mmo_connect()
     config_servers = mmo.mmo_config_servers(c)
     mongos_servers = mmo.mmo_mongos_servers(c)
     mongod_shard_servers = mmo.mmo_shard_servers(c)
     shards = mmo.mmo_shards()
-    print_list_of_hosts("MongoDB Config Servers", config_servers)
-    print_list_of_hosts("MongoDB mongos servers", mongos_servers)
-    print_list_of_hosts("MongoDB mongod shard servers", mongod_shard_servers)
-    print "MongoDB shards"
+    print_list_of_hosts("MongoDB Config Servers", config_servers, bgcolours.OKGREEN)
+    print_list_of_hosts("MongoDB mongos servers", mongos_servers, bgcolours.OKGREEN)
+    print_list_of_hosts("MongoDB mongod shard servers", mongod_shard_servers, bgcolours.OKGREEN)
+    print bgcolours.BOLD + "MongoDB shards" + bgcolours.ENDC
     for shard in shards:
-        sys.stdout.write("{0}   ".format(shard))
+        sys.stdout.write( bgcolours.OKGREEN + "{0}   ".format(shard) + bgcolours.ENDC)
     print ""
-    rs = mmo.mmo_replication_status_summary(c)
-    print_replication_summary(rs)
+
 
 def print_replication_summary(replication_summary):
-    print "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10}".format("hostname", "replicaset", "state", "configV", "uptime", "slaveDelay")
+    print bgcolours.BOLD + "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10}".format("hostname", "replicaset", "state", "configV", "uptime", "slaveDelay") + bgcolours.ENDC
     for host in replication_summary:
-        print "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10}".format(host["hostname"], host["replicaset"], host["state"], host["configVersion"], host["uptime"], host["slaveDelay"])
+        print bgcolours.OKGREEN + "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10}".format(host["hostname"], host["replicaset"], host["state"], host["configVersion"], host["uptime"], host["slaveDelay"]) + bgcolours.ENDC
 
 
-def print_list_of_hosts(title, host_list):
+def print_list_of_hosts(title, host_list, colour):
     """
     Prints the title followed by the hosts in the list.
     :param title:
     :param host_list: [ { "hostname": <string>, "port": <int> }, ...]
     :return:
     """
-    print title
+    print bgcolours.BOLD + title + bgcolours.ENDC
     print_count = 0
     for host in host_list:
-        if print_count % 3 == 0: # max 3 hosts per line
+        if print_count % 3 == 0 and print_count > 0:  # max 3 hosts per line
             print ""
-        sys.stdout.write("{0}:{1}      ".format(host["hostname"], host["port"]))
+        sys.stdout.write(colour + "{0}:{1}      ".format(host["hostname"], host["port"]) + bgcolours.ENDC)
         print_count+=1
     print ""
 
+"""
+MAIN SECTION STARTS HERE
+"""
+parser = argparse.ArgumentParser(description='MongoDB Manager')
+parser.add_argument('--summary', action='store_true', help='Show a summary of the MongoDB Cluster Topology')
+parser.add_argument('--repl', action='store_true', help='Show a summary of the replicaset state')
+args = parser.parse_args()
+
 # Just connect to the default host for now. Options to come later
 mmo = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
-display_cluster_state(mmo)
+c = mmo.mmo_connect()
+if args.summary:
+    display_cluster_state(mmo)
+if args.repl:
+    rs = mmo.mmo_replication_status_summary(c)
+    print_replication_summary(rs)
+
 
 
 

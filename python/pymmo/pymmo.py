@@ -1,5 +1,6 @@
 from pymongo import MongoClient
 import re
+import datetime
 
 class MmoMongoCluster:
 
@@ -175,6 +176,38 @@ class MmoMongoCluster:
             cluster_command_output.append({ "hostname": hostname, "port": port, "shard": shard, "command_output": command_output })
         return cluster_command_output
 
+    def mmo_execute_on_primaries(self, mmo_connection, command):
+        """
+        Similar to the mmo_execute_on_cluster method but we only execute on the primaries.
+        :param mmo_connection:
+        :return: A list of dictionaries, containing hostname, port, shard and command_output, for each PRIMARY mongod in all shards
+        """
+        cluster_command_output = []
+        for doc in self.mmo_shard_servers(mmo_connection):
+            hostname, port, shard = doc["hostname"], doc["port"], doc["shard"]
+            auth_dic = self.mmo_get_auth_details_from_connection(mmo_connection)
+            c = self.mmo_connect_mongod(hostname, port, auth_dic["username"], auth_dic["password"], auth_dic["authentication_database"])
+            if self.mmo_replica_state(c)["name"] == "PRIMARY":
+                command_output = c["admin"].command(command)
+                cluster_command_output.append({ "hostname": hostname, "port": port, "shard": shard, "command_output": command_output })
+        return cluster_command_output
+
+    def mmo_execute_on_secondaries(self, mmo_connection, command):
+        """
+        Similar to the mmo_execute_on_cluster method but we only execute on the secondaries.
+        :param mmo_connection:
+        :return: A list of dictionaries, containing hostname, port, shard and command_output, for each SECONDARY mongod in all shards
+        """
+        cluster_command_output = []
+        for doc in self.mmo_shard_servers(mmo_connection):
+            hostname, port, shard = doc["hostname"], doc["port"], doc["shard"]
+            auth_dic = self.mmo_get_auth_details_from_connection(mmo_connection)
+            c = self.mmo_connect_mongod(hostname, port, auth_dic["username"], auth_dic["password"], auth_dic["authentication_database"])
+            if self.mmo_replica_state(c)["name"] == "SECONDARY":
+                command_output = c["admin"].command(command)
+                cluster_command_output.append({ "hostname": hostname, "port": port, "shard": shard, "command_output": command_output })
+        return cluster_command_output
+
     def mmo_replica_state(self, mmo_connection):
         """
         Return a string of the current replica state for the provided MongoD connection
@@ -208,3 +241,90 @@ class MmoMongoCluster:
         :return:
         """
         return self.shards
+
+    def mmo_replication_status(self, mmo_connection):
+        """
+        Returns a list of dictionaries containing the slaves of a replicaset and their status
+        :param mmo_connection:
+        :return: A list of dictionaries
+        """
+        replication_state = []
+        if self.mmo_is_mongos(mmo_connection):
+            o = self.mmo_execute_on_primaries(mmo_connection, "replSetGetStatus")
+            return o
+        else:
+            raise Exception("Not a mongos process")
+
+    def mmo_replication_status_summary(self, mmo_connection):
+        """
+        Returns a list of dictionaries dictionary containing the members of all replicasets in a cluster and some basic info about their status.
+        The information returned is from the point of view of the PRIMARY in each replicaset
+
+        Example of data returned:
+
+        [{'configVersion': 3,
+          'hostname': u'rhysmacbook.local:30001',
+          'optimeDate': datetime.datetime(2016, 3, 27, 15, 4, 26),
+          'replicaset': u'rs0',
+          'slaveDelay': 0.0,
+          'state': u'SECONDARY',
+          'uptime': 8212},
+         {'configVersion': 3,
+          'hostname': u'rhysmacbook.local:30002',
+          'optimeDate': datetime.datetime(2016, 3, 27, 15, 4, 26),
+          'replicaset': u'rs0',
+          'slaveDelay': 0.0,
+          'state': u'SECONDARY',
+          'uptime': 8212},
+         {'configVersion': 3,
+          'hostname': u'rhysmacbook.local:30003',
+          'optimeDate': datetime.datetime(2016, 3, 27, 15, 4, 26),
+          'replicaset': u'rs0',
+          'slaveDelay': 'NA',
+          'state': u'PRIMARY',
+          'uptime': 181773},
+         {'configVersion': 3,
+          'hostname': u'rhysmacbook.local:30004',
+          'optimeDate': datetime.datetime(2016, 3, 27, 15, 4, 26),
+          'replicaset': u'rs1',
+          'slaveDelay': 0.0,
+          'state': u'SECONDARY',
+          'uptime': 8205},
+         {'configVersion': 3,
+          'hostname': u'rhysmacbook.local:30005',
+          'optimeDate': datetime.datetime(2016, 3, 27, 15, 4, 26),
+          'replicaset': u'rs1',
+          'slaveDelay': 'NA',
+          'state': u'PRIMARY',
+          'uptime': 181773},
+         {'configVersion': 3,
+          'hostname': u'rhysmacbook.local:30006',
+          'optimeDate': datetime.datetime(2016, 3, 27, 15, 4, 26),
+          'replicaset': u'rs1',
+          'slaveDelay': 0.0,
+          'state': u'SECONDARY',
+          'uptime': 3878}]
+
+        :param mmo_connection:
+        :return: A list of dictionaries
+        """
+        replication_summary = []
+        primary_info = {}
+        o = self.mmo_replication_status(mmo_connection)
+        for replicaset in o:
+            for member in replicaset["command_output"]["members"]:
+                if member["stateStr"] == "PRIMARY":
+                    primary_info[replicaset["command_output"]["set"]] = member["optimeDate"]
+
+                replication_summary.append( { "replicaset": replicaset["command_output"]["set"],
+                                              "hostname": member["name"],
+                                              "state": member["stateStr"],
+                                              "uptime": member["uptime"],
+                                              "configVersion": member["configVersion"],
+                                              "optimeDate": member["optimeDate"] } )
+        for doc in replication_summary:
+            if doc["state"] == "PRIMARY":
+                doc["slaveDelay"] = "NA" # not relevant here
+            else: # calculate the slave lag from the PRIMARY optimeDate
+                doc["slaveDelay"] = (doc["optimeDate"] - primary_info[doc["replicaset"]]).total_seconds()
+        return replication_summary

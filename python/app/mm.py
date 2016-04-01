@@ -67,22 +67,24 @@ MAIN SECTION STARTS HERE
 parser = argparse.ArgumentParser(description='MongoDB Manager')
 parser.add_argument('--summary', action='store_true', help='Show a summary of the MongoDB Cluster Topology')
 parser.add_argument('--repl', action='store_true', help='Show a summary of the replicaset state')
-parser.add_argument("-h", "--mongo_hostname", type=String, default="localhost", required=False, help="Hostname for the MongoDB mongos process to connect to")
-parser.add_argument("-P", "--mongo_port", type=Int, default=27017, required=False, help="Port for the MongoDB mongos process to connect to")
-parser.add_argument("-u", "--mongo_username", type=String, default="admin", required=False, help="MongoDB username")
-parser.add_argument("-p", "--mongo_username", type=String, default="admin", required=False, help="MongoDB password")
-parser.add_argument("-D", "--mongo_auth_db", type=String, default="admin", required=False, help="MongoDB authentication database")
-
+parser.add_argument("-H", "--mongo_hostname", type=str, default="localhost", required=False, help="Hostname for the MongoDB mongos process to connect to")
+parser.add_argument("-P", "--mongo_port", type=int, default=27017, required=False, help="Port for the MongoDB mongos process to connect to")
+parser.add_argument("-u", "--mongo_username", type=str, default="admin", required=False, help="MongoDB username")
+parser.add_argument("-p", "--mongo_password", type=str, default="admin", required=False, help="MongoDB password")
+parser.add_argument("-D", "--mongo_auth_db", type=str, default="admin", required=False, help="MongoDB authentication database")
 args = parser.parse_args()
 
 # Just connect to the default host for now. Options to come later
 mmo = MmoMongoCluster(args.mongo_hostname, args.mongo_port, args.mongo_username, args.mongo_password, args.mongo_auth_db)
 c = mmo.mmo_connect()
-if args.summary:
-    display_cluster_state(mmo)
-if args.repl:
-    rs = mmo.mmo_replication_status_summary(c)
-    print_replication_summary(rs)
+if c:
+    if args.summary:
+        display_cluster_state(mmo)
+    if args.repl:
+        rs = mmo.mmo_replication_status_summary(c)
+        print_replication_summary(rs)
+else:
+    exit(1)
 
 
 

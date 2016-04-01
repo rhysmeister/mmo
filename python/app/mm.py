@@ -33,16 +33,16 @@ def display_cluster_state(mmo):
     print_list_of_hosts("MongoDB Config Servers", config_servers, bgcolours.OKGREEN)
     print_list_of_hosts("MongoDB mongos servers", mongos_servers, bgcolours.OKGREEN)
     print_list_of_hosts("MongoDB mongod shard servers", mongod_shard_servers, bgcolours.OKGREEN)
-    print bgcolours.BOLD + "MongoDB shards" + bgcolours.ENDC
+    print(bgcolours.BOLD + "MongoDB shards" + bgcolours.ENDC)
     for shard in shards:
         sys.stdout.write( bgcolours.OKGREEN + "{0}   ".format(shard) + bgcolours.ENDC)
-    print ""
+    print("")
 
 
 def print_replication_summary(replication_summary):
-    print bgcolours.BOLD + "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10}".format("hostname", "replicaset", "state", "configV", "uptime", "slaveDelay") + bgcolours.ENDC
+    print(bgcolours.BOLD + "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10}".format("hostname", "replicaset", "state", "configV", "uptime", "slaveDelay") + bgcolours.ENDC)
     for host in replication_summary:
-        print bgcolours.OKGREEN + "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10}".format(host["hostname"], host["replicaset"], host["state"], host["configVersion"], host["uptime"], host["slaveDelay"]) + bgcolours.ENDC
+        print(bgcolours.OKGREEN + "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10}".format(host["hostname"], host["replicaset"], host["state"], host["configVersion"], host["uptime"], host["slaveDelay"]) + bgcolours.ENDC)
 
 
 def print_list_of_hosts(title, host_list, colour):
@@ -52,14 +52,14 @@ def print_list_of_hosts(title, host_list, colour):
     :param host_list: [ { "hostname": <string>, "port": <int> }, ...]
     :return:
     """
-    print bgcolours.BOLD + title + bgcolours.ENDC
+    print(bgcolours.BOLD + title + bgcolours.ENDC)
     print_count = 0
     for host in host_list:
         if print_count % 3 == 0 and print_count > 0:  # max 3 hosts per line
-            print ""
+            print("")
         sys.stdout.write(colour + "{0}:{1}      ".format(host["hostname"], host["port"]) + bgcolours.ENDC)
         print_count+=1
-    print ""
+    print("")
 
 """
 MAIN SECTION STARTS HERE
@@ -67,10 +67,16 @@ MAIN SECTION STARTS HERE
 parser = argparse.ArgumentParser(description='MongoDB Manager')
 parser.add_argument('--summary', action='store_true', help='Show a summary of the MongoDB Cluster Topology')
 parser.add_argument('--repl', action='store_true', help='Show a summary of the replicaset state')
+parser.add_argument("-h", "--mongo_hostname", type=String, default="localhost", required=False, help="Hostname for the MongoDB mongos process to connect to")
+parser.add_argument("-P", "--mongo_port", type=Int, default=27017, required=False, help="Port for the MongoDB mongos process to connect to")
+parser.add_argument("-u", "--mongo_username", type=String, default="admin", required=False, help="MongoDB username")
+parser.add_argument("-p", "--mongo_username", type=String, default="admin", required=False, help="MongoDB password")
+parser.add_argument("-D", "--mongo_auth_db", type=String, default="admin", required=False, help="MongoDB authentication database")
+
 args = parser.parse_args()
 
 # Just connect to the default host for now. Options to come later
-mmo = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
+mmo = MmoMongoCluster(args.mongo_hostname, args.mongo_port, args.mongo_username, args.mongo_password, args.mongo_auth_db)
 c = mmo.mmo_connect()
 if args.summary:
     display_cluster_state(mmo)

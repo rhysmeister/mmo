@@ -130,6 +130,13 @@ class TestPyMmoMethods(unittest.TestCase):
         self.assertEquals(6, len(o))
         self.assertTrue("slaveDelay" in str(o))
 
+    def test_mmo_cluster_serverStatus(self):
+        m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
+        c = m.mmo_connect()
+        o = m.mmo_cluster_serverStatus(c)
+        self.assertEquals(6, len(o))
+        self.assertTrue("metrics" in str(o))
+
 if __name__ == '__main__':
     unittest.main()
 

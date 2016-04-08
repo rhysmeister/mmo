@@ -160,6 +160,25 @@ def display_backgroundFlushing_for_cluster(mmo, c, inc_mongos):
                                                                                doc["command_output"]["backgroundFlushing"]["last_ms"],
                                                                                doc["command_output"]["backgroundFlushing"]["last_finished"]))
 
+def display_connections_for_cluster(mmo, c, inc_mongos):
+    """
+    Print the connection stats for the shard mongod process in the cluster
+    """
+    serverStatus = mmo.mmo_cluster_serverStatus(c, inc_mongos)
+    sys.stdout.write( "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10}\n".format("hostname",
+                                                                           "shard",
+                                                                           "port",
+                                                                           "current",
+                                                                           "available",
+                                                                           "totalCreated"))
+    for doc in serverStatus:
+        sys.stdout.write( "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10}\n".format(doc["hostname"],
+                                                                               doc["shard"],
+                                                                               doc["port"],
+                                                                               doc["command_output"]["connections"]["current"],
+                                                                               doc["command_output"]["connections"]["available"],
+                                                                               doc["command_output"]["connections"]["totalCreated"]))
+
 def display_journaling_for_cluster(mmo, c, inc_mongos):
     """
     "dur" : {
@@ -179,7 +198,7 @@ def display_journaling_for_cluster(mmo, c, inc_mongos):
       "commitsInWriteLock" : <num>
    }
 }
-    TODO add addiotnal stat if screen space
+    TODO add additional stat if screen space
     :param mmo:
     :param c:
     :param inc_mongos:
@@ -234,26 +253,7 @@ def display_extra_info_for_cluster(mmo, c, inc_mongos):
                                                                                doc["command_output"]["extra_info"]["heap_usage_bytes"],
                                                                                doc["command_output"]["extra_info"]["page_faults"]))
 
-def display_connections_for_cluster(mmo, c, inc_mongos):
-    """
-    Print the connection stats for the shard mongod process in the cluster
-    """
-    serverStatus = mmo.mmo_cluster_serverStatus(c, inc_mongos)
-    sys.stdout.write( "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10}\n".format("hostname",
-                                                                           "shard",
-                                                                           "port",
-                                                                           "current",
-                                                                           "available",
-                                                                           "totalCreated"))
-    for doc in serverStatus:
-        sys.stdout.write( "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10}\n".format(doc["hostname"],
-                                                                               doc["shard"],
-                                                                               doc["port"],
-                                                                               doc["command_output"]["connections"]["current"],
-                                                                               doc["command_output"]["connections"]["available"],
-                                                                               doc["command_output"]["connections"]["totalCreated"]))
-
-def display_opcounters_for_cluster(mmo, c, inc_mongos):
+def display_opcounters_for_cluster(mmo, c, inc_mongos, repl=False):
     """
     Display the opcounters for all nodes in the cluster
     "opcounters" : {
@@ -264,11 +264,28 @@ def display_opcounters_for_cluster(mmo, c, inc_mongos):
    "getmore" : <num>,
    "command" : <num>
     }
+
+    When repl = True we'll displau the opcounters from the replication document instead
+
+    "opcountersRepl" : {
+   "insert" : <num>,
+   "query" : <num>,
+   "update" : <num>,
+   "delete" : <num>,
+   "getmore" : <num>,
+   "command" : <num>
+    },
+
     :param mmo:
     :param c:
     :param inc_mongos:
     :return:
     """
+
+    document = "opcounters"
+    if repl:
+        document = "opcountersRepl"
+
     serverStatus = mmo.mmo_cluster_serverStatus(c, inc_mongos)
     sys.stdout.write( "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10}\n".format("hostname",
                                                                                                    "shard",
@@ -283,13 +300,62 @@ def display_opcounters_for_cluster(mmo, c, inc_mongos):
         sys.stdout.write( "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10}\n".format(doc["hostname"],
                                                                                                    doc["shard"],
                                                                                                    doc["port"],
-                                                                                                   doc["command_output"]["opcounters"]["insert"],
-                                                                                                   doc["command_output"]["opcounters"]["query"],
-                                                                                                   doc["command_output"]["opcounters"]["update"],
-                                                                                                   doc["command_output"]["opcounters"]["delete"],
-                                                                                                   doc["command_output"]["opcounters"]["getmore"],
-                                                                                                   doc["command_output"]["opcounters"]["command"]))
+                                                                                                   doc["command_output"][document]["insert"],
+                                                                                                   doc["command_output"][document]["query"],
+                                                                                                   doc["command_output"][document]["update"],
+                                                                                                   doc["command_output"][document]["delete"],
+                                                                                                   doc["command_output"][document]["getmore"],
+                                                                                                   doc["command_output"][document]["command"]))
 
+def display_globalLock_for_cluster(mmo, c, in_mongos):
+    """
+    Display the global lock document for the database.
+    "globalLock" : {
+   "totalTime" : <num>,
+   "currentQueue" : {
+      "total" : <num>,
+      "readers" : <num>,
+      "writers" : <num>
+   },
+   "activeClients" : {
+      "total" : <num>,
+      "readers" : <num>,
+      "writers" : <num>
+   }
+    },
+    :param mmo:
+    :param c:
+    :param in_mongos:
+    :return:
+    """
+    serverStatus = mmo.mmo_cluster_serverStatus(c, in_mongos)
+    sys.stdout.write( "{:<30} {:<10} {:<10} {:<10} {:<30} {:<30}\n".format("",
+                                                                           "",
+                                                                           "",
+                                                                           "",
+                                                                           "currentQueue",
+                                                                           "activeClients"))
+    sys.stdout.write( "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10}\n".format( "hostname",
+                                                                                                        "shard",
+                                                                                                        "port",
+                                                                                                        "totalTime",
+                                                                                                        "total",
+                                                                                                         "readers",
+                                                                                                         "writers",
+                                                                                                         "total",
+                                                                                                         "readers",
+                                                                                                         "writers"))
+    for doc in serverStatus:
+        sys.stdout.write( "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10}\n".format(doc["hostname"],
+                                                                                    doc["shard"],
+                                                                                    doc["port"],
+                                                                                    doc["command_output"]["globalLock"]["totalTime"],
+                                                                                    doc["command_output"]["globalLock"]["currentQueue"]["total"],
+                                                                                    doc["command_output"]["globalLock"]["currentQueue"]["readers"],
+                                                                                    doc["command_output"]["globalLock"]["currentQueue"]["writers"],
+                                                                                    doc["command_output"]["globalLock"]["activeClients"]["total"],
+                                                                                    doc["command_output"]["globalLock"]["activeClients"]["readers"],
+                                                                                    doc["command_output"]["globalLock"]["activeClients"]["writers"]))
 
 def display_network_for_cluster(mmo, c, inc_mongos):
     """
@@ -310,6 +376,90 @@ def display_network_for_cluster(mmo, c, inc_mongos):
                                                                                doc["command_output"]["network"]["bytesOut"],
                                                                                doc["command_output"]["network"]["numRequests"]))
 
+def display_security_for_cluster(mmo, c, inc_mongos):
+    """
+    Print the security document for each mongod shard in the cluster.
+    TODO - This document is only present if the feature is enabled. Add soemthign to check for the key and exit gracefully
+    "security" : {
+   "SSLServerSubjectName": <string>,
+   "SSLServerHasCertificateAuthority": <boolean>,
+   "SSLServerCertificateExpirationDate": <date>
+    }
+    """
+    serverStatus = mmo.mmo_cluster_serverStatus(c, inc_mongos)
+    sys.stdout.write( "{:<30} {:<10} {:<10} {:<20} {:<32} {:<34}\n".format("hostname",
+                                                                           "shard",
+                                                                           "port",
+                                                                           "SSLServerSubjectName",
+                                                                           "SSLServerHasCertificateAuthority",
+                                                                           "SSLServerCertificateExpirationDate"))
+    for doc in serverStatus:
+        sys.stdout.write( "{:<30} {:<10} {:<10}  {:<20} {:<32} {:<34}\n".format(doc["hostname"],
+                                                                              doc["shard"],
+                                                                               doc["port"],
+                                                                               doc["command_output"]["security"]["SSLServerSubjectName"],
+                                                                               doc["command_output"]["security"]["SSLServerHasCertificateAuthority"],
+                                                                               doc["command_output"]["security"]["SSLServerCertificateExpirationDate"]))
+
+def display_storage_engine_for_cluster(mmo, c, inc_mongos):
+    """
+    Display the storage engine details for each host in the cluster
+    "storageEngine" : {
+   "name" : <string>,
+   "supportsCommittedReads" : <boolean>
+    },
+    """
+    serverStatus = mmo.mmo_cluster_serverStatus(c, inc_mongos)
+    sys.stdout.write( "{:<30} {:<10} {:<10} {:<15} {:<22}\n".format("hostname",
+                                                                    "shard",
+                                                                    "port",
+                                                                    "name",
+                                                                    "supportsCommittedReads"))
+    for doc in serverStatus:
+        sys.stdout.write( "{:<30} {:<10} {:<10} {:<15} {:<22}\n".format(doc["hostname"],
+                                                                                doc["shard"],
+                                                                                doc["port"],
+                                                                                doc["command_output"]["storageEngine"]["name"],
+                                                                                doc["command_output"]["storageEngine"]["supportsCommittedReads"]))
+
+def display_wired_tiger_for_cluster(mmo, c, sub_doc, inc_mongos):
+    """
+    Display wired tiger stats
+    """
+    raise "Not implemented!"
+
+def display_mem_for_cluster(mmo, c, inc_mongos):
+    """
+    Display details from the mem document for each mongod process in the cluster
+    "mem" : {
+   "bits" : <int>,
+   "resident" : <int>,
+   "virtual" : <int>,
+   "supported" : <boolean>,
+   "mapped" : <int>,
+   "mappedWithJournal" : <int>
+    },
+    """
+    serverStatus = mmo.mmo_cluster_serverStatus(c, inc_mongos)
+    sys.stdout.write("{:<30} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<18}\n".format("hostname",
+                                                                                                "shard",
+                                                                                                "port",
+                                                                                                "bits",
+                                                                                                "resident",
+                                                                                                "virtual",
+                                                                                                "supported",
+                                                                                                "mapped",
+                                                                                                "mappedWithJournal"))
+    for doc in serverStatus:
+        sys.stdout.write("{:<30} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<18}\n".format(doc["hostname"],
+                                                                                                   doc["shard"],
+                                                                                                   doc["port"],
+                                                                                                   doc["command_output"]["mem"]["bits"],
+                                                                                                   doc["command_output"]["mem"]["resident"],
+                                                                                                   doc["command_output"]["mem"]["virtual"],
+                                                                                                   doc["command_output"]["mem"]["supported"],
+                                                                                                   doc["command_output"]["mem"]["mapped"],
+                                                                                                   doc["command_output"]["mem"].get("mappedWithJournal", "NA"))) # Only present for MMAPv1
 """
 MAIN SECTION STARTS HERE
 """
@@ -322,8 +472,13 @@ parser.add_argument('--flushing', action='store_true', help='Show the flushing s
 parser.add_argument('--journaling', action='store_true', help='Show the journal stats from all the shard mongod processes. Only applies to the MMAPv1 engine and journaling must be enabled.')
 parser.add_argument('--extra_info', action='store_true', help='Show the extra_info section from the serverStatus document.')
 parser.add_argument('--connections', action='store_true', help='Show the connection stats from all the shard mongod processes')
+parser.add_argument('--global_lock', action='store_true', help='Show the global locks stats from all the shard mongod processes')
 parser.add_argument('--network', action='store_true', help='Show the network stats from all the shard mongod processes')
 parser.add_argument('--opcounters', action='store_true', help='Show the opcounters stats from all the shard mongod processes')
+parser.add_argument('--opcounters_repl', action='store_true', help='Show the opcountersRepl stats from all the shard mongod processes')
+parser.add_argument('--security', action='store_true', help='Show the security info from all the shard mongod processes')
+parser.add_argument('--storage_engine', action='store_true', help='Show the storage engine info from all the shard mongod processes')
+parser.add_argument('--memory', action='store_true', help='Show the memory info from all the shard mongod processes')
 parser.add_argument('--show_all', action='store_true', help='Show all information screens')
 parser.add_argument('--inc_mongos', action='store_true', help='Optionally execute against the mongos servers. This will fail if the command is not supported by mongos.')
 parser.add_argument("-H", "--mongo_hostname", type=str, default="localhost", required=False, help="Hostname for the MongoDB mongos process to connect to")
@@ -334,7 +489,7 @@ parser.add_argument("-D", "--mongo_auth_db", type=str, default="admin", required
 parser.add_argument("-r", "--repeat", type=int, default=1, required=False, help="Repeat the action N number of times")
 parser.add_argument("-i", "--interval", type=int, default=2, required=False, help="Number of seconds between each repeat")
 args = parser.parse_args()
-
+# TODO Add hostinfo stuff
 ###################################################
 # Main program starts here
 ###################################################
@@ -361,10 +516,20 @@ if c:
             display_extra_info_for_cluster(mmo, c, args.inc_mongos)
         if args.connections or args.show_all:
             display_connections_for_cluster(mmo, c, args.inc_mongos)
+        if args.global_lock or args.show_all:
+            display_globalLock_for_cluster(mmo, c, args.inc_mongos)
         if args.network or args.show_all:
             display_network_for_cluster(mmo, c, args.inc_mongos)
         if args.opcounters or args.show_all:
-            display_opcounters_for_cluster(mmo, c, args.inc_mongos)
+            display_opcounters_for_cluster(mmo, c, args.inc_mongos, False)
+        if args.opcounters_repl or args.show_all:
+            display_opcounters_for_cluster(mmo, c, args.inc_mongos, True)
+        if args.security or args.show_all:
+            display_security_for_cluster(mmo, c, args.inc_mongos)
+        if args.storage_engine or args.show_all:
+            display_storage_engine_for_cluster(mmo, c, args.inc_mongos)
+        if args.memory or args.show_all:
+            display_mem_for_cluster(mmo, c, args.inc_mongos)
         args.repeat -= 1
         if args.repeat > 0:
             time.sleep(args.interval)

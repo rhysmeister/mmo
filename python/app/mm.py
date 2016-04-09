@@ -14,7 +14,6 @@ import os
 import sys
 import argparse
 import time
-from curses import wrapper
 
 from bgcolours import bgcolours
 
@@ -460,34 +459,206 @@ def display_mem_for_cluster(mmo, c, inc_mongos):
                                                                                                    doc["command_output"]["mem"]["supported"],
                                                                                                    doc["command_output"]["mem"]["mapped"],
                                                                                                    doc["command_output"]["mem"].get("mappedWithJournal", "NA"))) # Only present for MMAPv1
+def display_host_info_for_cluster(mmo, c, inc_mongos, sub_command):
+    """
+    Summaries the content of the host_info document
+    {
+   "system" : {
+          "currentTime" : ISODate("<timestamp>"),
+          "hostname" : "<hostname>",
+          "cpuAddrSize" : <number>,
+          "memSizeMB" : <number>,
+          "numCores" : <number>,
+          "cpuArch" : "<identifier>",
+          "numaEnabled" : <boolean>
+   },
+   "os" : {
+          "type" : "<string>",
+          "name" : "<string>",
+          "version" : "<string>"
+   },
+   "extra" : {
+          "versionString" : "<string>",
+          "libcVersion" : "<string>",
+          "kernelVersion" : "<string>",
+          "cpuFrequencyMHz" : "<string>",
+          "cpuFeatures" : "<string>",
+          "pageSize" : <number>,
+          "numPages" : <number>,
+          "maxOpenFiles" : <number>
+   },
+   "ok" : <return>
+    }
+    :param mmo:
+    :param c:
+    :param inc_mongos:
+    :return:
+    """
+    hostInfo = mmo.mmo_cluster_hostInfo(c, inc_mongos)
+
+    if sub_command == "system":
+        currentTimes = set() # So we can compare the currentTime of each host
+        sys.stdout.write("{:<30} {:<10} {:<10} {:<12} {:<10} {:<10} {:<8} {:<10}\n".format("hostname",
+                                                                                                  "shard",
+                                                                                                  "port",
+                                                                                                  "cpuAddrSize",
+                                                                                                  "memSizeMB",
+                                                                                                  "numCores",
+                                                                                                  "cpuArch",
+                                                                                                  "numaEnabled"))
+        for doc in hostInfo:
+            sys.stdout.write("{:<30} {:<10} {:<10} {:<12} {:<10} {:<10} {:<8} {:<10}\n".format(doc["hostname"],
+                                                                                                       doc["shard"],
+                                                                                                       doc["port"],
+                                                                                                       doc["command_output"]["system"]["cpuAddrSize"],
+                                                                                                       doc["command_output"]["system"]["memSizeMB"],
+                                                                                                       doc["command_output"]["system"]["numCores"],
+                                                                                                       doc["command_output"]["system"]["cpuArch"],
+                                                                                                       doc["command_output"]["system"]["numaEnabled"]))
+            currentTimes.add(doc["command_output"]["system"]["currentTime"])
+        diff = max(currentTimes) - min(currentTimes)
+        diff = diff.total_seconds() * 1000
+        line = "Time difference in milliseconds between the cluster nodes: " + str(diff) + " ms (not concurrently sampled)"
+
+        print line
+    elif sub_command == "os":
+        sys.stdout.write("{:<30} {:<10} {:<10} {:<10} {:<10} {:<10}\n".format("hostname",
+                                                                              "shard",
+                                                                              "port",
+                                                                              "type",
+                                                                              "name",
+                                                                              "version"))
+        for doc in hostInfo:
+            sys.stdout.write("{:<30} {:<10} {:<10} {:<10} {:<10} {:<10} \n".format(doc["hostname"],
+                                                                                   doc["shard"],
+                                                                                   doc["port"],
+                                                                                   doc["command_output"]["os"]["type"],
+                                                                                   doc["command_output"]["os"]["name"],
+                                                                                   doc["command_output"]["os"]["version"]))
+    elif sub_command == "extra":
+        versionStrings = [] # Too big to display so we'll collect and output later
+        max_hostname_length = 0
+        sys.stdout.write("{:<30} {:<10} {:<10} {:<12} {:<15} {:<18} {:<10} {:<10} {:<12}\n".format("hostname",
+                                                                                                                  "shard",
+                                                                                                                  "port",
+                                                                                                                  #"versionString",
+                                                                                                                  "libcVersion",
+                                                                                                                  "kernelVersion",
+                                                                                                                  "cpuFrequencyMHz",
+                                                                                                                  #"cpuFeatures",
+                                                                                                                  "pageSize",
+                                                                                                                  "numPages",
+                                                                                                                  "maxOpenFiles"))
+        for doc in hostInfo:
+            sys.stdout.write("{:<30} {:<10} {:<10} {:<12} {:<15} {:<18} {:<10} {:<10} {:<12}\n".format(doc["hostname"],
+                                                                                                       doc["shard"],
+                                                                                                       doc["port"],
+                                                                                                       #doc["command_output"]["extra"]["versionString"],
+                                                                                                       doc["command_output"]["extra"].get("libcVersion", "NA"),
+                                                                                                       doc["command_output"]["extra"].get("kernelVersion", "NA"),
+                                                                                                       doc["command_output"]["extra"]["cpuFrequencyMHz"],
+                                                                                                       #doc["command_output"]["extra"]["cpuFeatures"], Too big
+                                                                                                       doc["command_output"]["extra"]["pageSize"],
+                                                                                                       doc["command_output"]["extra"].get("numPages", "NA"),
+                                                                                                       doc["command_output"]["extra"].get("maxOpenFiles", "NA")))
+            versionStrings.append({ "hostname": doc["hostname"],
+                                    "port": doc["port"],
+                                    "versionString": doc["command_output"]["extra"]["versionString"]})
+            if len(doc["hostname"]) > max_hostname_length: # TODO Extract this to it's own function so we can reuse
+                max_hostname_length = len(doc["hostname"])
+        print "Version Strings: "
+        for v in versionStrings:
+            line = "{:<" + str(max_hostname_length + 2) + "} {:<10} {:<100}"
+            print line.format(v["hostname"],
+                              v["port"],
+                              v["versionString"])
+
+
+
+
+def print_server_status_help():
+    print "Extracts and displays certain bits of information from the serverStatus document produced in the mongo shell command db.serverStatus()"
+    print "Usage: mm --server_status <option>"
+    print "Options: "
+    print "{:<30} {:<100}".format("instance", "Show the instance info from all the shard mongod processes")
+    print "{:<30} {:<100}".format("asserts", "Show the asserts stats from all the shard mongod processes")
+    print "{:<30} {:<100}\n{:<30} {:<100}".format("flushing",
+                                                  "Show the flushing stats from all the shard mongod processes.",
+                                                  "",
+                                                  "Only applies to the MMAPv1 engine.")
+    print "{:<30} {:<100}\n{:<30} {:<100}".format("journaling",
+                                                  "Show the journal stats from all the shard mongod processes.",
+                                                  "",
+                                                  "Only applies to the MMAPv1 engine and journaling must be enabled.")
+    print "{:<30} {:<100}".format("extra_info", "Show the extra_info section from the serverStatus document.")
+    print "{:<30} {:<100}".format("connections", "Show the connection stats from all the shard mongod processes")
+    print "{:<30} {:<100}".format("global_lock", "Show the global locks stats from all the shard mongod processes")
+    print "{:<30} {:<100}".format("network", "Show the network stats from all the shard mongod processes")
+    print "{:<30} {:<100}".format("opcounters", "Show the opcounters stats from all the shard mongod processes")
+    print "{:<30} {:<100}".format("opcounters_repl", "Show the opcountersRepl stats from all the shard mongod processes")
+    print "{:<30} {:<100}".format("security", "Show the security info from all the shard mongod processes")
+    print "{:<30} {:<100}".format("storage_engine", "Show the storage engine info from all the shard mongod processes")
+    print "{:<30} {:<100}".format("memory", "Show the memory info from all the shard mongod processes")
+    print "{:<30} {:<100}".format("show_all", "Show all supported information screens")
+    print "{:<30} {:<100}".format("help", "Show this help message")
+
+def print_host_info_help():
+    print "Extracts and displays information from the hostInfo document produced in the mongo shell by the mongo shell command db.hostInfo()"
+    print "Usage: mm --host_info <option>"
+    print "Options: "
+    print "{:<30} {:<100}".format("system", "An embedded document providing information about the ",
+                                            "underlying environment of the system running the mongod or mongos")
+    print "{:<30} {:<100}\n{:<30} {:<100}".format("os",
+                                                  "An embedded document that contains information about the operating system ",
+                                                  "",
+                                                  "running the mongod and mongos.")
+    print "{:<30} {:<100}\n{:<30} {:<100}\n{:<30} {:<100}".format("extra",
+                                                                  "An embedded document with extra information about the operating ",
+                                                                  "",
+                                                                "system and the underlying hardware. The content of the extra embedded ",
+                                                                  "",
+                                                                "document  depends on the operating system.")
+    print "{:<30} {:<100}".format("help", "Show this help message")
+
 """
 MAIN SECTION STARTS HERE
 """
 parser = argparse.ArgumentParser(description='MongoDB Manager')
 parser.add_argument('--summary', action='store_true', help='Show a summary of the MongoDB Cluster Topology')
 parser.add_argument('--repl', action='store_true', help='Show a summary of the replicaset state')
-parser.add_argument('--instance', action='store_true', help='Show the instance info from all the shard mongod processes')
-parser.add_argument('--asserts', action='store_true', help='Show the asserts stats from all the shard mongod processes')
-parser.add_argument('--flushing', action='store_true', help='Show the flushing stats from all the shard mongod processes. Only applies to the MMAPv1 engine.')
-parser.add_argument('--journaling', action='store_true', help='Show the journal stats from all the shard mongod processes. Only applies to the MMAPv1 engine and journaling must be enabled.')
-parser.add_argument('--extra_info', action='store_true', help='Show the extra_info section from the serverStatus document.')
-parser.add_argument('--connections', action='store_true', help='Show the connection stats from all the shard mongod processes')
-parser.add_argument('--global_lock', action='store_true', help='Show the global locks stats from all the shard mongod processes')
-parser.add_argument('--network', action='store_true', help='Show the network stats from all the shard mongod processes')
-parser.add_argument('--opcounters', action='store_true', help='Show the opcounters stats from all the shard mongod processes')
-parser.add_argument('--opcounters_repl', action='store_true', help='Show the opcountersRepl stats from all the shard mongod processes')
-parser.add_argument('--security', action='store_true', help='Show the security info from all the shard mongod processes')
-parser.add_argument('--storage_engine', action='store_true', help='Show the storage engine info from all the shard mongod processes')
-parser.add_argument('--memory', action='store_true', help='Show the memory info from all the shard mongod processes')
-parser.add_argument('--show_all', action='store_true', help='Show all information screens')
+
+server_status_choices = ['instance',
+                         'asserts',
+                         'flushing',
+                         'journaling',
+                         'extra_info',
+                         'connections',
+                         'global_lock',
+                         'network',
+                         'opcounters',
+                         'opcounters_repl',
+                         'security',
+                         'storage_engine',
+                         'memory',
+                         'show_all']
+parser.add_argument('--server_status', type=str, default="", choices=server_status_choices, help="Show a summary of the appropriate section from the serverStatus document from all mongod processes.")
+host_info_choices = ["system",
+                     "os",
+                     "extra",
+                     "help"]
+parser.add_argument('--host_info', type=str, default="", choices=host_info_choices, help="Show a summary of the appropriate section from the hostInfo document from all mongod processes.")
+
 parser.add_argument('--inc_mongos', action='store_true', help='Optionally execute against the mongos servers. This will fail if the command is not supported by mongos.')
+
 parser.add_argument("-H", "--mongo_hostname", type=str, default="localhost", required=False, help="Hostname for the MongoDB mongos process to connect to")
 parser.add_argument("-P", "--mongo_port", type=int, default=27017, required=False, help="Port for the MongoDB mongos process to connect to")
 parser.add_argument("-u", "--mongo_username", type=str, default="admin", required=False, help="MongoDB username")
 parser.add_argument("-p", "--mongo_password", type=str, default="admin", required=False, help="MongoDB password")
 parser.add_argument("-D", "--mongo_auth_db", type=str, default="admin", required=False, help="MongoDB authentication database")
+
 parser.add_argument("-r", "--repeat", type=int, default=1, required=False, help="Repeat the action N number of times")
 parser.add_argument("-i", "--interval", type=int, default=2, required=False, help="Number of seconds between each repeat")
+
 args = parser.parse_args()
 # TODO Add hostinfo stuff
 ###################################################
@@ -499,37 +670,44 @@ c = mmo.mmo_connect()
 
 if c:
     while args.repeat != 0:
-        if args.summary or args.show_all:
+        if args.summary or args.server_status == "show_all":
             display_cluster_state(mmo, c)
-        if args.repl or args.show_all:
+        if args.repl or args.server_status == "show_all":
             rs = mmo.mmo_replication_status_summary(c)
             print_replication_summary(rs)
-        if args.instance or args.show_all:
+        if args.server_status in ["instance", "show_all"]:
             display_instance_info_for_cluster(mmo, c, args.inc_mongos)
-        if args.asserts or args.show_all:
+        if args.server_status in ["asserts", "show_all"]:
             display_asserts_for_cluster(mmo, c, args.inc_mongos)
-        if args.flushing or args.show_all:
+        if args.server_status in ["flushing", "show_all"]:
             display_backgroundFlushing_for_cluster(mmo, c, args.inc_mongos)
-        if args.journaling or args.show_all:
+        if args.server_status in ["journaling", "show_all"]:
             display_journaling_for_cluster(mmo, c, args.inc_mongos)
-        if args.extra_info or args.show_all:
+        if args.server_status in ["extra_info", "show_all"]:
             display_extra_info_for_cluster(mmo, c, args.inc_mongos)
-        if args.connections or args.show_all:
+        if args.server_status in ["connections", "show_all"]:
             display_connections_for_cluster(mmo, c, args.inc_mongos)
-        if args.global_lock or args.show_all:
+        if args.server_status in ["global_lock", "show_all"]:
             display_globalLock_for_cluster(mmo, c, args.inc_mongos)
-        if args.network or args.show_all:
+        if args.server_status in ["network", "show_all"]:
             display_network_for_cluster(mmo, c, args.inc_mongos)
-        if args.opcounters or args.show_all:
+        if args.server_status in ["opcounters", "show_all"]:
             display_opcounters_for_cluster(mmo, c, args.inc_mongos, False)
-        if args.opcounters_repl or args.show_all:
+        if args.server_status in ["opcounters_repl", "show_all"]:
             display_opcounters_for_cluster(mmo, c, args.inc_mongos, True)
-        if args.security or args.show_all:
+        if args.server_status in ["security", "show_all"]:
             display_security_for_cluster(mmo, c, args.inc_mongos)
-        if args.storage_engine or args.show_all:
+        if args.server_status in ["storage_engine", "show_all"]:
             display_storage_engine_for_cluster(mmo, c, args.inc_mongos)
-        if args.memory or args.show_all:
+        if args.server_status in ["memory", "show_all"]:
             display_mem_for_cluster(mmo, c, args.inc_mongos)
+        if args.host_info in host_info_choices:
+            if args.host_info == "help":
+                print_host_info_help()
+            else:
+                display_host_info_for_cluster(mmo, c, args.inc_mongos, args.host_info)
+        if args.server_status == "help":
+            print_server_status_help()
         args.repeat -= 1
         if args.repeat > 0:
             time.sleep(args.interval)

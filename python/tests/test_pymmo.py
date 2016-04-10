@@ -167,6 +167,13 @@ class TestPyMmoMethods(unittest.TestCase):
         self.assertTrue("restaurants" in str(o))
         self.assertTrue("sample_messages" in str(o))
 
+    def test_mmo_execute_on_cluster_on_each_db(self):
+        m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
+        c = m.mmo_connect()
+        o = m.mmo_execute_on_cluster_on_each_db(c, "dbHash", False)
+        print str(o)
+        self.assertEquals(3, len(o))
+
 if __name__ == '__main__':
     unittest.main()
 

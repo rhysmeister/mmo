@@ -66,6 +66,18 @@ class MmoMongoCluster:
         else:
             return client
 
+    def mmo_connect_mongos(self, hostname, port, username, password, authentication_db):
+        """
+        Initiates a connection to the MongoDB mongos process.
+        :return:
+        """
+        client = MongoClient(hostname, port)
+        client[authentication_db].authenticate(username, password)
+        if self.mmo_is_mongos(client) == False:
+            raise Exception("MongoDB connection is not a mongos process")
+        else:
+            return client
+
     def mmo_mongos_servers(self, mmo_connection):
         """
         Returns a list of dictionaries containing the hostname and port of the MongoDB cluster's mongos servers.
@@ -161,10 +173,12 @@ class MmoMongoCluster:
         auth_dict = { "username": username, "password": password, "authentication_database": authentication_database }
         return auth_dict
 
-    def mmo_execute_on_cluster(self, mmo_connection, command):
+    def mmo_execute_on_cluster(self, mmo_connection, command, inc_mongos=False, execution_database="admin"):
         """
-        Execute a command on all shard servers (mongod) in a MongoDB Cluster. All commands are executed in the context of the admin database
+        Execute a command on all shard servers (mongod), in a MongoDB Cluster. All commands are executed in the context of the admin database
         :param mmo_connection:
+        :param command: The command to execute. This should be a string.
+        :param: inc_mongos: Optionally execute the command on the mongos servers
         :return: A list of dictionaries, containing hostname, port, shard and command_output, for each mongod in all shards
         """
         cluster_command_output = []
@@ -172,11 +186,18 @@ class MmoMongoCluster:
             hostname, port, shard = doc["hostname"], doc["port"], doc["shard"]
             auth_dic = self.mmo_get_auth_details_from_connection(mmo_connection)
             c = self.mmo_connect_mongod(hostname, port, auth_dic["username"], auth_dic["password"], auth_dic["authentication_database"])
-            command_output = c["admin"].command(command)
-            cluster_command_output.append({ "hostname": hostname, "port": port, "shard": shard, "command_output": command_output })
+            command_output = c[execution_database].command(command)
+            cluster_command_output.append({ "hostname": hostname, "port": port, "shard": shard, "command_output": command_output, "db": execution_database })
+        if inc_mongos:
+            for doc in self.mmo_mongos_servers(mmo_connection):
+                hostname, port = doc["hostname"], doc["port"]
+                auth_dic = self.mmo_get_auth_details_from_connection(mmo_connection)
+                c = self.mmo_connect_mongos(hostname, port, auth_dic["username"], auth_dic["password"], auth_dic["authentication_database"])
+                command_output = c[execution_database].command(command)
+                cluster_command_output.append({ "hostname": hostname, "port": port, "shard": "NA", "command_output": command_output })
         return cluster_command_output
 
-    def mmo_execute_on_primaries(self, mmo_connection, command):
+    def mmo_execute_on_primaries(self, mmo_connection, command):  # TODO add execution database?
         """
         Similar to the mmo_execute_on_cluster method but we only execute on the primaries.
         :param mmo_connection:
@@ -192,7 +213,7 @@ class MmoMongoCluster:
                 cluster_command_output.append({ "hostname": hostname, "port": port, "shard": shard, "command_output": command_output })
         return cluster_command_output
 
-    def mmo_execute_on_secondaries(self, mmo_connection, command):
+    def mmo_execute_on_secondaries(self, mmo_connection, command): # TODO add execution database?
         """
         Similar to the mmo_execute_on_cluster method but we only execute on the secondaries.
         :param mmo_connection:
@@ -328,3 +349,46 @@ class MmoMongoCluster:
             else: # calculate the slave lag from the PRIMARY optimeDate
                 doc["slaveDelay"] = (doc["optimeDate"] - primary_info[doc["replicaset"]]).total_seconds()
         return replication_summary
+
+    def mmo_cluster_serverStatus(self, mmo_connection, inc_mongos):
+        """
+        Return the output of the db.serverStatus() command from all mongod shard servers
+        :param self:
+        :param mmo_connection:
+        :param inc_mongos: Optionally execute on the mongos servers.
+        :return: A list of dictionaries - { "hostname": <hostname>,
+                                            "port": port,
+                                            "shard": <rs name>,
+                                            "command_output" <serverStatus doc> }
+        See https://docs.mongodb.org/manual/reference/command/serverStatus/#output
+        """
+        return self.mmo_execute_on_cluster(mmo_connection, "serverStatus", inc_mongos)
+
+    def mmo_cluster_hostInfo(self, mmo_connection, inc_mongos):
+        """
+        Return the output of the db.hostInfo() command from all mongod shard servers
+        :param mmo_connection:
+        :param inc_mongos:
+        :return: A list of dictionaries - { "hostname": <hostname>,
+                                            "port": port,
+                                            "shard": <rs name>,
+                                            "command_output" <hostInfo doc> }
+        See https://docs.mongodb.org/manual/reference/command/hostInfo/
+        """
+        return self.mmo_execute_on_cluster(mmo_connection, "hostInfo", inc_mongos)
+
+    def mmo_list_databases_on_cluster(self, mmo_connection, inc_mongos):
+        return self.mmo_execute_on_cluster(mmo_connection, "listDatabases", inc_mongos)
+
+    def mmo_list_collections_on_cluster(self, mmo_connection, inc_mongos, db):
+        return self.mmo_execute_on_cluster(mmo_connection, "listCollections", inc_mongos, db)
+
+    def mmo_list_dbhash_on_cluster(self, mmo_connection):
+        # The dbHash command only functions on mongod shard servers or config servers
+        return self.mmo_execute_on_cluster_on_each_db(mmo_connection, "dbHash", False)
+
+    def mmo_execute_on_cluster_on_each_db(self, mmo_connection, command, inc_mongos):
+        command_output = []
+        for db in mmo_connection.database_names():
+                command_output.append(self.mmo_execute_on_cluster(mmo_connection, command, inc_mongos, db))
+        return command_output

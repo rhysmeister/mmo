@@ -133,9 +133,39 @@ class TestPyMmoMethods(unittest.TestCase):
     def test_mmo_cluster_serverStatus(self):
         m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
         c = m.mmo_connect()
-        o = m.mmo_cluster_serverStatus(c)
+        o = m.mmo_cluster_serverStatus(c, False)
         self.assertEquals(6, len(o))
         self.assertTrue("metrics" in str(o))
+
+    def test_mmo_cluster_hostInfo(self):
+        m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
+        c = m.mmo_connect()
+        o = m.mmo_cluster_hostInfo(c, False)
+        self.assertEquals(6, len(o))
+        self.assertTrue("memSizeMB" in str(o))
+
+    def test_mmo_list_databases_on_cluster(self):
+        m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
+        c = m.mmo_connect()
+        o = m.mmo_list_databases_on_cluster(c, False)
+        self.assertEquals(6, len(o))
+        self.assertTrue("sizeOnDisk" in str(o))
+
+    def test_mmo_list_collections_on_cluster(self):
+        m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
+        c = m.mmo_connect()
+        o = m.mmo_list_collections_on_cluster(c, False, "test")
+        self.assertEquals(6, len(o))
+        self.assertTrue("restaurants" in str(o))
+        self.assertTrue("sample_messages" in str(o))
+
+    def test_mmo_list_dbhash_on_cluster(self):
+        m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
+        c = m.mmo_connect()
+        o = m.mmo_list_dbhash_on_cluster(c, "test")
+        self.assertEquals(6, len(o))
+        self.assertTrue("restaurants" in str(o))
+        self.assertTrue("sample_messages" in str(o))
 
 if __name__ == '__main__':
     unittest.main()

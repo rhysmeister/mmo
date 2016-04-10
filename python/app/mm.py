@@ -573,8 +573,17 @@ def display_host_info_for_cluster(mmo, c, inc_mongos, sub_command):
                               v["port"],
                               v["versionString"])
 
-
-
+def display_dbHash_info_for_cluster(mmo, c):
+    dbHashes = mmo.mmo_list_dbhash_on_cluster(c)
+    for doc in dbHashes:
+        for entry in doc:
+            print "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10}".format(entry["hostname"],
+                                                                     entry["shard"],
+                                                                     entry["port"],
+                                                                     entry["db"],
+                                                                     len(entry["command_output"]["collections"]),
+                                                                     entry["command_output"]["md5"])
+    #print dbHashes
 
 def print_server_status_help():
     print "Extracts and displays certain bits of information from the serverStatus document produced in the mongo shell command db.serverStatus()"
@@ -648,6 +657,8 @@ host_info_choices = ["system",
                      "help"]
 parser.add_argument('--host_info', type=str, default="", choices=host_info_choices, help="Show a summary of the appropriate section from the hostInfo document from all mongod processes.")
 
+parser.add_argument('--dbHashes', action='store_true', help='Show the dbHashes for each database on the cluster and perform some verification.')
+
 parser.add_argument('--inc_mongos', action='store_true', help='Optionally execute against the mongos servers. This will fail if the command is not supported by mongos.')
 
 parser.add_argument("-H", "--mongo_hostname", type=str, default="localhost", required=False, help="Hostname for the MongoDB mongos process to connect to")
@@ -706,6 +717,8 @@ if c:
                 print_host_info_help()
             else:
                 display_host_info_for_cluster(mmo, c, args.inc_mongos, args.host_info)
+        if args.dbHashes:
+            display_dbHash_info_for_cluster(mmo, c)
         if args.server_status == "help":
             print_server_status_help()
         args.repeat -= 1

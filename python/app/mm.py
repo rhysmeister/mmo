@@ -16,6 +16,7 @@ import argparse
 import time
 
 from bgcolours import bgcolours
+from collections import Counter
 
 execfile(os.path.dirname(os.path.abspath(inspect.stack()[0][1]))  + "/../pymmo/pymmo.py")
 
@@ -575,6 +576,8 @@ def display_host_info_for_cluster(mmo, c, inc_mongos, sub_command):
 
 def display_dbHash_info_for_cluster(mmo, c):
     dbHashes = mmo.mmo_list_dbhash_on_cluster(c)
+
+    print "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10}".format("hostname", "shard", "port", "db", "collections", "md5")
     for doc in dbHashes:
         for entry in doc:
             print "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10}".format(entry["hostname"],

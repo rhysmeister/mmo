@@ -582,16 +582,34 @@ def display_host_info_for_cluster(mmo, c, inc_mongos, sub_command):
 
 def display_db_hash_info_for_cluster(mmo, c):
     db_hashes = mmo.mmo_list_dbhash_on_cluster(c)
-
     print_bold_header("{:<30} {:<10} {:<10} {:<10} {:<10} {:<10}", ["hostname", "shard", "port", "db", "collections", "md5"])
     for doc in db_hashes:
         for entry in doc:
-            print "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10}".format(entry["hostname"],
-                                                                     entry["shard"],
-                                                                     entry["port"],
-                                                                     entry["db"],
-                                                                     len(entry["command_output"]["collections"]),
-                                                                     entry["command_output"]["md5"])
+            hashes_list = set()
+            for document in db_hashes: # here we count the number of db hashes for the shard db combination
+                for item in document: # TODO Why two for loops. Check this out when you haven't had 4 beers
+                    if item['shard'] == entry['shard'] and item['db'] == entry['db']:
+                        hashes_list.add(item["command_output"]['md5'])
+            if len(hashes_list) > 1:
+                print bgcolours.WARNING + "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10}".format(entry["hostname"],
+                                                                         entry["shard"],
+                                                                         entry["port"],
+                                                                         entry["db"],
+                                                                         len(entry["command_output"]["collections"]),
+                                                                         entry["command_output"]["md5"]) + bgcolours.ENDC
+            else:
+                print bgcolours.OKBLUE + "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10}".format(entry["hostname"],
+                                                                         entry["shard"],
+                                                                         entry["port"],
+                                                                         entry["db"],
+                                                                         len(entry["command_output"]["collections"]),
+                                                                         entry["command_output"]["md5"]) + bgcolours.ENDC
+
+def step_down_primary(mmo, c, replicaset):
+    if replicaset in mmo.mmo_shards():
+        sd = mmo.mmo_step_down(c, replicaset)
+    else:
+        print "ERRROR: Not a valid replicaset name."
 
 def print_server_status_help():
     print "Extracts and displays certain bits of information from the serverStatus document produced in the mongo shell command db.serverStatus()"
@@ -617,6 +635,7 @@ def print_server_status_help():
     print "{:<30} {:<100}".format("storage_engine", "Show the storage engine info from all the shard mongod processes")
     print "{:<30} {:<100}".format("memory", "Show the memory info from all the shard mongod processes")
     print "{:<30} {:<100}".format("show_all", "Show all supported information screens")
+    print "{:<30} {:<100}".format("step_down", "Step down the PRIMARY for the given replicaset")
     print "{:<30} {:<100}".format("help", "Show this help message")
 
 def print_host_info_help():
@@ -669,6 +688,8 @@ parser.add_argument('--db_hashes', action='store_true', help='Show the db hashes
 
 parser.add_argument('--inc_mongos', action='store_true', help='Optionally execute against the mongos servers. This will fail if the command is not supported by mongos.')
 
+parser.add_argument('--step_down', type=str, default="", help="Step down the primary from this replicaset")
+
 parser.add_argument("-H", "--mongo_hostname", type=str, default="localhost", required=False, help="Hostname for the MongoDB mongos process to connect to")
 parser.add_argument("-P", "--mongo_port", type=int, default=27017, required=False, help="Port for the MongoDB mongos process to connect to")
 parser.add_argument("-u", "--mongo_username", type=str, default="admin", required=False, help="MongoDB username")
@@ -720,6 +741,37 @@ if c:
             display_storage_engine_for_cluster(mmo, c, args.inc_mongos)
         if args.server_status in ["memory", "show_all"]:
             display_mem_for_cluster(mmo, c, args.inc_mongos)
+        if args.step_down != "":
+            # Count of server so we can tell when the election has completed
+            rs = mmo.mmo_replication_status_summary(c)
+            shard_server_count=len(rs)
+            for doc in rs:
+                if doc['replicaset'] == args.step_down and doc['state'] == 'PRIMARY':
+                    old_primary = doc
+            try:
+                step_down_primary(mmo, c, args.step_down)
+            except Exception as exception:
+                if str(exception) == "connection closed":
+                    timeout=60
+                    sleep_time=0
+                    while len(mmo.mmo_replication_status_summary(c)) < shard_server_count and sleep_time < timeout:
+                        time.sleep(10) # Wait to allow the election to happen
+                    else:
+                        if len(mmo.mmo_replication_status_summary(c)) == shard_server_count:
+                            # Election has happened and all shard servers are back
+                            rs = mmo.mmo_replication_status_summary(c)
+                            print_replication_summary(rs)
+                            for doc in rs:
+                                if doc['replicaset'] == args.step_down and doc['state'] == 'PRIMARY':
+                                    new_primary = doc
+                            print "PRIMARY changed from {:<0} to {:<1}".format(old_primary['hostname'],
+                                                                               new_primary['hostname'])
+                        else:
+                            # Timeout has happened or something is wrong
+                            print "There has been a problem or a timeout. Perhaps try the command again."
+                else:
+                    print "ERROR: There was a problem, " + exception
+
         if args.host_info in host_info_choices:
             if args.host_info == "help":
                 print_host_info_help()

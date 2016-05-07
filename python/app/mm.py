@@ -611,6 +611,24 @@ def step_down_primary(mmo, c, replicaset):
     else:
         print "ERRROR: Not a valid replicaset name."
 
+def profile_and_display(mmo, c, profile, slowms):
+    """
+    Displays and manages the profil level of the Mongo Cluster
+    :param mmo:
+    :param c:
+    :param profile: Profiling level -1, 0, 1, or 2
+    :param slowms: Slowms (optional)
+    :return:
+    """
+    # if the profling level is anything other than -1 we need to run the
+    # profile command with -1 again to get the current level
+    prof = mmo.mmo_change_profiling_level(c, profile, slowms)
+    if prof is not -1:
+        prof = mmo.mmo_change_profiling_level(c, -1)
+    print_bold_header("{:<30} {:<10} {:<10} {:<10} {:<10}", ["hostname", "shard", "port", "profile", "slowms"])
+    for doc in prof:
+        print "{:<30} {:<10} {:<10} {:<10} {:<10}".format(doc["hostname"], doc["shard"], doc["port"], doc["command_output"]["was"], doc["command_output"]["slowms"])
+
 def print_server_status_help():
     print "Extracts and displays certain bits of information from the serverStatus document produced in the mongo shell command db.serverStatus()"
     print "Usage: mm --server_status <option>"
@@ -636,6 +654,7 @@ def print_server_status_help():
     print "{:<30} {:<100}".format("memory", "Show the memory info from all the shard mongod processes")
     print "{:<30} {:<100}".format("show_all", "Show all supported information screens")
     print "{:<30} {:<100}".format("step_down", "Step down the PRIMARY for the given replicaset")
+    print "{:<30} {:<100}".format("profiling", "Display or modify the profiling level of a MongoDB Cluster")
     print "{:<30} {:<100}".format("help", "Show this help message")
 
 def print_host_info_help():
@@ -689,6 +708,11 @@ parser.add_argument('--db_hashes', action='store_true', help='Show the db hashes
 parser.add_argument('--inc_mongos', action='store_true', help='Optionally execute against the mongos servers. This will fail if the command is not supported by mongos.')
 
 parser.add_argument('--step_down', type=str, default="", help="Step down the primary from this replicaset")
+
+profiling_choices=[-1, 0, 1, 2]
+
+parser.add_argument('--profiling', type=int, default=None, choices=profiling_choices, help="Display or modify the profiling level of a MongoDB Cluster")
+parser.add_argument('--slowms', type=int, default=None, help="Optionally for use with --profiling switch. The threshold in milliseconds at which the database profiler considers a query slow.")
 
 parser.add_argument("-H", "--mongo_hostname", type=str, default="localhost", required=False, help="Hostname for the MongoDB mongos process to connect to")
 parser.add_argument("-P", "--mongo_port", type=int, default=27017, required=False, help="Port for the MongoDB mongos process to connect to")
@@ -771,7 +795,8 @@ if c:
                             print "There has been a problem or a timeout. Perhaps try the command again."
                 else:
                     print "ERROR: There was a problem, " + exception
-
+        if args.profiling in profiling_choices: # This wouldn't return true when set to zero unless done like this
+            profile_and_display(mmo, c, args.profiling, args.slowms)
         if args.host_info in host_info_choices:
             if args.host_info == "help":
                 print_host_info_help()

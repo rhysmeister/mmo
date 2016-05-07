@@ -197,10 +197,12 @@ class MmoMongoCluster:
                 cluster_command_output.append({ "hostname": hostname, "port": port, "shard": "NA", "command_output": command_output })
         return cluster_command_output
 
-    def mmo_execute_on_primaries(self, mmo_connection, command):  # TODO add execution database?
+    def mmo_execute_on_primaries(self, mmo_connection, command, replicaset="all"):  # TODO add execution database?
         """
         Similar to the mmo_execute_on_cluster method but we only execute on the primaries.
         :param mmo_connection:
+        :param command
+        :param replicaset Optionally execute against a single replicaset or all
         :return: A list of dictionaries, containing hostname, port, shard and command_output, for each PRIMARY mongod in all shards
         """
         cluster_command_output = []
@@ -208,15 +210,17 @@ class MmoMongoCluster:
             hostname, port, shard = doc["hostname"], doc["port"], doc["shard"]
             auth_dic = self.mmo_get_auth_details_from_connection(mmo_connection)
             c = self.mmo_connect_mongod(hostname, port, auth_dic["username"], auth_dic["password"], auth_dic["authentication_database"])
-            if self.mmo_replica_state(c)["name"] == "PRIMARY":
+            if self.mmo_replica_state(c)["name"] == "PRIMARY" and (replicaset == "all" or replicaset == shard):
                 command_output = c["admin"].command(command)
                 cluster_command_output.append({ "hostname": hostname, "port": port, "shard": shard, "command_output": command_output })
         return cluster_command_output
 
-    def mmo_execute_on_secondaries(self, mmo_connection, command): # TODO add execution database?
+    def mmo_execute_on_secondaries(self, mmo_connection, command, replicaset="all"): # TODO add execution database?
         """
         Similar to the mmo_execute_on_cluster method but we only execute on the secondaries.
         :param mmo_connection:
+        :param command:
+        :param replicaset: Optionally execute against a single replicaset or all
         :return: A list of dictionaries, containing hostname, port, shard and command_output, for each SECONDARY mongod in all shards
         """
         cluster_command_output = []
@@ -224,7 +228,7 @@ class MmoMongoCluster:
             hostname, port, shard = doc["hostname"], doc["port"], doc["shard"]
             auth_dic = self.mmo_get_auth_details_from_connection(mmo_connection)
             c = self.mmo_connect_mongod(hostname, port, auth_dic["username"], auth_dic["password"], auth_dic["authentication_database"])
-            if self.mmo_replica_state(c)["name"] == "SECONDARY":
+            if self.mmo_replica_state(c)["name"] == "SECONDARY"  and (replicaset == "all" or replicaset == shard):
                 command_output = c["admin"].command(command)
                 cluster_command_output.append({ "hostname": hostname, "port": port, "shard": shard, "command_output": command_output })
         return cluster_command_output
@@ -392,3 +396,35 @@ class MmoMongoCluster:
         for db in mmo_connection.database_names():
                 command_output.append(self.mmo_execute_on_cluster(mmo_connection, command, inc_mongos, db))
         return command_output
+
+    def mmo_step_down(self, mmo_connection, replicaset, stepDownSecs=60, catchUpSecs=50):
+        """
+        Execute the stepDown command against the PRIMARY for the given shard
+        :param mmo_connection:
+        :param shard:
+        :return:
+        """
+        stepDownCmd = {'replSetStepDown': stepDownSecs, 'secondaryCatchUpPeriodSecs': catchUpSecs}
+        return self.mmo_execute_on_primaries(mmo_connection, stepDownCmd, replicaset)
+
+    def mmo_change_profiling_level(self, mmo_connection, profile, slowms=None):
+        """
+        Manages the profiling level of a MongoDB Cluster. https://docs.mongodb.com/manual/reference/command/profile/
+        Level	Setting
+        -1	No change. Returns the current profile level.
+        0	Off. No profiling. The default profiler level.
+        1	On. Only includes slow operations.
+        2	On. Includes all operations.
+        :param profile:
+        :param slowms:
+        :return:
+        """
+        if profile not in [-1, 0, 1, 2]:
+            raise("ERROR: Not a valid profile level.")
+        if slowms is not None and profile in [1, 2]:
+            profileCmd = { 'profile': profile, 'slowms': slowms }
+        else:
+            profileCmd = { 'profile': profile }
+        return self.mmo_execute_on_cluster(mmo_connection, profileCmd)
+
+

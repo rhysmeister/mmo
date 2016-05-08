@@ -173,6 +173,37 @@ class MmoMongoCluster:
         auth_dict = { "username": username, "password": password, "authentication_database": authentication_database }
         return auth_dict
 
+    def mmo_execute_on_mongos(self, mmo_connection, command, execution_database):
+        """
+        Executes a command against a single mongos server
+        :param mmo_connection:
+        :param command:
+        :return:
+        """
+        mongos_server = self.mmo_mongos_servers(mmo_connection)[0]
+        hostname, port = mongos_server["hostname"], mongos_server["port"]
+        auth_dic = self.mmo_get_auth_details_from_connection(mmo_connection)
+        c = self.mmo_connect_mongos(hostname, port, auth_dic["username"], auth_dic["password"], auth_dic["authentication_database"])
+        command_output = c[execution_database].command(command)
+        return command_output
+
+    def mmo_execute_query_on_mongos(self, mmo_connection, query, execution_database, collection):
+        """
+        Execute a query against a single mongos server and returns the resulting documents
+        :param self:
+        :param mmo_connection:
+        :param query: Standard MongoDB query document
+        :param execution_database:
+        :param collection:
+        :return:
+        """
+        mongos_server = self.mmo_mongos_servers(mmo_connection)[0]
+        hostname, port = mongos_server["hostname"], mongos_server["port"]
+        auth_dic = self.mmo_get_auth_details_from_connection(mmo_connection)
+        c = self.mmo_connect_mongos(hostname, port, auth_dic["username"], auth_dic["password"], auth_dic["authentication_database"])
+        query_output = c[execution_database][collection].find(query)
+        return query_output
+
     def mmo_execute_on_cluster(self, mmo_connection, command, inc_mongos=False, execution_database="admin"):
         """
         Execute a command on all shard servers (mongod), in a MongoDB Cluster. All commands are executed in the context of the admin database
@@ -427,4 +458,9 @@ class MmoMongoCluster:
             profileCmd = { 'profile': profile }
         return self.mmo_execute_on_cluster(mmo_connection, profileCmd)
 
-
+    def mmo_sharding_status(self, mmo_connection):
+        """
+        :param mmo_connection:
+        :return:
+        """
+        return self.mmo_execute_on_mongos(mmo_connection, "listShards", "admin")

@@ -16,7 +16,6 @@ import argparse
 import time
 
 from bgcolours import bgcolours
-from collections import Counter
 
 execfile(os.path.dirname(os.path.abspath(inspect.stack()[0][1]))  + "/../pymmo/pymmo.py")
 
@@ -611,6 +610,14 @@ def step_down_primary(mmo, c, replicaset):
     else:
         print "ERRROR: Not a valid replicaset name."
 
+def sharding_status(mmo, c):
+    sh = mmo.mmo_sharding_status(c)
+    print_bold_header("{:<10} {:<100}", ["shard", "hosts"])
+    for doc in sh["shards"]:
+        print "{:<10} {:<100}".format(doc["_id"], doc["host"])
+    if sh["ok"] == 1:
+        print "Sharding State is OK"
+
 def profile_and_display(mmo, c, profile, slowms):
     """
     Displays and manages the profil level of the Mongo Cluster
@@ -628,6 +635,16 @@ def profile_and_display(mmo, c, profile, slowms):
     print_bold_header("{:<30} {:<10} {:<10} {:<10} {:<10}", ["hostname", "shard", "port", "profile", "slowms"])
     for doc in prof:
         print "{:<30} {:<10} {:<10} {:<10} {:<10}".format(doc["hostname"], doc["shard"], doc["port"], doc["command_output"]["was"], doc["command_output"]["slowms"])
+
+def print_database_summary(mmo, c):
+    cluster_nodes = mmo.mmo_list_databases_on_cluster(c, False)
+    for server in cluster_nodes:
+        print_bold_header("{:<20} {:<10}", [server["hostname"], server["port"]])
+        print_bold_header("{:<10} {:<10} {:<10}", ["name", "size", "empty"])
+        for db in server["command_output"]["databases"]:
+            print "{:<10} {:<10} {:<10}".format(db["name"], db["sizeOnDisk"], db["empty"])
+
+
 
 def print_server_status_help():
     print "Extracts and displays certain bits of information from the serverStatus document produced in the mongo shell command db.serverStatus()"
@@ -653,8 +670,6 @@ def print_server_status_help():
     print "{:<30} {:<100}".format("storage_engine", "Show the storage engine info from all the shard mongod processes")
     print "{:<30} {:<100}".format("memory", "Show the memory info from all the shard mongod processes")
     print "{:<30} {:<100}".format("show_all", "Show all supported information screens")
-    print "{:<30} {:<100}".format("step_down", "Step down the PRIMARY for the given replicaset")
-    print "{:<30} {:<100}".format("profiling", "Display or modify the profiling level of a MongoDB Cluster")
     print "{:<30} {:<100}".format("help", "Show this help message")
 
 def print_host_info_help():
@@ -704,6 +719,7 @@ host_info_choices = ["system",
 parser.add_argument('--host_info', type=str, default="", choices=host_info_choices, help="Show a summary of the appropriate section from the hostInfo document from all mongod processes.")
 
 parser.add_argument('--db_hashes', action='store_true', help='Show the db hashes for each database on the cluster and perform some verification.')
+parser.add_argument('--databases', action='store_true', help="Show a summary fo the databases hosted by the MongoDB cluster")
 
 parser.add_argument('--inc_mongos', action='store_true', help='Optionally execute against the mongos servers. This will fail if the command is not supported by mongos.')
 
@@ -713,6 +729,8 @@ profiling_choices=[-1, 0, 1, 2]
 
 parser.add_argument('--profiling', type=int, default=None, choices=profiling_choices, help="Display or modify the profiling level of a MongoDB Cluster")
 parser.add_argument('--slowms', type=int, default=None, help="Optionally for use with --profiling switch. The threshold in milliseconds at which the database profiler considers a query slow.")
+
+parser.add_argument('--sharding', action='store_true', help="List sharding details")
 
 parser.add_argument("-H", "--mongo_hostname", type=str, default="localhost", required=False, help="Hostname for the MongoDB mongos process to connect to")
 parser.add_argument("-P", "--mongo_port", type=int, default=27017, required=False, help="Port for the MongoDB mongos process to connect to")
@@ -739,32 +757,34 @@ if c:
         if args.repl or args.server_status == "show_all":
             rs = mmo.mmo_replication_status_summary(c)
             print_replication_summary(rs)
-        if args.server_status in ["instance", "show_all"]:
+        elif args.server_status in ["instance", "show_all"]:
             display_instance_info_for_cluster(mmo, c, args.inc_mongos)
-        if args.server_status in ["asserts", "show_all"]:
+        elif args.server_status in ["asserts", "show_all"]:
             display_asserts_for_cluster(mmo, c, args.inc_mongos)
-        if args.server_status in ["flushing", "show_all"]:
+        elif args.server_status in ["flushing", "show_all"]:
             display_backgroundFlushing_for_cluster(mmo, c, args.inc_mongos)
-        if args.server_status in ["journaling", "show_all"]:
+        elif args.server_status in ["journaling", "show_all"]:
             display_journaling_for_cluster(mmo, c, args.inc_mongos)
-        if args.server_status in ["extra_info", "show_all"]:
+        elif args.server_status in ["extra_info", "show_all"]:
             display_extra_info_for_cluster(mmo, c, args.inc_mongos)
-        if args.server_status in ["connections", "show_all"]:
+        elif args.server_status in ["connections", "show_all"]:
             display_connections_for_cluster(mmo, c, args.inc_mongos)
-        if args.server_status in ["global_lock", "show_all"]:
+        elif args.server_status in ["global_lock", "show_all"]:
             display_globalLock_for_cluster(mmo, c, args.inc_mongos)
-        if args.server_status in ["network", "show_all"]:
+        elif args.server_status in ["network", "show_all"]:
             display_network_for_cluster(mmo, c, args.inc_mongos)
-        if args.server_status in ["opcounters", "show_all"]:
+        elif args.server_status in ["opcounters", "show_all"]:
             display_opcounters_for_cluster(mmo, c, args.inc_mongos, False)
-        if args.server_status in ["opcounters_repl", "show_all"]:
+        elif args.server_status in ["opcounters_repl", "show_all"]:
             display_opcounters_for_cluster(mmo, c, args.inc_mongos, True)
-        if args.server_status in ["security", "show_all"]:
+        elif args.server_status in ["security", "show_all"]:
             display_security_for_cluster(mmo, c, args.inc_mongos)
-        if args.server_status in ["storage_engine", "show_all"]:
+        elif args.server_status in ["storage_engine", "show_all"]:
             display_storage_engine_for_cluster(mmo, c, args.inc_mongos)
-        if args.server_status in ["memory", "show_all"]:
+        elif args.server_status in ["memory", "show_all"]:
             display_mem_for_cluster(mmo, c, args.inc_mongos)
+        elif args.server_status == "help":
+            print_server_status_help()
         if args.step_down != "":
             # Count of server so we can tell when the election has completed
             rs = mmo.mmo_replication_status_summary(c)
@@ -797,6 +817,8 @@ if c:
                     print "ERROR: There was a problem, " + exception
         if args.profiling in profiling_choices: # This wouldn't return true when set to zero unless done like this
             profile_and_display(mmo, c, args.profiling, args.slowms)
+        if args.sharding:
+            sharding_status(mmo, c)
         if args.host_info in host_info_choices:
             if args.host_info == "help":
                 print_host_info_help()
@@ -804,8 +826,8 @@ if c:
                 display_host_info_for_cluster(mmo, c, args.inc_mongos, args.host_info)
         if args.db_hashes:
             display_db_hash_info_for_cluster(mmo, c)
-        if args.server_status == "help":
-            print_server_status_help()
+        if args.databases:
+            print_database_summary(mmo, c)
         args.repeat -= 1
         if args.repeat > 0:
             time.sleep(args.interval)

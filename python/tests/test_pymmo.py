@@ -241,6 +241,26 @@ class TestPyMmoMethods(unittest.TestCase):
         self.assertEquals("rs0", o["shards"][0]["_id"])
         self.assertEquals("rs1", o["shards"][1]["_id"])
 
+    def test_mmo_repl_set_freeze(self):
+        m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
+        c = m.mmo_connect()
+        o = m.mmo_repl_set_freeze(c, "rhysmacbook.local", 30005, 10)
+        self.assertTrue(1.0, o["command_output"]["ok"])
+        self.assertTrue("electionId" in str(o))
+
+    def test_mmo_repl_set_freeze_exception_host(self):
+        """
+        This will fail if the shard server is the current PRIMARY.
+        We could make this better by picking a secondary during the test
+        :return:
+        """
+        m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
+        c = m.mmo_connect()
+        o = m.mmo_repl_set_freeze_exception_host(c, "rhysmacbook.local", 30006, "rs1", 10)
+        self.assertTrue(2, len(o))
+        self.assertTrue(1.0, o[0]["command_output"]["ok"])
+        self.assertTrue("election_Id", str(o))
+
 if __name__ == '__main__':
     unittest.main()
 

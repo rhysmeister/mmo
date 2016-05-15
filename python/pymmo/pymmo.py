@@ -464,3 +464,41 @@ class MmoMongoCluster:
         :return:
         """
         return self.mmo_execute_on_mongos(mmo_connection, "listShards", "admin")
+
+    def mmo_repl_set_freeze(self, mmo_connection, hostname, port, seconds):
+        """
+        Execute the replSetFreeze command against the given MongoDB shard server. The instance will
+        not be eligible for election to PRIMARY until the period of time indicated by seconds has passed
+        :param mmo_connection:
+        :return:
+        """
+        auth_dic = self.mmo_get_auth_details_from_connection(mmo_connection)
+        c = self.mmo_connect_mongod(hostname, port, auth_dic["username"], auth_dic["password"], auth_dic["authentication_database"])
+        if self.mmo_is_mongod(c):
+            command_output = c["admin"].command({ "replSetFreeze": seconds })
+        else:
+            raise Exception("MongoDB connection is not a mongod process")
+        return { "hostname": hostname, "port": port, "command_output": command_output }
+
+    def mmo_repl_set_freeze_exception_host(self, mmo_connection, exception_hostname, exception_port, replicaset, seconds):
+        """
+        This function calls the mmo_repl_set_freeze command against all secondaries in a replicaset
+        excluding the specified mongo instance.
+        :param mmo_connection:
+        :param exception_host:
+        :param exception_port:
+        :param replicaset:
+        :param seconds:
+        :return: A list of dictionaries. { "hostname": <hostname>, "port": <port>, "command_output": <command_output> }
+        """
+        freeze_count = 0 # How many servers have we execute the freeze command against?
+        command_output = []
+        for shard_host in self.mmo_shard_servers(mmo_connection):
+            if shard_host["shard"] == replicaset:
+                if (shard_host["hostname"] + ":" + str(shard_host["port"])) != (exception_hostname + ":" + str(exception_port)):
+                    tmp = self.mmo_repl_set_freeze(mmo_connection, shard_host["hostname"], shard_host["port"], seconds)
+                    command_output.append(tmp)
+                    freeze_count = freeze_count + 1
+        if freeze_count == 0:
+            raise Exception("No MongoDB shard servers were frozen. Please check the command.")
+        return command_output

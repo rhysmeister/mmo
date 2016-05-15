@@ -480,13 +480,13 @@ class MmoMongoCluster:
             raise Exception("MongoDB connection is not a mongod process")
         return { "hostname": hostname, "port": port, "command_output": command_output }
 
-    def mmo_repl_set_freeze_exception_host(self, mmo_connection, exception_hostname, exception_port, replicaset, seconds):
+    def mmo_repl_set_freeze_nominate_host(self, mmo_connection, nominate_hostname, nominate_port, replicaset, seconds):
         """
-        This function calls the mmo_repl_set_freeze command against all secondaries in a replicaset
+        This function calls the mmo_repl_set_freeze command against all hosts in a replicaset
         excluding the specified mongo instance.
         :param mmo_connection:
-        :param exception_host:
-        :param exception_port:
+        :param nominate_host: Used in conjunction with nominate_port to influence who becomes PRIMARY
+        :param nominate_port:
         :param replicaset:
         :param seconds:
         :return: A list of dictionaries. { "hostname": <hostname>, "port": <port>, "command_output": <command_output> }
@@ -495,7 +495,7 @@ class MmoMongoCluster:
         command_output = []
         for shard_host in self.mmo_shard_servers(mmo_connection):
             if shard_host["shard"] == replicaset:
-                if (shard_host["hostname"] + ":" + str(shard_host["port"])) != (exception_hostname + ":" + str(exception_port)):
+                if (shard_host["hostname"] + ":" + str(shard_host["port"])) != (nominate_hostname + ":" + str(nominate_port)):
                     tmp = self.mmo_repl_set_freeze(mmo_connection, shard_host["hostname"], shard_host["port"], seconds)
                     command_output.append(tmp)
                     freeze_count = freeze_count + 1

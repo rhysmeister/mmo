@@ -724,6 +724,9 @@ parser.add_argument('--databases', action='store_true', help="Show a summary fo 
 parser.add_argument('--inc_mongos', action='store_true', help='Optionally execute against the mongos servers. This will fail if the command is not supported by mongos.')
 
 parser.add_argument('--step_down', type=str, default="", help="Step down the primary from this replicaset")
+parser.add_argument('--step_down_nominate_host', type=str, required=False, help="Used in combination with step_down_nominate_port to select a PRIMARY")
+parser.add_argument('--step_down_nominate_port', type=int, required=False, help="Used in combination with step_down_nominate_host to select a PRIMARY")
+parser.add_argument('--replset_freeze', type=int, required=False, default=30, help="Number of seconds to use with the replSetFreeze command")
 
 profiling_choices=[-1, 0, 1, 2]
 
@@ -792,6 +795,14 @@ if c:
             for doc in rs:
                 if doc['replicaset'] == args.step_down and doc['state'] == 'PRIMARY':
                     old_primary = doc
+
+            # If the step down exclude arguments are set we need to execute replSetFreeze against some of the
+            if args.step_down_nominate_host is not None and args.step_down_nominate_port is not None:
+                mmo.mmo_repl_set_freeze_nominate_host(c,
+                                                      args.step_down_nominate_host,
+                                                      args.step_down_nominate_port,
+                                                      args.step_down, # replicaset name
+                                                      args.replset_freeze)
             try:
                 step_down_primary(mmo, c, args.step_down)
             except Exception as exception:

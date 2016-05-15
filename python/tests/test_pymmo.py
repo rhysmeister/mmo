@@ -248,7 +248,7 @@ class TestPyMmoMethods(unittest.TestCase):
         self.assertTrue(1.0, o["command_output"]["ok"])
         self.assertTrue("electionId" in str(o))
 
-    def test_mmo_repl_set_freeze_exception_host(self):
+    def test_mmo_repl_set_freeze_nominate_host(self):
         """
         This will fail if the shard server is the current PRIMARY.
         We could make this better by picking a secondary during the test

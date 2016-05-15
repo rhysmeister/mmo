@@ -3,6 +3,8 @@ import os
 import inspect
 import socket
 
+import time
+
 execfile(os.path.dirname(os.path.abspath(inspect.stack()[0][1]))  + "/../pymmo/pymmo.py")
 
 class TestPyMmoMethods(unittest.TestCase):
@@ -70,6 +72,10 @@ class TestPyMmoMethods(unittest.TestCase):
         self.assertTrue("openssl" in str(o))
 
     def test_mmo_replica_state(self):
+        """
+        Need to change this test or at least prepare the cluster into the expected state
+        :return:
+        """
         m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
         c = m.mmo_connect_mongod("localhost", 30001, "admin", "admin", "admin")
         o = m.mmo_replica_state(c)
@@ -162,8 +168,8 @@ class TestPyMmoMethods(unittest.TestCase):
     def test_mmo_list_dbhash_on_cluster(self):
         m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
         c = m.mmo_connect()
-        o = m.mmo_list_dbhash_on_cluster(c, "test")
-        self.assertEquals(6, len(o))
+        o = m.mmo_list_dbhash_on_cluster(c)
+        self.assertEquals(4, len(o))
         self.assertTrue("restaurants" in str(o))
         self.assertTrue("sample_messages" in str(o))
 
@@ -171,8 +177,43 @@ class TestPyMmoMethods(unittest.TestCase):
         m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
         c = m.mmo_connect()
         o = m.mmo_execute_on_cluster_on_each_db(c, "dbHash", False)
-        print str(o)
-        self.assertEquals(3, len(o))
+        self.assertEquals(4, len(o))
+        self.assertTrue("collections" in str(o))
+        self.assertTrue("md5" in str(o))
+
+    def test_mmo_step_down(self):
+        """
+        This test is a little complicated. Logic is duplicated from mm.py.
+        We test for a change in the PRIMARY of the rs0 replicaset.
+        :return:
+        """
+        m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
+        c = m.mmo_connect()
+        replicaset = "rs0"
+        try:
+            rs = m.mmo_replication_status_summary(c)
+            shard_server_count=len(rs)
+            for doc in rs:
+                if doc['replicaset'] == replicaset and doc['state'] == 'PRIMARY':
+                    old_primary = doc
+            m.mmo_step_down(c, replicaset)
+        except Exception as exception:
+            timeout=60
+            sleep_time=0
+            while len(m.mmo_replication_status_summary(c)) < shard_server_count and sleep_time < timeout:
+                time.sleep(10) # Wait to allow the election to happen
+            else:
+                if len(m.mmo_replication_status_summary(c)) == shard_server_count:
+                    # Election has happened and all shard servers are back
+                    rs = m.mmo_replication_status_summary(c)
+                    for doc in rs:
+                        if doc['replicaset'] == replicaset and doc['state'] == 'PRIMARY':
+                            new_primary = doc
+                else:
+                    # Timeout has happened or something is wrong
+                    raise exception
+        # Has the election completed successfully?
+        self.assertTrue(old_primary != new_primary)
 
 if __name__ == '__main__':
     unittest.main()

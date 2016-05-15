@@ -215,6 +215,32 @@ class TestPyMmoMethods(unittest.TestCase):
         # Has the election completed successfully?
         self.assertTrue(old_primary != new_primary)
 
+    def test_mmo_change_profiling_level(self):
+        m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
+        c = m.mmo_connect()
+        o = m.mmo_change_profiling_level(c, -1)
+        self.assertEquals(0, o[0]["command_output"]["was"])
+        o = m.mmo_change_profiling_level(c, 1)
+        o = m.mmo_change_profiling_level(c, -1) # We must request again to get the current state
+        self.assertEquals(1, o[0]["command_output"]["was"])
+        o = m.mmo_change_profiling_level(c, 2)
+        o = m.mmo_change_profiling_level(c, -1)
+        self.assertEquals(2, o[0]["command_output"]["was"])
+        o = m.mmo_change_profiling_level(c, 0)
+        o = m.mmo_change_profiling_level(c, -1)
+        self.assertEquals(0, o[0]["command_output"]["was"])
+
+    def test_mmo_sharding_status(self):
+        m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
+        c = m.mmo_connect()
+        o = m.mmo_sharding_status(c)
+        self.assertTrue("rs0" in str(o))
+        self.assertTrue("rs1" in str(o))
+        self.assertEquals(1.0, o["ok"])
+        self.assertEquals(2, len(o["shards"]))
+        self.assertEquals("rs0", o["shards"][0]["_id"])
+        self.assertEquals("rs1", o["shards"][1]["_id"])
+
 if __name__ == '__main__':
     unittest.main()
 

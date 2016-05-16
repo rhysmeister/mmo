@@ -1,0 +1,7 @@
+[Default]
+mongo_host: localhost
+mongo_port: 27017
+mongo_username: admin
+mongo_password: admin
+mongo_auth_db: admin
+active: False

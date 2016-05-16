@@ -14,6 +14,7 @@ import os
 import sys
 import argparse
 import time
+import ConfigParser
 
 from bgcolours import bgcolours
 
@@ -744,6 +745,8 @@ parser.add_argument("-D", "--mongo_auth_db", type=str, default="admin", required
 parser.add_argument("-r", "--repeat", type=int, default=1, required=False, help="Repeat the action N number of times")
 parser.add_argument("-i", "--interval", type=int, default=2, required=False, help="Number of seconds between each repeat")
 
+parser.add_argument("-d", "--debug", action='store_true', default=False, help="Output debug information")
+
 args = parser.parse_args()
 # TODO Add hostinfo stuff
 ###################################################
@@ -753,6 +756,22 @@ args = parser.parse_args()
 mmo = MmoMongoCluster(args.mongo_hostname, args.mongo_port, args.mongo_username, args.mongo_password, args.mongo_auth_db)
 c = mmo.mmo_connect()
 
+# If a configuration file exists use that
+if os.path.exists('./config.cnf'):
+    if args.debug: print "Reading configuration file ./config.cnf"
+    Config = ConfigParser.ConfigParser()
+    Config.read('./config.cnf')
+    options = Config.options("Default")
+    if args.debug: print options
+    if Config.getboolean("Default", "active"):
+        args.mongo_host = Config.get("Default", "mongo_host")
+        args.mongo_port = Config.get("Default", "mongo_port")
+        args.mongo_username = Config.get("Default", "mongo_username")
+        args.mongo_password = Config.get("Default", "mongo_password")
+        args.mongo_auth_db = Config.get("Default", "mongo_auth_db")
+        if args.debug: print "Finished settings args from configuration file"
+    else:
+        if args.debug: print "Default section is not active so ignoring"
 if c:
     while args.repeat != 0:
         if args.summary or args.server_status == "show_all":
@@ -825,7 +844,7 @@ if c:
                             # Timeout has happened or something is wrong
                             print "There has been a problem or a timeout. Perhaps try the command again."
                 else:
-                    print "ERROR: There was a problem, " + exception
+                    print "ERROR: There was a problem, " + str(exception)
         if args.profiling in profiling_choices: # This wouldn't return true when set to zero unless done like this
             profile_and_display(mmo, c, args.profiling, args.slowms)
         if args.sharding:

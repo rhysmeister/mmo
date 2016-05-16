@@ -15,6 +15,7 @@ import sys
 import argparse
 import time
 import ConfigParser
+import hashlib
 
 from bgcolours import bgcolours
 
@@ -645,7 +646,22 @@ def print_database_summary(mmo, c):
         for db in server["command_output"]["databases"]:
             print "{:<10} {:<10} {:<10}".format(db["name"], db["sizeOnDisk"], db["empty"])
 
-
+def print_validate_indexes(mmo, c, validate_indexes):
+    """
+    Performs  few validations on the indexes on shard servers throughput the cluster.
+    Currently we display the count of indexes and an md5 hash of the index definitions.
+    :param mmo:
+    :param c:
+    :param validate_indexes:
+    :return:
+    """
+    database, collection = validate_indexes.split(".")
+    indexes = mmo.mmo_verify_indexes_on_collection(c, database, collection)
+    print_bold_header("{:<20} {:<10} {:<10} {:<20}", ["hostname", "port", "index #", "index_hash_md5"])
+    for server in indexes:
+        index_count = len(server["command_output"])
+        index_hash_md5 = hashlib.md5(str(server["command_output"])).hexdigest() if index_count > 0 else server["msg"]
+        print "{:<20} {:<10} {:<10} {:<20}".format(server["hostname"], server["port"], str(index_count), index_hash_md5)
 
 def print_server_status_help():
     print "Extracts and displays certain bits of information from the serverStatus document produced in the mongo shell command db.serverStatus()"
@@ -747,6 +763,8 @@ parser.add_argument("-i", "--interval", type=int, default=2, required=False, hel
 
 parser.add_argument("-c", "--connection", type=str, required=False, help="Name of MongoDB connection to use as set in config.cnf")
 parser.add_argument("-d", "--debug", action='store_true', default=False, help="Output debug information")
+
+parser.add_argument("--validate_indexes", type=str, required=False, default=None, help="Collection to validate indexes across all shard servers. This should be provided in the form <database>.<collection>")
 
 args = parser.parse_args()
 # TODO Add hostinfo stuff
@@ -866,6 +884,8 @@ if c:
         if args.databases:
             print_database_summary(mmo, c)
         args.repeat -= 1
+        if args.validate_indexes is not None:
+            print_validate_indexes(mmo, c, args.validate_indexes)
         if args.repeat > 0:
             time.sleep(args.interval)
             os.system('cls' if os.name == 'nt' else 'clear')

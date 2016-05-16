@@ -502,3 +502,32 @@ class MmoMongoCluster:
         if freeze_count == 0:
             raise Exception("No MongoDB shard servers were frozen. Please check the command.")
         return command_output
+
+    def mmo_verify_indexes_on_collection(self, mmo_connection, execution_database, collection):
+        """
+        Validate the count and structure of the specified collection on all replicaset hosts  on the cluster
+        :param mmo_connection:
+        :param db:
+        :param collection:
+        :return:
+        """
+        cluster_command_output = []
+        for doc in self.mmo_shard_servers(mmo_connection):
+            hostname, port, shard = doc["hostname"], doc["port"], doc["shard"]
+            auth_dic = self.mmo_get_auth_details_from_connection(mmo_connection)
+            c = self.mmo_connect_mongod(hostname, port, auth_dic["username"], auth_dic["password"], auth_dic["authentication_database"])
+            msg = ""
+            try:
+                if collection in c[execution_database].collection_names():
+                    command_output = c[execution_database][collection].list_indexes()
+                    list_of_indexes = []
+                    for index in command_output:
+                        list_of_indexes.append(index)
+                    sorted(list_of_indexes)
+                else:
+                    list_of_indexes = []
+                    msg = "Collection does not exist on host"
+            except Exception as exception:
+                raise exception
+            cluster_command_output.append({ "hostname": hostname, "port": port, "shard": shard, "command_output": list_of_indexes, "db": execution_database, "msg": msg })
+        return cluster_command_output

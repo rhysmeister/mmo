@@ -17,7 +17,6 @@ import time
 import ConfigParser
 import hashlib
 import ast
-import re
 
 from bgcolours import bgcolours
 
@@ -788,6 +787,8 @@ parser.add_argument("-d", "--debug", action='store_true', default=False, help="O
 
 parser.add_argument("--validate_indexes", type=str, required=False, default=None, help="Collection to validate indexes across all shard servers. This should be provided in the form <database>.<collection>")
 parser.add_argument("--command", type=str, required=False, help="Run a custom command against your MongoDB Cluster. Should be provided in document format, i.e. '{ command: <value> }'")
+parser.add_argument("--balancing", type=str, choices=["enable", "disable"], help="Enable or disabled balancing. Must be supplied with the --collection argument")
+parser.add_argument("--collection", type=str, required=False, help="Collection to perform action on. Must be supplied in the format <database>.<collection>")
 
 args = parser.parse_args()
 # TODO Add hostinfo stuff
@@ -918,6 +919,25 @@ if c:
             else:
                 command = args.command
             print_run_command_result(mmo, c, command, args.inc_mongos, args.execution_database)
+        if args.balancing is not None:
+            collection = args.collection
+            if args.collection is None:
+                raise Exception("You must supply the --collection argument with the --balancing argument.")
+            elif "." not in args.collection:
+                raise Exception("You must supply the collection in the format of <database>.<collection>")
+            else:
+                if args.balancing == "enable":
+                    query = { "_id": collection }
+                    update_doc = { "$set" : { "noBalance" : True } }
+                    o = mmo.mmo_execute_update_on_mongos(c, query, update_doc, "config", "collections", True)
+                    if o["noBalance"] == True:
+                        print "Balancing for " + collection + " is enabled"
+                else:
+                    query = {"_id": collection }
+                    update_doc = {"$set": {"noBalance": False} }
+                    o = mmo.mmo_execute_update_on_mongos(c, query, update_doc, "config", "collections", True)
+                    if not o.get("noBalance", False):
+                        print "Balancing for " + collection + " is disabled"
         if args.repeat > 0:
             time.sleep(args.interval)
             os.system('cls' if os.name == 'nt' else 'clear')

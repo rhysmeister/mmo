@@ -1,4 +1,5 @@
 from pymongo import MongoClient
+from pymongo import ReturnDocument
 import re
 import datetime
 
@@ -206,6 +207,30 @@ class MmoMongoCluster:
         else:
             query_output = c[execution_database][collection].find(query)
         return query_output
+
+    def mmo_execute_update_on_mongos(self, mmo_connection, query, update_document, execution_database, collection, is_update_one=True):
+        """
+        Executes an update command on mongos
+        :param mmo_connection:
+        :param query:
+        :param update_document:
+        :param execution_database:
+        :param collection:
+        :return:
+        """
+        mongos_server = self.mmo_mongos_servers(mmo_connection)[0]
+        hostname, port = mongos_server["hostname"], mongos_server["port"]
+        auth_dic = self.mmo_get_auth_details_from_connection(mmo_connection)
+        c = self.mmo_connect_mongos(hostname,
+                                    port,
+                                    auth_dic["username"],
+                                    auth_dic["password"],
+                                    auth_dic["authentication_database"])
+        if is_update_one:
+            update_output = c[execution_database][collection].find_one_and_update(query, update_document, return_document=ReturnDocument.AFTER)
+        else:
+            update_output = c[execution_database][collection].find_many_and_update(query, update_document, return_document=ReturnDocument.AFTER)
+        return update_output
 
     def mmo_execute_on_cluster(self, mmo_connection, command, inc_mongos=False, execution_database="admin"):
         """

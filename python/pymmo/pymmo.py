@@ -187,7 +187,7 @@ class MmoMongoCluster:
         command_output = c[execution_database].command(command)
         return command_output
 
-    def mmo_execute_query_on_mongos(self, mmo_connection, query, execution_database, collection):
+    def mmo_execute_query_on_mongos(self, mmo_connection, query, execution_database, collection, find_one=False):
         """
         Execute a query against a single mongos server and returns the resulting documents
         :param self:
@@ -201,7 +201,10 @@ class MmoMongoCluster:
         hostname, port = mongos_server["hostname"], mongos_server["port"]
         auth_dic = self.mmo_get_auth_details_from_connection(mmo_connection)
         c = self.mmo_connect_mongos(hostname, port, auth_dic["username"], auth_dic["password"], auth_dic["authentication_database"])
-        query_output = c[execution_database][collection].find(query)
+        if find_one:
+            query_output = c[execution_database][collection].find_one(query)
+        else:
+            query_output = c[execution_database][collection].find(query)
         return query_output
 
     def mmo_execute_on_cluster(self, mmo_connection, command, inc_mongos=False, execution_database="admin"):

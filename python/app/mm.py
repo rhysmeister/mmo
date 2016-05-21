@@ -17,6 +17,7 @@ import time
 import ConfigParser
 import hashlib
 import ast
+import re
 
 from bgcolours import bgcolours
 
@@ -615,11 +616,16 @@ def step_down_primary(mmo, c, replicaset):
 
 def sharding_status(mmo, c):
     sh = mmo.mmo_sharding_status(c)
+    query = { "_id": "balancer" }
+    sharding_host = mmo.mmo_execute_query_on_mongos(c, query, "config", "locks", True)
+    groups = sharding_host["process"].split(":")
+    sharding_host = ':'.join(groups[:2])
     print_bold_header("{:<10} {:<100}", ["shard", "hosts"])
     for doc in sh["shards"]:
         print "{:<10} {:<100}".format(doc["_id"], doc["host"])
     if sh["ok"] == 1:
-        print "Sharding State is OK"
+        print "Sharding state is OK"
+    print "Balancing host is {:<30}".format(sharding_host)
 
 def profile_and_display(mmo, c, profile, slowms):
     """

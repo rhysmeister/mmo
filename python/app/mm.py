@@ -16,6 +16,7 @@ import argparse
 import time
 import ConfigParser
 import hashlib
+import ast
 
 from bgcolours import bgcolours
 
@@ -903,7 +904,14 @@ if c:
         if args.validate_indexes is not None:
             print_validate_indexes(mmo, c, args.validate_indexes)
         if args.command is not None:
-            print_run_command_result(mmo, c, args.command, args.inc_mongos, args.execution_database)
+            if "{" in args.command: # A command document has been supplied. Cast to a dictionary so it functions correctly
+                if '"' not in args.command and "'" not in args.command: # Singe or double quotes are ok
+                    raise Exception("Command document must have quoted key names.")
+                else:
+                    command = ast.literal_eval(args.command)
+            else:
+                command = args.command
+            print_run_command_result(mmo, c, command, args.inc_mongos, args.execution_database)
         if args.repeat > 0:
             time.sleep(args.interval)
             os.system('cls' if os.name == 'nt' else 'clear')

@@ -42,6 +42,9 @@ class TestPyMmoMethods(unittest.TestCase):
         self.assertEqual(mongos_servers[3], { "shard": "rs1", "hostname": self.hostname, "port": 30004})
         self.assertEqual(mongos_servers[4], { "shard": "rs1", "hostname": self.hostname, "port": 30005})
         self.assertEqual(mongos_servers[5], { "shard": "rs1", "hostname": self.hostname, "port": 30006})
+        self.assertEqual(mongos_servers[6], {"shard": "rs2", "hostname": self.hostname, "port": 30007})
+        self.assertEqual(mongos_servers[7], {"shard": "rs2", "hostname": self.hostname, "port": 30008})
+        self.assertEqual(mongos_servers[8], {"shard": "rs2", "hostname": self.hostname, "port": 30009})
 
     def test_mmo_what_process_am_i(self):
         m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
@@ -68,7 +71,7 @@ class TestPyMmoMethods(unittest.TestCase):
         m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
         c = m.mmo_connect()
         o = m.mmo_execute_on_cluster(c, "buildinfo")
-        self.assertEquals(6, len(o))
+        self.assertEquals(9, len(o))
         self.assertTrue("openssl" in str(o))
 
     def test_mmo_replica_state(self):
@@ -101,67 +104,79 @@ class TestPyMmoMethods(unittest.TestCase):
         o = m.mmo_replica_state(c)
         self.assertEquals(2, o["id"])
         self.assertEquals("SECONDARY", o["name"])
+        c = m.mmo_connect_mongod("localhost", 30007, "admin", "admin", "admin")
+        o = m.mmo_replica_state(c)
+        self.assertEquals(1, o["id"])
+        self.assertEquals("PRIMARY", o["name"])
+        c = m.mmo_connect_mongod("localhost", 30008, "admin", "admin", "admin")
+        o = m.mmo_replica_state(c)
+        self.assertEquals(2, o["id"])
+        self.assertEquals("SECONDARY", o["name"])
+        c = m.mmo_connect_mongod("localhost", 30009, "admin", "admin", "admin")
+        o = m.mmo_replica_state(c)
+        self.assertEquals(2, o["id"])
+        self.assertEquals("SECONDARY", o["name"])
 
     def test_mmo_execute_on_primaries(self):
         m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
         c = m.mmo_connect()
         o = m.mmo_execute_on_primaries(c, "buildinfo")
-        self.assertEquals(2, len(o))
+        self.assertEquals(3, len(o))
         self.assertTrue("openssl" in str(o))
 
     def test_mmo_execute_on_secondaries(self):
         m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
         c = m.mmo_connect()
         o = m.mmo_execute_on_secondaries(c, "buildinfo")
-        self.assertEquals(4, len(o))
+        self.assertEquals(6, len(o))
         self.assertTrue("openssl" in str(o))
 
     def test_mmo_shards(self):
         m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
         c = m.mmo_connect()
         shards = m.mmo_shards()
-        self.assertEquals([ "rs0", "rs1" ], shards)
+        self.assertEquals([ "rs0", "rs1", "rs2"], shards)
 
     def test_mmo_replication_status(self):
         m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
         c = m.mmo_connect()
         o = m.mmo_replication_status(c)
-        self.assertEquals(2, len(o))
+        self.assertEquals(3, len(o))
         self.assertTrue("lastHeartbeatRecv" in str(o))
 
     def test_mmo_replication_status_summary(self):
         m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
         c = m.mmo_connect()
         o = m.mmo_replication_status_summary(c)
-        self.assertEquals(6, len(o))
+        self.assertEquals(9, len(o))
         self.assertTrue("slaveDelay" in str(o))
 
     def test_mmo_cluster_serverStatus(self):
         m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
         c = m.mmo_connect()
         o = m.mmo_cluster_serverStatus(c, False)
-        self.assertEquals(6, len(o))
+        self.assertEquals(9, len(o))
         self.assertTrue("metrics" in str(o))
 
     def test_mmo_cluster_hostInfo(self):
         m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
         c = m.mmo_connect()
         o = m.mmo_cluster_hostInfo(c, False)
-        self.assertEquals(6, len(o))
+        self.assertEquals(9, len(o))
         self.assertTrue("memSizeMB" in str(o))
 
     def test_mmo_list_databases_on_cluster(self):
         m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
         c = m.mmo_connect()
         o = m.mmo_list_databases_on_cluster(c, False)
-        self.assertEquals(6, len(o))
+        self.assertEquals(9, len(o))
         self.assertTrue("sizeOnDisk" in str(o))
 
     def test_mmo_list_collections_on_cluster(self):
         m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
         c = m.mmo_connect()
         o = m.mmo_list_collections_on_cluster(c, False, "test")
-        self.assertEquals(6, len(o))
+        self.assertEquals(9, len(o))
         self.assertTrue("restaurants" in str(o))
         self.assertTrue("sample_messages" in str(o))
 
@@ -169,7 +184,7 @@ class TestPyMmoMethods(unittest.TestCase):
         m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
         c = m.mmo_connect()
         o = m.mmo_list_dbhash_on_cluster(c)
-        self.assertEquals(4, len(o))
+        self.assertEquals(3, len(o))
         self.assertTrue("restaurants" in str(o))
         self.assertTrue("sample_messages" in str(o))
 
@@ -177,7 +192,7 @@ class TestPyMmoMethods(unittest.TestCase):
         m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
         c = m.mmo_connect()
         o = m.mmo_execute_on_cluster_on_each_db(c, "dbHash", False)
-        self.assertEquals(4, len(o))
+        self.assertEquals(3, len(o))
         self.assertTrue("collections" in str(o))
         self.assertTrue("md5" in str(o))
 
@@ -236,10 +251,12 @@ class TestPyMmoMethods(unittest.TestCase):
         o = m.mmo_sharding_status(c)
         self.assertTrue("rs0" in str(o))
         self.assertTrue("rs1" in str(o))
+        self.assertTrue("rs2" in str(o))
         self.assertEquals(1.0, o["ok"])
-        self.assertEquals(2, len(o["shards"]))
+        self.assertEquals(3, len(o["shards"]))
         self.assertEquals("rs0", o["shards"][0]["_id"])
         self.assertEquals("rs1", o["shards"][1]["_id"])
+        self.assertEquals("rs2", o["shards"][2]["_id"])
 
     def test_mmo_repl_set_freeze(self):
         m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
@@ -256,7 +273,7 @@ class TestPyMmoMethods(unittest.TestCase):
         """
         m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
         c = m.mmo_connect()
-        o = m.mmo_repl_set_freeze_exception_host(c, "rhysmacbook.local", 30006, "rs1", 10)
+        o = m.mmo_repl_set_freeze_nominate_host(c, "rhysmacbook.local", 30006, "rs1", 10)
         self.assertTrue(2, len(o))
         self.assertTrue(1.0, o[0]["command_output"]["ok"])
         self.assertTrue("election_Id", str(o))

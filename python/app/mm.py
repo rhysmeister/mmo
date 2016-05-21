@@ -663,6 +663,19 @@ def print_validate_indexes(mmo, c, validate_indexes):
         index_hash_md5 = hashlib.md5(str(server["command_output"])).hexdigest() if index_count > 0 else server["msg"]
         print "{:<20} {:<10} {:<10} {:<20}".format(server["hostname"], server["port"], str(index_count), index_hash_md5)
 
+def print_run_command_result(mmo, c, command, inc_mongos, execution_database="admin"):
+    """
+    Runs a custom command against your MongoDB Cluster and prints the output
+    :param mmo:
+    :param c:
+    :param inc_mongos:
+    :return:
+    """
+    custom_command_output = mmo.mmo_execute_on_cluster(c, command, inc_mongos, execution_database)
+    print_bold_header("{:<20} {:<10} {:<100}", ["hostname", "port", "command output"])
+    for server in custom_command_output:
+        print "{:<20} {:<10} {:<100}".format(server["hostname"], server["port"], server["command_output"])
+
 def print_server_status_help():
     print "Extracts and displays certain bits of information from the serverStatus document produced in the mongo shell command db.serverStatus()"
     print "Usage: mm --server_status <option>"
@@ -758,6 +771,8 @@ parser.add_argument("-u", "--mongo_username", type=str, default="admin", require
 parser.add_argument("-p", "--mongo_password", type=str, default="admin", required=False, help="MongoDB password")
 parser.add_argument("-D", "--mongo_auth_db", type=str, default="admin", required=False, help="MongoDB authentication database")
 
+parser.add_argument("-e", "--execution_database", type=str, default="admin", required=False, help="Used by some command to specify the execution database.")
+
 parser.add_argument("-r", "--repeat", type=int, default=1, required=False, help="Repeat the action N number of times")
 parser.add_argument("-i", "--interval", type=int, default=2, required=False, help="Number of seconds between each repeat")
 
@@ -765,6 +780,7 @@ parser.add_argument("-c", "--connection", type=str, required=False, help="Name o
 parser.add_argument("-d", "--debug", action='store_true', default=False, help="Output debug information")
 
 parser.add_argument("--validate_indexes", type=str, required=False, default=None, help="Collection to validate indexes across all shard servers. This should be provided in the form <database>.<collection>")
+parser.add_argument("--command", type=str, required=False, help="Run a custom command against your MongoDB Cluster. Should be provided in document format, i.e. '{ command: <value> }'")
 
 args = parser.parse_args()
 # TODO Add hostinfo stuff
@@ -886,6 +902,8 @@ if c:
         args.repeat -= 1
         if args.validate_indexes is not None:
             print_validate_indexes(mmo, c, args.validate_indexes)
+        if args.command is not None:
+            print_run_command_result(mmo, c, args.command, args.inc_mongos, args.execution_database)
         if args.repeat > 0:
             time.sleep(args.interval)
             os.system('cls' if os.name == 'nt' else 'clear')

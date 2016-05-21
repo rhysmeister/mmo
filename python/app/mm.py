@@ -930,7 +930,10 @@ if c:
                     query = { "_id": collection }
                     update_doc = { "$set" : { "noBalance" : True } }
                     o = mmo.mmo_execute_update_on_mongos(c, query, update_doc, "config", "collections", True)
-                    if o["noBalance"] == True:
+                    if o is None:
+                        print "Collection was not updated. Please check the collection name provided."
+                        exit(1)
+                    if o.get("noBalance", False) == True:
                         print "Balancing for " + collection + " is enabled"
                 else:
                     query = {"_id": collection }

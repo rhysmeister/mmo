@@ -24,9 +24,10 @@
 #                                                              #
 # Cluster Info:	3 x config servers 27019, 27020, & 27021       #
 #               3 x mongos servers 27016, 27017 & 27018        #
-#               6 x mongod servers. Split into 2 replicasets.  #
+#               9 x mongod servers. Split into 3 replicasets.  #
 #               rs0 30001, 30002 & 30003                       #
-#               rs1 30004, 30005 & 30006.                      #
+#               rs1 30004, 30005 & 30006                       #
+#				rs2 30007, 30008 & 30009 (Can be turned off).  #
 #               WiredTiger Storage Engine 200MB Cache.         #
 # Users details: u: admin pw: admin                            #
 #                u: pytest pw: secret                          # 
@@ -37,7 +38,7 @@ set -u;
 #set -x;
 
 MMO_SHARDED_CLUSTER_TEST_TEMP="mmo_sharded_cluster_test_temp"; # MongoDB datadir where all cluster data will be placed
-
+THIRD_SHARD=1;	# 0 = off, 1 = on
 
 function mmo_teardown_cluster()
 {
@@ -61,6 +62,9 @@ function mmo_create_directories()
 	mkdir -p ${MMO_SHARDED_CLUSTER_TEST_TEMP};
 	cd ${MMO_SHARDED_CLUSTER_TEST_TEMP};
 	mkdir config1 config2 config3 mongos1 mongos2 mongos3 shard0_30001 shard0_30002 shard0_30003 shard1_30004 shard1_30005 shard1_30006;
+	if [ ${THIRD_SHARD} -eq 1 ]; then
+		mkdir shard2_30007 shard2_30008 shard2_30009 
+	fi;
 }
 
 function mmo_create_config_servers()
@@ -93,6 +97,11 @@ function mmo_create_mongod_shard_servers()
 	mongod --smallfiles --nojournal --storageEngine wiredTiger --wiredTigerEngineConfigString="cache_size=200M" --dbpath ./shard1_30004  --port 30004 --replSet "rs1" --logpath shard1_30004.log ${ADDITIONAL_OPTIONS};
 	mongod --smallfiles --nojournal --storageEngine wiredTiger --wiredTigerEngineConfigString="cache_size=200M" --dbpath ./shard1_30005  --port 30005 --replSet "rs1" --logpath shard1_30005.log ${ADDITIONAL_OPTIONS};
 	mongod --smallfiles --nojournal --storageEngine wiredTiger --wiredTigerEngineConfigString="cache_size=200M" --dbpath ./shard1_30006  --port 30006 --replSet "rs1" --logpath shard1_30006.log ${ADDITIONAL_OPTIONS};
+	if [ ${THIRD_SHARD} -eq 1 ]; then
+		mongod --smallfiles --nojournal --storageEngine wiredTiger --wiredTigerEngineConfigString="cache_size=200M" --dbpath ./shard2_30007  --port 30007 --replSet "rs2" --logpath shard2_30007.log ${ADDITIONAL_OPTIONS};
+		mongod --smallfiles --nojournal --storageEngine wiredTiger --wiredTigerEngineConfigString="cache_size=200M" --dbpath ./shard2_30008  --port 30008 --replSet "rs2" --logpath shard2_30008.log ${ADDITIONAL_OPTIONS};
+		mongod --smallfiles --nojournal --storageEngine wiredTiger --wiredTigerEngineConfigString="cache_size=200M" --dbpath ./shard2_30009  --port 30009 --replSet "rs2" --logpath shard2_30009.log ${ADDITIONAL_OPTIONS};
+	fi;
 }
 
 function mmo_configure_replicaset_rs0()
@@ -121,6 +130,18 @@ function mmo_configure_replicaset_rs1()
 EOF
 }
 
+function mmo_configure_replicaset_rs2()
+{
+	mongo --port 30007 <<EOF
+	rs.initiate();
+	while(rs.status()['myState'] != 1) {
+		print("State is not yet PRIMARY. Waiting...");
+	}	
+	rs.add("$(hostname):30008");
+	rs.add("$(hostname):30009");
+EOF
+}
+
 function mmo_configure_sharding()
 {
 	mongo <<EOF 
@@ -129,6 +150,11 @@ function mmo_configure_sharding()
 	sh.enableSharding("test");
 	sh.shardCollection("test.sample_messages", { "t_u": 1 } );
 EOF
+	if [ ${THIRD_SHARD} -eq 1 ]; then
+		mongo <<EOF
+		sh.addShard( "rs2/$(hostname):30007" );
+EOF
+	fi;
 }
 
 function mmo_create_admin_user()
@@ -177,8 +203,13 @@ function mmo_check_processes()
 {
 	NUM_MONGOD=$(pgrep -x mongod | wc -l);
 	NUM_MONGOS=$(pgrep -x mongos | wc -l);
-	if [ "$NUM_MONGOD" -ne 9 ]; then echo "WARNING: Not all mongod processes are running. Expected 9 but $NUM_MONGOD running."; else echo "All expected mongod processes are running."; fi;
-	if [ "$NUM_MONGOS" -ne 3 ]; then echo "WARNING: Not all mongos processes are running. Expected 3 but $NUM_MONGOS running."; else echo "All expected mongos processes are running."; fi;
+	if [ ${THIRD_SHARD} -eq 1 ]; then
+		if [ "$NUM_MONGOD" -ne 12 ]; then echo "WARNING: Not all mongod processes are running. Expected 12 but $NUM_MONGOD running."; else echo "All expected mongod processes are running."; fi;
+		if [ "$NUM_MONGOS" -ne 3 ]; then echo "WARNING: Not all mongos processes are running. Expected 3 but $NUM_MONGOS running."; else echo "All expected mongos processes are running."; fi;
+	else
+		if [ "$NUM_MONGOD" -ne 9 ]; then echo "WARNING: Not all mongod processes are running. Expected 9 but $NUM_MONGOD running."; else echo "All expected mongod processes are running."; fi;
+		if [ "$NUM_MONGOS" -ne 3 ]; then echo "WARNING: Not all mongos processes are running. Expected 3 but $NUM_MONGOS running."; else echo "All expected mongos processes are running."; fi;
+	fi;
 }
 
 function mmo_generate_key_file()
@@ -233,6 +264,11 @@ function mmo_shutdown_mongod_servers()
 	mmo_shutdown_server 30004;
 	mmo_shutdown_server 30005;
 	mmo_shutdown_server 30006;
+	if [ ${THIRD_SHARD} -eq 1 ]; then
+		mmo_shutdown_server 30007;
+		mmo_shutdown_server 30008;
+		mmo_shutdown_server 30009;
+	fi;
 }
 
 # Shutdown the entire cluster; mongos, config server and shard servers
@@ -246,13 +282,13 @@ function mmo_shutdown_cluster()
 function mmo_load_sample_dataset()
 {
 	DELETE_FILE_AFTER_USE=$1;
-	DATA_URL=https://raw.githubusercontent.com/mongodb/docs-assets/primer-dataset/dataset.json;
-	if [ ! -e /tmp/dataset.json ]; then
+	DATA_URL=https://raw.githubusercontent.com/mongodb/docs-assets/primer-dataset/primer-dataset.json;
+	if [ ! -e /tmp/primer-dataset.json ]; then
 		wget ${DATA_URL} --directory-prefix=/tmp;
 	fi;
-	mongoimport --authenticationDatabase admin --username admin --password admin --db test --collection restaurants --drop --file /tmp/dataset.json;
+	mongoimport --authenticationDatabase admin --username admin --password admin --db test --collection restaurants --drop --file /tmp/primer-dataset.json;
 	if [ ${DELETE_FILE_AFTER_USE} -eq "1" ]; then
-		rm /tmp/dataset.json;
+		rm /tmp/primer-dataset.json;
 	fi;
 }
 
@@ -265,19 +301,27 @@ function mmo_setup_cluster()
 	echo "Sleeping for sixty seconds before attempting replicaset & shard configuration." && sleep 60;
 	mmo_configure_replicaset_rs0 && echo "OK configured replicaset rs0." && sleep 5;
 	mmo_configure_replicaset_rs1 && echo "OK configured replicaset rs1." && sleep 5;
+	mmo_configure_replicaset_rs2 && echo "OK configured replicaset rs2." && sleep 5;
 	mmo_configure_sharding && echo "OK configured Sharding and sharded test.sample_messages by t_u.";
 	mmo_create_admin_user 27017 && echo "OK created cluster admin user (but auth is not enabled yet).";
 	mmo_create_admin_user 30001 && echo "OK created admin user on rs0 (but auth is not enabled yet).";
 	mmo_create_admin_user 30004 && echo "OK created admin user on rs1 (but auth is not enabled yet).";
 	mmo_create_pytest_user 27017 && echo "OK created cluster pytest user (but auth is not enabled yet).";
 	mmo_create_pytest_user 30001 && echo "OK created pytest user on rs0 (but auth is not enabled yet).";
-	mmo_create_pytest_user 30004 && echo "OK created pytest user on rs2 (but auth is not enabled yet).";
+	mmo_create_pytest_user 30004 && echo "OK created pytest user on rs1 (but auth is not enabled yet).";
+	if [ ${THIRD_SHARD} -eq 1 ]; then
+		mmo_create_admin_user 30007 && echo "OK created admin user on rs2 (but auth is not enabled yet).";
+		mmo_create_pytest_user 30007 && echo "OK created pytest user on rs2 (but auth is not enabled yet).";
+	fi
 	# should call function here to put test data in the cluster
 	mmo_wait_for_slaves 30001; # Wait for slaves to catch up
 	mmo_wait_for_slaves 30004; # Also other repl set
+	if [ ${THIRD_SHARD} -eq 1 ]; then
+		mmo_wait_for_slaves 30007;	
+	fi
 	echo "Have a little sleep..." && sleep 10;
 	mmo_shutdown_cluster && echo "Shutdown entire MongoDB Cluster";
-	mmo_murder_cluster # Some config server not restarting??
+	mmo_murder_cluster
 	echo "Preparing to restart MongoDB processes with auth enabled.";
 	mmo_generate_key_file && echo "OK created MongoDB keyfile.";
 	mmo_create_config_servers "$(echo '--auth --fork --keyFile keyfile.txt')" && echo "OK restarted config servers with auth enabled.";

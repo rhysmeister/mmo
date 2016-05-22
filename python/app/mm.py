@@ -43,9 +43,21 @@ def display_cluster_state(mmo, c):
 
 
 def print_replication_summary(replication_summary):
-    sys.stdout.write(bgcolours.BOLD + "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10}\n".format("hostname", "replicaset", "state", "configV", "uptime", "slaveDelay") + bgcolours.ENDC)
+    max_hostname_length = length_of_longest_element(replication_summary, "hostname") + 2
+    format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<10} {:<10} {:<10}\n"
+    sys.stdout.write(bgcolours.BOLD + format_string.format("hostname",
+                                                           "replicaset",
+                                                           "state",
+                                                           "configV",
+                                                           "uptime",
+                                                           "slaveDelay") + bgcolours.ENDC)
     for host in replication_summary:
-        sys.stdout.write(bgcolours.OKGREEN + "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10}\n".format(host["hostname"], host["replicaset"], host["state"], host["configVersion"], host["uptime"], host["slaveDelay"]) + bgcolours.ENDC)
+        sys.stdout.write(bgcolours.OKGREEN + format_string.format(host["hostname"],
+                                                                  host["replicaset"],
+                                                                  host["state"],
+                                                                  host["configVersion"],
+                                                                  host["uptime"],
+                                                                  host["slaveDelay"]) + bgcolours.ENDC)
 
 
 def print_list_of_hosts(title, host_list, colour):
@@ -67,7 +79,7 @@ def print_list_of_hosts(title, host_list, colour):
 
 """
 Thse functions below could be abstracted into a single function. Something like...
-display_serverStatus_output(mmo, c, headers, display_columnss)
+display_serverStatus_output(mmo, c, headers, display_columns)
 Where headers is a list of the titles we want to show and display_columns are the paths to the appropriate data
 """
 
@@ -91,46 +103,50 @@ def display_instance_info_for_cluster(mmo, c, inc_mongos):
     :return:
     """
     serverStatus = mmo.mmo_cluster_serverStatus(c, inc_mongos)
-    print_bold_header("{:<30} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10}", ["hostname",
-                                                                                    "shard",
-                                                                                    "port",
-                                                                                    "version",
-                                                                                    "process",
-                                                                                    "pid",
-                                                                                    "uptime",
-                                                                                    "localTime"])
+    max_hostname_length = length_of_longest_element(serverStatus, "hostname") + 2
+    format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10}\n"
+    print_bold_header(format_string, ["hostname",
+                                        "shard",
+                                        "port",
+                                        "version",
+                                        "process",
+                                        "pid",
+                                        "uptime",
+                                        "localTime"])
     for doc in serverStatus:
-        sys.stdout.write( "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10}\n".format(doc["hostname"],
-                                                                                              doc["shard"],
-                                                                                              doc["port"],
-                                                                                              doc["command_output"]["version"],
-                                                                                              doc["command_output"]["process"],
-                                                                                              doc["command_output"]["pid"],
-                                                                                              doc["command_output"]["uptime"],
-                                                                                              doc["command_output"]["localTime"]))
+        sys.stdout.write( format_string.format(doc["hostname"],
+                                              doc["shard"],
+                                              doc["port"],
+                                              doc["command_output"]["version"],
+                                              doc["command_output"]["process"],
+                                              doc["command_output"]["pid"],
+                                              doc["command_output"]["uptime"],
+                                              doc["command_output"]["localTime"]))
 
 def display_asserts_for_cluster(mmo, c, inc_mongos):
     """
     Print the asserts for all the shard mongod processes in the cluster
     """
     serverStatus = mmo.mmo_cluster_serverStatus(c, inc_mongos)
-    print_bold_header( "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10}", ["hostname",
-                                                                                    "shard",
-                                                                                    "port",
-                                                                                    "regular",
-                                                                                    "warning",
-                                                                                    "msg",
-                                                                                    "user",
-                                                                                    "rollovers"])
+    max_hostname_length = length_of_longest_element(serverStatus, "hostname") + 2
+    format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10}\n"
+    print_bold_header(format_string, ["hostname",
+                                        "shard",
+                                        "port",
+                                        "regular",
+                                        "warning",
+                                        "msg",
+                                        "user",
+                                        "rollovers"])
     for doc in serverStatus:
-        sys.stdout.write( "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10}\n".format(doc["hostname"],
-                                                                                             doc["shard"],
-                                                                                             doc["port"],
-                                                                                             doc["command_output"]["asserts"]["regular"],
-                                                                                             doc["command_output"]["asserts"]["warning"],
-                                                                                             doc["command_output"]["asserts"]["msg"],
-                                                                                             doc["command_output"]["asserts"]["user"],
-                                                                                             doc["command_output"]["asserts"]["rollovers"]) )
+        sys.stdout.write( format_string.format(doc["hostname"],
+                                                 doc["shard"],
+                                                 doc["port"],
+                                                 doc["command_output"]["asserts"]["regular"],
+                                                 doc["command_output"]["asserts"]["warning"],
+                                                 doc["command_output"]["asserts"]["msg"],
+                                                 doc["command_output"]["asserts"]["user"],
+                                                 doc["command_output"]["asserts"]["rollovers"]))
 def display_backgroundFlushing_for_cluster(mmo, c, inc_mongos):
     """
     "backgroundFlushing" : {
@@ -147,42 +163,47 @@ def display_backgroundFlushing_for_cluster(mmo, c, inc_mongos):
     :return:
     """
     serverStatus = mmo.mmo_cluster_serverStatus(c, inc_mongos)
-    print_bold_header( "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10}", ["hostname",
-                                                                                   "shard",
-                                                                                   "port",
-                                                                                   "flushes",
-                                                                                   "total_ms",
-                                                                                   "average_ms",
-                                                                                   "last_ms",
-                                                                                   "last_finished"])
+    max_hostname_length = length_of_longest_element(serverStatus, "hostname") + 2
+    format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10}\n"
+    print_bold_header(format_string, ["hostname",
+                                       "shard",
+                                       "port",
+                                       "flushes",
+                                       "total_ms",
+                                       "average_ms",
+                                       "last_ms",
+                                       "last_finished"])
     for doc in serverStatus:
-        sys.stdout.write( "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10}\n".format(doc["hostname"],
-                                                                               doc["shard"],
-                                                                               doc["port"],
-                                                                               doc["command_output"]["backgroundFlushing"]["flushes"],
-                                                                               doc["command_output"]["backgroundFlushing"]["total_ms"],
-                                                                               doc["command_output"]["backgroundFlushing"]["average_ms"],
-                                                                               doc["command_output"]["backgroundFlushing"]["last_ms"],
-                                                                               doc["command_output"]["backgroundFlushing"]["last_finished"]))
+        sys.stdout.write( format_string.format(doc["hostname"],
+                                               doc["shard"],
+                                               doc["port"],
+                                               doc["command_output"]["backgroundFlushing"]["flushes"],
+                                               doc["command_output"]["backgroundFlushing"]["total_ms"],
+                                               doc["command_output"]["backgroundFlushing"]["average_ms"],
+                                               doc["command_output"]["backgroundFlushing"]["last_ms"],
+                                               doc["command_output"]["backgroundFlushing"]["last_finished"]))
 
 def display_connections_for_cluster(mmo, c, inc_mongos):
     """
     Print the connection stats for the shard mongod process in the cluster
     """
     serverStatus = mmo.mmo_cluster_serverStatus(c, inc_mongos)
-    print_bold_header( "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10}", ["hostname",
-                                                                     "shard",
-                                                                     "port",
-                                                                     "current",
-                                                                     "available",
-                                                                     "totalCreated"])
+    max_hostname_length = length_of_longest_element(serverStatus, "hostname") + 2
+    format_string = "{:<" + str(max_hostname_length) + "}{:<10} {:<10} {:<10} {:<10} {:<10}"
+    print_bold_header(format_string, ["hostname",
+                                     "shard",
+                                     "port",
+                                     "current",
+                                     "available",
+                                     "totalCreated"])
     for doc in serverStatus:
-        sys.stdout.write( "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10}\n".format(doc["hostname"],
-                                                                               doc["shard"],
-                                                                               doc["port"],
-                                                                               doc["command_output"]["connections"]["current"],
-                                                                               doc["command_output"]["connections"]["available"],
-                                                                               doc["command_output"]["connections"]["totalCreated"]))
+        sys.stdout.write(format_string.format(doc["hostname"],
+                                                      doc["shard"],
+                                                      doc["port"],
+                                                      doc["command_output"]["connections"]["current"],
+                                                      doc["command_output"]["connections"]["available"],
+                                                      doc["command_output"]["connections"]["totalCreated"]))
+        sys.stdout.write("\n")
 
 def display_journaling_for_cluster(mmo, c, inc_mongos):
     """
@@ -210,25 +231,29 @@ def display_journaling_for_cluster(mmo, c, inc_mongos):
     :return:
     """
     serverStatus = mmo.mmo_cluster_serverStatus(c, inc_mongos)
-    print_bold_header( "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10}", ["hostname",
-                                                                                          "shard",
-                                                                                           "port",
-                                                                                           "commits",
-                                                                                           "journaledMB",
-                                                                                           "writeToDataFilesMB",
-                                                                                           "compression",
-                                                                                           "commitsInWriteLock",
-                                                                                           "earlyCommits"])
+    max_hostname_length = length_of_longest_element(serverStatus, "hostname") + 2
+    format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10}"
+    print_bold_header(format_string, ["hostname",
+                                      "shard",
+                                      "port",
+                                      "commits",
+                                      "journaledMB",
+                                      "writeToDataFilesMB",
+                                      "compression",
+                                      "commitsInWriteLock",
+                                      "earlyCommits"])
     for doc in serverStatus:
-        sys.stdout.write( "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10}\n".format(doc["hostname"],
-                                                                                                    doc["shard"],
-                                                                                                    doc["port"],
-                                                                                                    doc["dur"]["commits"],
-                                                                                                    doc["dur"]["journaledMB"],
-                                                                                                    doc["dur"]["writeToDataFilesMB"],
-                                                                                                    doc["dur"]["compression"],
-                                                                                                    doc["dur"]["commitsInWriteLock"],
-                                                                                                    doc["dur"]["earlyCommits"]))
+        sys.stdout.write( format_string.format(doc["hostname"],
+                                                doc["shard"],
+                                                doc["port"],
+                                                doc["dur"]["commits"],
+                                                doc["dur"]["journaledMB"],
+                                                doc["dur"]["writeToDataFilesMB"],
+                                                doc["dur"]["compression"],
+                                                doc["dur"]["commitsInWriteLock"],
+                                                doc["dur"]["earlyCommits"]))
+        sys.stdout.write("\n")
+
 def display_extra_info_for_cluster(mmo, c, inc_mongos):
     """
     Show the stats from the extra_info section of the serverStatus document
@@ -243,17 +268,20 @@ def display_extra_info_for_cluster(mmo, c, inc_mongos):
     :return:
     """
     serverStatus = mmo.mmo_cluster_serverStatus(c, inc_mongos)
-    print_bold_header( "{:<30} {:<10} {:<10} {:<18} {:<10}", ["hostname",
-                                                               "shard",
-                                                               "port",
-                                                               "heap_usage_bytes",
-                                                               "page_faults"])
+    max_hostname_length = length_of_longest_element(serverStatus, "hostname") + 2
+    format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<18} {:<10}"
+    print_bold_header(format_string, ["hostname",
+                                       "shard",
+                                       "port",
+                                       "heap_usage_bytes",
+                                       "page_faults"])
     for doc in serverStatus:
-        sys.stdout.write( "{:<30} {:<10} {:<10} {:<18} {:<10}\n".format(doc["hostname"],
-                                                                        doc["shard"],
-                                                                        doc["port"],
-                                                                        doc["command_output"]["extra_info"].get("heap_usage_bytes", "NA"),
-                                                                        doc["command_output"]["extra_info"]["page_faults"]))
+        sys.stdout.write(format_string.format(doc["hostname"],
+                                                doc["shard"],
+                                                doc["port"],
+                                                doc["command_output"]["extra_info"].get("heap_usage_bytes", "NA"),
+                                                doc["command_output"]["extra_info"]["page_faults"]))
+        sys.stdout.write("\n")
 
 def display_opcounters_for_cluster(mmo, c, inc_mongos, repl=False):
     """
@@ -289,25 +317,28 @@ def display_opcounters_for_cluster(mmo, c, inc_mongos, repl=False):
         document = "opcountersRepl"
 
     serverStatus = mmo.mmo_cluster_serverStatus(c, inc_mongos)
-    print_bold_header( "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10}", ["hostname",
-                                                                                           "shard",
-                                                                                           "port",
-                                                                                           "insert",
-                                                                                           "query",
-                                                                                           "update",
-                                                                                           "delete",
-                                                                                           "getmore",
-                                                                                           "command"])
+    max_hostname_length = length_of_longest_element(serverStatus, "hostname") + 2
+    format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10}"
+    print_bold_header(format_string, ["hostname",
+                                       "shard",
+                                       "port",
+                                       "insert",
+                                       "query",
+                                       "update",
+                                       "delete",
+                                       "getmore",
+                                       "command"])
     for doc in serverStatus:
-        sys.stdout.write( "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10}\n".format(doc["hostname"],
-                                                                                                   doc["shard"],
-                                                                                                   doc["port"],
-                                                                                                   doc["command_output"][document]["insert"],
-                                                                                                   doc["command_output"][document]["query"],
-                                                                                                   doc["command_output"][document]["update"],
-                                                                                                   doc["command_output"][document]["delete"],
-                                                                                                   doc["command_output"][document]["getmore"],
-                                                                                                   doc["command_output"][document]["command"]))
+        sys.stdout.write(format_string.format(doc["hostname"],
+                                               doc["shard"],
+                                               doc["port"],
+                                               doc["command_output"][document]["insert"],
+                                               doc["command_output"][document]["query"],
+                                               doc["command_output"][document]["update"],
+                                               doc["command_output"][document]["delete"],
+                                               doc["command_output"][document]["getmore"],
+                                               doc["command_output"][document]["command"]))
+        sys.stdout.write("\n")
 
 def display_globalLock_for_cluster(mmo, c, in_mongos):
     """
@@ -331,52 +362,59 @@ def display_globalLock_for_cluster(mmo, c, in_mongos):
     :return:
     """
     serverStatus = mmo.mmo_cluster_serverStatus(c, in_mongos)
-    print_bold_header( "{:<30} {:<10} {:<10} {:<10} {:<30} {:<30}", ["",
-                                                                       "",
-                                                                       "",
-                                                                       "",
-                                                                       "currentQueue",
-                                                                       "activeClients"])
-    print_bold_header( "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10}", ["hostname",
-                                                                                                "shard",
-                                                                                                "port",
-                                                                                                "totalTime",
-                                                                                                "total",
-                                                                                                 "readers",
-                                                                                                 "writers",
-                                                                                                 "total",
-                                                                                                 "readers",
-                                                                                                 "writers"])
+    max_hostname_length = length_of_longest_element(serverStatus, "hostname") + 2
+    format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10}"
+    print_bold_header( "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<10} {:<30} {:<30}", ["",
+                                                                                                   "",
+                                                                                                   "",
+                                                                                                   "",
+                                                                                                   "currentQueue",
+                                                                                                   "activeClients"])
+    print_bold_header(format_string, ["hostname",
+                                        "shard",
+                                        "port",
+                                        "totalTime",
+                                        "total",
+                                         "readers",
+                                         "writers",
+                                         "total",
+                                         "readers",
+                                         "writers"])
     for doc in serverStatus:
-        sys.stdout.write( "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10}\n".format(doc["hostname"],
-                                                                                    doc["shard"],
-                                                                                    doc["port"],
-                                                                                    doc["command_output"]["globalLock"]["totalTime"],
-                                                                                    doc["command_output"]["globalLock"]["currentQueue"]["total"],
-                                                                                    doc["command_output"]["globalLock"]["currentQueue"]["readers"],
-                                                                                    doc["command_output"]["globalLock"]["currentQueue"]["writers"],
-                                                                                    doc["command_output"]["globalLock"]["activeClients"]["total"],
-                                                                                    doc["command_output"]["globalLock"]["activeClients"]["readers"],
-                                                                                    doc["command_output"]["globalLock"]["activeClients"]["writers"]))
+        sys.stdout.write(format_string.format(doc["hostname"],
+                                                doc["shard"],
+                                                doc["port"],
+                                                doc["command_output"]["globalLock"]["totalTime"],
+                                                doc["command_output"]["globalLock"]["currentQueue"]["total"],
+                                                doc["command_output"]["globalLock"]["currentQueue"]["readers"],
+                                                doc["command_output"]["globalLock"]["currentQueue"]["writers"],
+                                                doc["command_output"]["globalLock"]["activeClients"]["total"],
+                                                doc["command_output"]["globalLock"]["activeClients"]["readers"],
+                                                doc["command_output"]["globalLock"]["activeClients"]["writers"]))
+        sys.stdout.write("\n")
 
 def display_network_for_cluster(mmo, c, inc_mongos):
     """
     Print the network stats for the shard mongod process in the cluster
     """
     serverStatus = mmo.mmo_cluster_serverStatus(c, inc_mongos)
-    print_bold_header( "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10}"["hostname",
-                                                                   "shard",
-                                                                   "port",
-                                                                   "bytesIn",
-                                                                   "bytesOut",
-                                                                   "numRequests"])
+    max_hostname_length = length_of_longest_element(serverStatus, "hostname") + 2
+    format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<10} {:<10} {:<10}"
+    print_bold_header(format_string, ["hostname",
+                                       "shard",
+                                       "port",
+                                       "bytesIn",
+                                       "bytesOut",
+                                       "numRequests"])
     for doc in serverStatus:
-        sys.stdout.write( "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10}\n".format(doc["hostname"],
-                                                                               doc["shard"],
-                                                                               doc["port"],
-                                                                               doc["command_output"]["network"]["bytesIn"],
-                                                                               doc["command_output"]["network"]["bytesOut"],
-                                                                               doc["command_output"]["network"]["numRequests"]))
+        sys.stdout.write(format_string.format(doc["hostname"],
+                                               doc["shard"],
+                                               doc["port"],
+                                               doc["command_output"]["network"]["bytesIn"],
+                                               doc["command_output"]["network"]["bytesOut"],
+                                               doc["command_output"]["network"]["numRequests"]))
+        sys.stdout.write("\n")
+
 
 def display_security_for_cluster(mmo, c, inc_mongos):
     """
@@ -389,25 +427,30 @@ def display_security_for_cluster(mmo, c, inc_mongos):
     }
     """
     serverStatus = mmo.mmo_cluster_serverStatus(c, inc_mongos)
-    print_bold_header("{:<30} {:<10} {:<10} {:<20} {:<32} {:<34}", ["hostname",
-                                                                   "shard",
-                                                                   "port",
-                                                                   "SSLServerSubjectName",
-                                                                   "SSLServerHasCertificateAuthority",
-                                                                   "SSLServerCertificateExpirationDate"])
+    max_hostname_length = length_of_longest_element(serverStatus, "hostname") + 2
+    format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<20} {:<32} {:<34}"
+    print_bold_header(format_string, ["hostname",
+                                       "shard",
+                                       "port",
+                                       "SSLServerSubjectName",
+                                       "SSLServerHasCertificateAuthority",
+                                       "SSLServerCertificateExpirationDate"])
     for doc in serverStatus:
         if 'security' in doc["command_output"].keys():
-            sys.stdout.write( "{:<30} {:<10} {:<10}  {:<20} {:<32} {:<34}\n".format(doc["hostname"],
-                                                                                    doc["shard"],
-                                                                                    doc["port"],
-                                                                                    doc["command_output"]["security"]["SSLServerSubjectName"],
-                                                                                    doc["command_output"]["security"]["SSLServerHasCertificateAuthority"],
-                                                                                    doc["command_output"]["security"]["SSLServerCertificateExpirationDate"]))
+            sys.stdout.write(format_string.format(doc["hostname"],
+                                                    doc["shard"],
+                                                    doc["port"],
+                                                    doc["command_output"]["security"]["SSLServerSubjectName"],
+                                                    doc["command_output"]["security"]["SSLServerHasCertificateAuthority"],
+                                                    doc["command_output"]["security"]["SSLServerCertificateExpirationDate"]))
+            sys.stdout.write("\n")
         else:
-            sys.stdout.write( "{:<30} {:<10} {:<10}  {:<86}\n".format(doc["hostname"],
-                                                                      doc["shard"],
-                                                                      doc["port"],
-                                                                      "SSL Security is not enabled on this host"))
+            fs = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<86}"
+            sys.stdout.write(fs.format(doc["hostname"],
+                                       doc["shard"],
+                                       doc["port"],
+                                       "SSL Security is not enabled on this host"))
+            sys.stdout.write("\n")
 
 def display_storage_engine_for_cluster(mmo, c, inc_mongos):
     """
@@ -418,23 +461,26 @@ def display_storage_engine_for_cluster(mmo, c, inc_mongos):
     },
     """
     serverStatus = mmo.mmo_cluster_serverStatus(c, inc_mongos)
-    print_bold_header("{:<30} {:<10} {:<10} {:<15} {:<22}", ["hostname",
-                                                            "shard",
-                                                            "port",
-                                                            "name",
-                                                            "supportsCommittedReads"])
+    max_hostname_length = length_of_longest_element(serverStatus, "hostname") + 2
+    format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<15} {:<22}"
+    print_bold_header(format_string, ["hostname",
+                                        "shard",
+                                        "port",
+                                        "name",
+                                        "supportsCommittedReads"])
     for doc in serverStatus:
-        sys.stdout.write( "{:<30} {:<10} {:<10} {:<15} {:<22}\n".format(doc["hostname"],
-                                                                                doc["shard"],
-                                                                                doc["port"],
-                                                                                doc["command_output"]["storageEngine"]["name"],
-                                                                                doc["command_output"]["storageEngine"]["supportsCommittedReads"]))
+        sys.stdout.write(format_string.format(doc["hostname"],
+                                                doc["shard"],
+                                                doc["port"],
+                                                doc["command_output"]["storageEngine"]["name"],
+                                                doc["command_output"]["storageEngine"]["supportsCommittedReads"]))
+        sys.stdout.write("\n")
 
 def display_wired_tiger_for_cluster(mmo, c, sub_doc, inc_mongos):
     """
     Display wired tiger stats
     """
-    raise "Not implemented!"
+    raise Exception("Not implemented!")
 
 def display_mem_for_cluster(mmo, c, inc_mongos):
     """
@@ -449,25 +495,29 @@ def display_mem_for_cluster(mmo, c, inc_mongos):
     },
     """
     serverStatus = mmo.mmo_cluster_serverStatus(c, inc_mongos)
-    print_bold_header("{:<30} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<18}", ["hostname",
-                                                                                        "shard",
-                                                                                        "port",
-                                                                                        "bits",
-                                                                                        "resident",
-                                                                                        "virtual",
-                                                                                        "supported",
-                                                                                        "mapped",
-                                                                                        "mappedWithJournal"])
+    max_hostname_length = length_of_longest_element(serverStatus, "hostname") + 2
+    format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<18}"
+    print_bold_header(format_string, ["hostname",
+                                        "shard",
+                                        "port",
+                                        "bits",
+                                        "resident",
+                                        "virtual",
+                                        "supported",
+                                        "mapped",
+                                        "mappedWithJournal"])
     for doc in serverStatus:
-        sys.stdout.write("{:<30} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<18}\n".format(doc["hostname"],
-                                                                                                   doc["shard"],
-                                                                                                   doc["port"],
-                                                                                                   doc["command_output"]["mem"]["bits"],
-                                                                                                   doc["command_output"]["mem"]["resident"],
-                                                                                                   doc["command_output"]["mem"]["virtual"],
-                                                                                                   doc["command_output"]["mem"]["supported"],
-                                                                                                   doc["command_output"]["mem"]["mapped"],
-                                                                                                   doc["command_output"]["mem"].get("mappedWithJournal", "NA"))) # Only present for MMAPv1
+        sys.stdout.write(format_string.format(doc["hostname"],
+                                               doc["shard"],
+                                               doc["port"],
+                                               doc["command_output"]["mem"]["bits"],
+                                               doc["command_output"]["mem"]["resident"],
+                                               doc["command_output"]["mem"]["virtual"],
+                                               doc["command_output"]["mem"]["supported"],
+                                               doc["command_output"]["mem"]["mapped"],
+                                               doc["command_output"]["mem"].get("mappedWithJournal", "NA"))) # Only present for MMAPv1
+        sys.stdout.write("\n")
+
 def display_host_info_for_cluster(mmo, c, inc_mongos, sub_command):
     """
     Summaries the content of the host_info document
@@ -504,26 +554,29 @@ def display_host_info_for_cluster(mmo, c, inc_mongos, sub_command):
     :return:
     """
     hostInfo = mmo.mmo_cluster_hostInfo(c, inc_mongos)
+    max_hostname_length = length_of_longest_element(hostInfo, "hostname") + 2
+    format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<12} {:<10} {:<10} {:<8} {:<10}"
 
     if sub_command == "system":
         currentTimes = set() # So we can compare the currentTime of each host
-        print_bold_header("{:<30} {:<10} {:<10} {:<12} {:<10} {:<10} {:<8} {:<10}", ["hostname",
-                                                                                      "shard",
-                                                                                      "port",
-                                                                                      "cpuAddrSize",
-                                                                                      "memSizeMB",
-                                                                                      "numCores",
-                                                                                      "cpuArch",
-                                                                                      "numaEnabled"])
+        print_bold_header(format_string, ["hostname",
+                                          "shard",
+                                          "port",
+                                          "cpuAddrSize",
+                                          "memSizeMB",
+                                          "numCores",
+                                          "cpuArch",
+                                          "numaEnabled"])
         for doc in hostInfo:
-            sys.stdout.write("{:<30} {:<10} {:<10} {:<12} {:<10} {:<10} {:<8} {:<10}\n".format(doc["hostname"],
-                                                                                                       doc["shard"],
-                                                                                                       doc["port"],
-                                                                                                       doc["command_output"]["system"]["cpuAddrSize"],
-                                                                                                       doc["command_output"]["system"]["memSizeMB"],
-                                                                                                       doc["command_output"]["system"]["numCores"],
-                                                                                                       doc["command_output"]["system"]["cpuArch"],
-                                                                                                       doc["command_output"]["system"]["numaEnabled"]))
+            sys.stdout.write(format_string.format(doc["hostname"],
+                                                   doc["shard"],
+                                                   doc["port"],
+                                                   doc["command_output"]["system"]["cpuAddrSize"],
+                                                   doc["command_output"]["system"]["memSizeMB"],
+                                                   doc["command_output"]["system"]["numCores"],
+                                                   doc["command_output"]["system"]["cpuArch"],
+                                                   doc["command_output"]["system"]["numaEnabled"]))
+            sys.stdout.write("\n")
             currentTimes.add(doc["command_output"]["system"]["currentTime"])
         diff = max(currentTimes) - min(currentTimes)
         diff = diff.total_seconds() * 1000
@@ -531,49 +584,53 @@ def display_host_info_for_cluster(mmo, c, inc_mongos, sub_command):
 
         print line
     elif sub_command == "os":
-        print_bold_header("{:<30} {:<10} {:<10} {:<10} {:<10} {:<10}", ["hostname",
-                                                                          "shard",
-                                                                          "port",
-                                                                          "type",
-                                                                          "name",
-                                                                          "version"])
+        format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<10} {:<10} {:<10}"
+        print_bold_header(format_string, ["hostname",
+                                          "shard",
+                                          "port",
+                                          "type",
+                                          "name",
+                                          "version"])
         for doc in hostInfo:
-            sys.stdout.write("{:<30} {:<10} {:<10} {:<10} {:<10} {:<10} \n".format(doc["hostname"],
-                                                                                   doc["shard"],
-                                                                                   doc["port"],
-                                                                                   doc["command_output"]["os"]["type"],
-                                                                                   doc["command_output"]["os"]["name"],
-                                                                                   doc["command_output"]["os"]["version"]))
+            sys.stdout.write(format_string.format(doc["hostname"],
+                                                   doc["shard"],
+                                                   doc["port"],
+                                                   doc["command_output"]["os"]["type"],
+                                                   doc["command_output"]["os"]["name"],
+                                                   doc["command_output"]["os"]["version"]))
+            sys.stdout.write("\n")
     elif sub_command == "extra":
         versionStrings = [] # Too big to display so we'll collect and output later
         max_hostname_length = 0
-        print_bold_header("{:<30} {:<10} {:<10} {:<12} {:<15} {:<18} {:<10} {:<10} {:<12}", ["hostname",
-                                                                                              "shard",
-                                                                                              "port",
-                                                                                              #"versionString",
-                                                                                              "libcVersion",
-                                                                                              "kernelVersion",
-                                                                                              "cpuFrequencyMHz",
-                                                                                              #"cpuFeatures",
-                                                                                              "pageSize",
-                                                                                              "numPages",
-                                                                                              "maxOpenFiles"])
+        format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<12} {:<15} {:<18} {:<10} {:<10} {:<12}"
+        print_bold_header(format_string, ["hostname",
+                                          "shard",
+                                          "port",
+                                          #"versionString",
+                                          "libcVersion",
+                                          "kernelVersion",
+                                          "cpuFrequencyMHz",
+                                          #"cpuFeatures",
+                                          "pageSize",
+                                          "numPages",
+                                          "maxOpenFiles"])
         for doc in hostInfo:
-            sys.stdout.write("{:<30} {:<10} {:<10} {:<12} {:<15} {:<18} {:<10} {:<10} {:<12}\n".format(doc["hostname"],
-                                                                                                       doc["shard"],
-                                                                                                       doc["port"],
-                                                                                                       #doc["command_output"]["extra"]["versionString"],
-                                                                                                       doc["command_output"]["extra"].get("libcVersion", "NA"),
-                                                                                                       doc["command_output"]["extra"].get("kernelVersion", "NA"),
-                                                                                                       doc["command_output"]["extra"]["cpuFrequencyMHz"],
-                                                                                                       #doc["command_output"]["extra"]["cpuFeatures"], Too big
-                                                                                                       doc["command_output"]["extra"]["pageSize"],
-                                                                                                       doc["command_output"]["extra"].get("numPages", "NA"),
-                                                                                                       doc["command_output"]["extra"].get("maxOpenFiles", "NA")))
+            sys.stdout.write(format_string.format(doc["hostname"],
+                                                   doc["shard"],
+                                                   doc["port"],
+                                                   #doc["command_output"]["extra"]["versionString"],
+                                                   doc["command_output"]["extra"].get("libcVersion", "NA"),
+                                                   doc["command_output"]["extra"].get("kernelVersion", "NA"),
+                                                   doc["command_output"]["extra"]["cpuFrequencyMHz"],
+                                                   #doc["command_output"]["extra"]["cpuFeatures"], Too big
+                                                   doc["command_output"]["extra"]["pageSize"],
+                                                   doc["command_output"]["extra"].get("numPages", "NA"),
+                                                   doc["command_output"]["extra"].get("maxOpenFiles", "NA")))
+            sys.stdout.write("\n")
             versionStrings.append({ "hostname": doc["hostname"],
                                     "port": doc["port"],
                                     "versionString": doc["command_output"]["extra"]["versionString"]})
-            if len(doc["hostname"]) > max_hostname_length: # TODO Extract this to it's own function so we can reuse
+            if len(doc["hostname"]) > max_hostname_length:
                 max_hostname_length = len(doc["hostname"])
         print_bold_header("{:100}", ["Version Strings: "])
         for v in versionStrings:
@@ -591,7 +648,9 @@ def display_db_hash_info_for_cluster(mmo, c, verbose_display=False):
     :return:
     """
     db_hashes = mmo.mmo_list_dbhash_on_cluster(c)
-    print_bold_header("{:<30} {:<10} {:<10} {:<10} {:<10} {:<10}", ["hostname", "shard", "port", "db", "coll #", "md5"])
+    max_hostname_length = length_of_longest_element(db_hashes, "hostname") + 2
+    format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<10} {:<10} {:<10}"
+    print_bold_header(format_string, ["hostname", "shard", "port", "db", "coll #", "md5"])
     for doc in db_hashes:
         for entry in doc:
             hashes_list = set()
@@ -604,19 +663,19 @@ def display_db_hash_info_for_cluster(mmo, c, verbose_display=False):
 
             if show_row:
                 if len(hashes_list) > 1:
-                    print bgcolours.WARNING + "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10}".format(entry["hostname"],
-                                                                             entry["shard"],
-                                                                             entry["port"],
-                                                                             entry["db"],
-                                                                             len(entry["command_output"]["collections"]),
-                                                                             entry["command_output"]["md5"]) + bgcolours.ENDC
+                    print bgcolours.WARNING + format_string.format(entry["hostname"],
+                                                                     entry["shard"],
+                                                                     entry["port"],
+                                                                     entry["db"],
+                                                                     len(entry["command_output"]["collections"]),
+                                                                     entry["command_output"]["md5"]) + bgcolours.ENDC
                 else:
-                    print "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10}".format(entry["hostname"],
-                                                                             entry["shard"],
-                                                                             entry["port"],
-                                                                             entry["db"],
-                                                                             len(entry["command_output"]["collections"]),
-                                                                             entry["command_output"]["md5"])
+                    print format_string.format(entry["hostname"],
+                                                 entry["shard"],
+                                                 entry["port"],
+                                                 entry["db"],
+                                                 len(entry["command_output"]["collections"]),
+                                                 entry["command_output"]["md5"])
 
 def step_down_primary(mmo, c, replicaset):
     if replicaset in mmo.mmo_shards():
@@ -649,16 +708,19 @@ def profile_and_display(mmo, c, profile, slowms):
     # if the profling level is anything other than -1 we need to run the
     # profile command with -1 again to get the current level
     prof = mmo.mmo_change_profiling_level(c, profile, slowms)
+    max_hostname_length = length_of_longest_element(prof, "hostname") + 2
+    format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<10} {:<10}"
     if prof is not -1:
         prof = mmo.mmo_change_profiling_level(c, -1)
-    print_bold_header("{:<30} {:<10} {:<10} {:<10} {:<10}", ["hostname", "shard", "port", "profile", "slowms"])
+    print_bold_header(format_string, ["hostname", "shard", "port", "profile", "slowms"])
     for doc in prof:
-        print "{:<30} {:<10} {:<10} {:<10} {:<10}".format(doc["hostname"], doc["shard"], doc["port"], doc["command_output"]["was"], doc["command_output"]["slowms"])
+        print format_string.format(doc["hostname"], doc["shard"], doc["port"], doc["command_output"]["was"], doc["command_output"]["slowms"])
 
 def print_database_summary(mmo, c):
     cluster_nodes = mmo.mmo_list_databases_on_cluster(c, False)
+    max_hostname_length = length_of_longest_element(cluster_nodes, "hostname") + 2
     for server in cluster_nodes:
-        print_bold_header("{:<20} {:<10}", [server["hostname"], server["port"]])
+        print_bold_header("{:<" + str(max_hostname_length) + "} {:<10}", [server["hostname"], server["port"]])
         print_bold_header("{:<10} {:<10} {:<10}", ["name", "size", "empty"])
         for db in server["command_output"]["databases"]:
             print "{:<10} {:<10} {:<10}".format(db["name"], db["sizeOnDisk"], db["empty"])
@@ -674,11 +736,32 @@ def print_validate_indexes(mmo, c, validate_indexes):
     """
     database, collection = validate_indexes.split(".")
     indexes = mmo.mmo_verify_indexes_on_collection(c, database, collection)
-    print_bold_header("{:<20} {:<10} {:<10} {:<20}", ["hostname", "port", "index #", "index_hash_md5"])
+    max_hostname_length = length_of_longest_element(indexes, "hostname") + 2
+    format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<20}"
+    print_bold_header(format_string, ["hostname", "port", "index #", "index_hash_md5"])
     for server in indexes:
         index_count = len(server["command_output"])
         index_hash_md5 = hashlib.md5(str(server["command_output"])).hexdigest() if index_count > 0 else server["msg"]
-        print "{:<20} {:<10} {:<10} {:<20}".format(server["hostname"], server["port"], str(index_count), index_hash_md5)
+        print format_string.format(server["hostname"], server["port"], str(index_count), index_hash_md5)
+
+def length_of_longest_element(list, key):
+    """
+    FInd the length of the longest element in a list of dictionaries for the given key
+    :param list:
+    :param key:
+    :return:
+    """
+    print list
+    max_length=0
+    for item in list:
+        if not isinstance(item, dict): # We might have a list of dictionaries, or it could be a nested list of dictionaries, still with me?
+            for i in item:
+                if len(i[key]) > max_length:
+                    max_length = len(str(i[key])) # Nested list
+        else:
+            if len(item[key]) > max_length:
+                max_length = len(str(item[key])) # Standard list of dictionaries
+    return max_length
 
 def print_run_command_result(mmo, c, command, inc_mongos, execution_database="admin"):
     """
@@ -689,9 +772,11 @@ def print_run_command_result(mmo, c, command, inc_mongos, execution_database="ad
     :return:
     """
     custom_command_output = mmo.mmo_execute_on_cluster(c, command, inc_mongos, execution_database)
-    print_bold_header("{:<20} {:<10} {:<100}", ["hostname", "port", "command output"])
+    max_hostname_length = length_of_longest_element(custom_command_output, "hostname") + 2
+    format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<100}"
+    print_bold_header(format_string, ["hostname", "port", "command output"])
     for server in custom_command_output:
-        print "{:<20} {:<10} {:<100}".format(server["hostname"], server["port"], server["command_output"])
+        print format_string.format(server["hostname"], server["port"], server["command_output"])
 
 def print_server_status_help():
     print "Extracts and displays certain bits of information from the serverStatus document produced in the mongo shell command db.serverStatus()"

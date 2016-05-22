@@ -582,9 +582,16 @@ def display_host_info_for_cluster(mmo, c, inc_mongos, sub_command):
                               v["port"],
                               v["versionString"])
 
-def display_db_hash_info_for_cluster(mmo, c):
+def display_db_hash_info_for_cluster(mmo, c, verbose_display=False):
+    """
+
+    :param mmo:
+    :param c:
+    :param verbose_display: Display all data when true. Otherwise we choose to display less
+    :return:
+    """
     db_hashes = mmo.mmo_list_dbhash_on_cluster(c)
-    print_bold_header("{:<30} {:<10} {:<10} {:<10} {:<10} {:<10}", ["hostname", "shard", "port", "db", "collections", "md5"])
+    print_bold_header("{:<30} {:<10} {:<10} {:<10} {:<10} {:<10}", ["hostname", "shard", "port", "db", "coll #", "md5"])
     for doc in db_hashes:
         for entry in doc:
             hashes_list = set()
@@ -592,20 +599,24 @@ def display_db_hash_info_for_cluster(mmo, c):
                 for item in document: # TODO Why two for loops. Check this out when you haven't had 4 beers
                     if item['shard'] == entry['shard'] and item['db'] == entry['db']:
                         hashes_list.add(item["command_output"]['md5'])
-            if len(hashes_list) > 1:
-                print bgcolours.WARNING + "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10}".format(entry["hostname"],
-                                                                         entry["shard"],
-                                                                         entry["port"],
-                                                                         entry["db"],
-                                                                         len(entry["command_output"]["collections"]),
-                                                                         entry["command_output"]["md5"]) + bgcolours.ENDC
-            else:
-                print bgcolours.OKBLUE + "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10}".format(entry["hostname"],
-                                                                         entry["shard"],
-                                                                         entry["port"],
-                                                                         entry["db"],
-                                                                         len(entry["command_output"]["collections"]),
-                                                                         entry["command_output"]["md5"]) + bgcolours.ENDC
+            show_row = True
+            if len(entry["command_output"]["collections"]) == 0 and verbose_display == False: show_row = False
+
+            if show_row:
+                if len(hashes_list) > 1:
+                    print bgcolours.WARNING + "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10}".format(entry["hostname"],
+                                                                             entry["shard"],
+                                                                             entry["port"],
+                                                                             entry["db"],
+                                                                             len(entry["command_output"]["collections"]),
+                                                                             entry["command_output"]["md5"]) + bgcolours.ENDC
+                else:
+                    print "{:<30} {:<10} {:<10} {:<10} {:<10} {:<10}".format(entry["hostname"],
+                                                                             entry["shard"],
+                                                                             entry["port"],
+                                                                             entry["db"],
+                                                                             len(entry["command_output"]["collections"]),
+                                                                             entry["command_output"]["md5"])
 
 def step_down_primary(mmo, c, replicaset):
     if replicaset in mmo.mmo_shards():
@@ -790,6 +801,8 @@ parser.add_argument("--command", type=str, required=False, help="Run a custom co
 parser.add_argument("--balancing", type=str, choices=["enable", "disable"], help="Enable or disabled balancing. Must be supplied with the --collection argument")
 parser.add_argument("--collection", type=str, required=False, help="Collection to perform action on. Must be supplied in the format <database>.<collection>")
 
+parser.add_argument("--verbose_display", action="store_true", help="Used in various functions display data that is usually supressed")
+
 args = parser.parse_args()
 # TODO Add hostinfo stuff
 ###################################################
@@ -904,7 +917,7 @@ if c:
             else:
                 display_host_info_for_cluster(mmo, c, args.inc_mongos, args.host_info)
         if args.db_hashes:
-            display_db_hash_info_for_cluster(mmo, c)
+            display_db_hash_info_for_cluster(mmo, c, args.verbose_display)
         if args.databases:
             print_database_summary(mmo, c)
         args.repeat -= 1

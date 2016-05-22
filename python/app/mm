@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Author: Rhys Campbell
 Name: mm - "MongoDB Manager"
@@ -751,7 +752,6 @@ def length_of_longest_element(list, key):
     :param key:
     :return:
     """
-    print list
     max_length=0
     for item in list:
         if not isinstance(item, dict): # We might have a list of dictionaries, or it could be a nested list of dictionaries, still with me?

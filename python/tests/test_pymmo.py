@@ -205,6 +205,7 @@ class TestPyMmoMethods(unittest.TestCase):
         m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
         c = m.mmo_connect()
         replicaset = "rs0"
+        old_primary, new_primary = None, None
         try:
             rs = m.mmo_replication_status_summary(c)
             shard_server_count=len(rs)
@@ -263,7 +264,6 @@ class TestPyMmoMethods(unittest.TestCase):
         c = m.mmo_connect()
         o = m.mmo_repl_set_freeze(c, "rhysmacbook.local", 30005, 10)
         self.assertTrue(1.0, o["command_output"]["ok"])
-        self.assertTrue("electionId" in str(o))
 
     def test_mmo_repl_set_freeze_nominate_host(self):
         """
@@ -277,6 +277,35 @@ class TestPyMmoMethods(unittest.TestCase):
         self.assertTrue(2, len(o))
         self.assertTrue(1.0, o[0]["command_output"]["ok"])
         self.assertTrue("election_Id", str(o))
+
+
+def _set_MongoDB_Cluster_Up():
+    """
+    Run stuff we need to setup the MongoDB Cluster correctly so tests pass. We want a consistent state of the cluster here.
+    FOr example the PRIMARY servers should all be the lowerest port number in the replicaset
+    :return:
+    """
+    hostname = socket.gethostname()
+    m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
+    c = m.mmo_connect()
+    m.mmo_repl_set_freeze_nominate_host(c, hostname, 30001, "rs0", 30)
+    m.mmo_step_down(c, "rs0")
+    m.mmo_repl_set_freeze_nominate_host(c, hostname, 30004, "rs1", 30)
+    m.mmo_step_down(c, "rs1")
+    m.mmo_repl_set_freeze_nominate_host(c, hostname, 30007, "rs2", 30)
+    m.mmo_step_down(c, "rs2")
+    time.sleep(60) # Sleep for a bit to allow elections to complete
+    print "Executed setup"
+
+print "First"
+try:
+    _set_MongoDB_Cluster_Up()
+    print "I am here"
+except Exception as exception:
+    if str(exception) == "connection closed":  # This is the expect behaviour
+        pass
+    else:
+        raise exception
 
 if __name__ == '__main__':
     unittest.main()

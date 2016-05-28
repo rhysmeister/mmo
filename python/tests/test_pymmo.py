@@ -285,27 +285,38 @@ def _set_MongoDB_Cluster_Up():
     FOr example the PRIMARY servers should all be the lowerest port number in the replicaset
     :return:
     """
+    start_time = time.time()
     hostname = socket.gethostname()
     m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
     c = m.mmo_connect()
     m.mmo_repl_set_freeze_nominate_host(c, hostname, 30001, "rs0", 30)
-    m.mmo_step_down(c, "rs0")
+    try:
+        m.mmo_step_down(c, "rs0")
+    except Exception as exception:
+        if str(exception) == "connection closed":  # This is the expect behaviour
+            pass
+        else:
+            raise exception
     m.mmo_repl_set_freeze_nominate_host(c, hostname, 30004, "rs1", 30)
-    m.mmo_step_down(c, "rs1")
+    try:
+        m.mmo_step_down(c, "rs1")
+    except Exception as exception:
+        if str(exception) == "connection closed":  # This is the expect behaviour
+            pass
+        else:
+            raise exception
     m.mmo_repl_set_freeze_nominate_host(c, hostname, 30007, "rs2", 30)
-    m.mmo_step_down(c, "rs2")
+    try:
+        m.mmo_step_down(c, "rs2")
+    except Exception as exception:
+        if str(exception) == "connection closed":  # This is the expect behaviour
+            pass
+        else:
+            raise exception
     time.sleep(60) # Sleep for a bit to allow elections to complete
-    print "Executed setup"
+    print("Executed setup in %s seconds" % (time.time() - start_time))
 
-print "First"
-try:
-    _set_MongoDB_Cluster_Up()
-    print "I am here"
-except Exception as exception:
-    if str(exception) == "connection closed":  # This is the expect behaviour
-        pass
-    else:
-        raise exception
+_set_MongoDB_Cluster_Up()
 
 if __name__ == '__main__':
     unittest.main()

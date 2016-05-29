@@ -559,3 +559,14 @@ class MmoMongoCluster:
                 raise exception
             cluster_command_output.append({ "hostname": hostname, "port": port, "shard": shard, "command_output": list_of_indexes, "db": execution_database, "msg": msg })
         return cluster_command_output
+
+    def mmo_collection_stats(self, mmo_connection, execution_database, collection):
+        """
+        A wrapper around the db.collection.stats() command
+        :param mmo_connection:
+        :param execution_database:
+        :param collection:
+        :return:
+        """
+        command = { "collStats": collection }
+        return self.mmo_execute_on_mongos(mmo_connection, command, execution_database)

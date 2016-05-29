@@ -23,6 +23,8 @@ from bgcolours import bgcolours
 
 execfile(os.path.dirname(os.path.abspath(inspect.stack()[0][1]))  + "/../pymmo/pymmo.py")
 
+MEGABYTE=1048576.0 # Needs to be a float or python floors the result
+
 def display_cluster_state(mmo, c):
     """
     Print out a overview of the MongoDB Cluster and its status. The inital connection should be a mongos for this to work correctly.
@@ -745,6 +747,32 @@ def print_validate_indexes(mmo, c, validate_indexes):
         index_hash_md5 = hashlib.md5(str(server["command_output"])).hexdigest() if index_count > 0 else server["msg"]
         print format_string.format(server["hostname"], server["port"], str(index_count), index_hash_md5)
 
+def print_collection_stats(mmo, c, namespace):
+    execution_database, collection = namespace.split(".")
+    stats = mmo.mmo_collection_stats(c, execution_database, collection)
+    print_bold_header("{:<100}", ["statistic for the " + namespace + " namespace"])
+    print_bold_header("{:<9} {:<8} {:<10} {:<10} {:<15} {:<15}", ["sharded",
+                                                                  "capped",
+                                                                  "count",
+                                                                  "size",
+                                                                  "storageSize",
+                                                                  "totalIndexSize"])
+    print "{:<9} {:<8} {:<10} {:<10.2f} {:<15.2f} {:<15.2f}".format(stats["sharded"],
+                                                           stats["capped"],
+                                                           stats["count"],
+                                                           stats["size"] / MEGABYTE,
+                                                           stats["storageSize"] / MEGABYTE,
+                                                           stats["totalIndexSize"] / MEGABYTE)
+    print_bold_header("{:<15} {:<10} {:<8} {:<8}", ["avgObjSize (b)", "nindexes", "nchunks", "shards"])
+    print "{:<15.2f} {:<10} {:<8} {:<8}".format(stats["avgObjSize"],
+                                             stats["nindexes"],
+                                             stats["nchunks"],
+                                             len(stats["shards"]))
+    print_bold_header("{:<20} {:<20}", ["index name", "size"])
+    for index in stats["indexSizes"]:
+        print "{:<20} {:<20.2f}".format(index, stats["indexSizes"][index] / MEGABYTE)
+
+
 def length_of_longest_element(list, key):
     """
     FInd the length of the longest element in a list of dictionaries for the given key
@@ -882,6 +910,9 @@ parser.add_argument("-c", "--connection", type=str, required=False, help="Name o
 parser.add_argument("-d", "--debug", action='store_true', default=False, help="Output debug information")
 
 parser.add_argument("--validate_indexes", type=str, required=False, default=None, help="Collection to validate indexes across all shard servers. This should be provided in the form <database>.<collection>")
+parser.add_argument("--collection_stats", type=str, required=False, help="Show a summary of the data from the db.collection.stats() command. Must be supplied in the format <database>.<collection>")
+
+
 parser.add_argument("--command", type=str, required=False, help="Run a custom command against your MongoDB Cluster. Should be provided in document format, i.e. '{ command: <value> }'")
 parser.add_argument("--balancing", type=str, choices=["enable", "disable"], help="Enable or disabled balancing. Must be supplied with the --collection argument")
 parser.add_argument("--collection", type=str, required=False, help="Collection to perform action on. Must be supplied in the format <database>.<collection>")
@@ -1039,6 +1070,8 @@ if c:
                     o = mmo.mmo_execute_update_on_mongos(c, query, update_doc, "config", "collections", True)
                     if not o.get("noBalance", False):
                         print "Balancing for " + collection + " is disabled"
+        if args.collection_stats is not None:
+            print_collection_stats(mmo, c, args.collection_stats)
         if args.repeat > 0:
             time.sleep(args.interval)
             os.system('cls' if os.name == 'nt' else 'clear')

@@ -911,6 +911,7 @@ parser.add_argument("-d", "--debug", action='store_true', default=False, help="O
 
 parser.add_argument("--validate_indexes", type=str, required=False, default=None, help="Collection to validate indexes across all shard servers. This should be provided in the form <database>.<collection>")
 parser.add_argument("--collection_stats", type=str, required=False, help="Show a summary of the data from the db.collection.stats() command. Must be supplied in the format <database>.<collection>")
+parser.add_argument("--database_stats", type=str, required=False, help="Show a summary of the data from the db.stats() command.")
 
 
 parser.add_argument("--command", type=str, required=False, help="Run a custom command against your MongoDB Cluster. Should be provided in document format, i.e. '{ command: <value> }'")
@@ -1072,6 +1073,8 @@ if c:
                         print "Balancing for " + collection + " is disabled"
         if args.collection_stats is not None:
             print_collection_stats(mmo, c, args.collection_stats)
+        if args.database_stats is not None:
+            raise NotImplementedError("database_stats not yet implemented")
         if args.repeat > 0:
             time.sleep(args.interval)
             os.system('cls' if os.name == 'nt' else 'clear')

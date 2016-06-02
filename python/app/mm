@@ -750,13 +750,13 @@ def print_validate_indexes(mmo, c, validate_indexes):
 def print_collection_stats(mmo, c, namespace):
     execution_database, collection = namespace.split(".")
     stats = mmo.mmo_collection_stats(c, execution_database, collection)
-    print_bold_header("{:<100}", ["statistic for the " + namespace + " namespace"])
+    print_bold_header("{:<100}", ["statistics for the " + namespace + " namespace"])
     print_bold_header("{:<9} {:<8} {:<10} {:<10} {:<15} {:<15}", ["sharded",
                                                                   "capped",
                                                                   "count",
-                                                                  "size",
-                                                                  "storageSize",
-                                                                  "totalIndexSize"])
+                                                                  "size (mb)",
+                                                                  "storageSize (mb)",
+                                                                  "IndexSize (mb)"])
     print "{:<9} {:<8} {:<10} {:<10.2f} {:<15.2f} {:<15.2f}".format(stats["sharded"],
                                                            stats["capped"],
                                                            stats["count"],
@@ -768,7 +768,7 @@ def print_collection_stats(mmo, c, namespace):
                                              stats["nindexes"],
                                              stats["nchunks"],
                                              len(stats["shards"]))
-    print_bold_header("{:<20} {:<20}", ["index name", "size"])
+    print_bold_header("{:<20} {:<20}", ["index name", "size (mb)"])
     for index in stats["indexSizes"]:
         print "{:<20} {:<20.2f}".format(index, stats["indexSizes"][index] / MEGABYTE)
 

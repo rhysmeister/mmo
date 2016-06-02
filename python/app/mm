@@ -919,6 +919,8 @@ parser.add_argument("--balancing", type=str, choices=["enable", "disable"], help
 parser.add_argument("--collection", type=str, required=False, help="Collection to perform action on. Must be supplied in the format <database>.<collection>")
 
 parser.add_argument("--verbose_display", action="store_true", help="Used in various functions display data that is usually supressed")
+parser.add_argument("--stacktrace", action="store_true", default=False, help="By default we don;t display the Python stacktace. Use this flag to enable.")
+
 
 args = parser.parse_args()
 # TODO Add hostinfo stuff
@@ -928,6 +930,11 @@ args = parser.parse_args()
 
 mmo = MmoMongoCluster(args.mongo_hostname, args.mongo_port, args.mongo_username, args.mongo_password, args.mongo_auth_db)
 c = mmo.mmo_connect()
+
+if args.stacktrace:
+    pass
+else:
+    sys.tracebacklimit = 0
 
 # If a configuration file exists use that
 if os.path.exists('./config.cnf'):

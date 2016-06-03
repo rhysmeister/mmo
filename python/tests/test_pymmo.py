@@ -285,6 +285,13 @@ class TestPyMmoMethods(unittest.TestCase):
         self.assertEquals(1, o["ok"])
         self.assertEquals("test.restaurants", o["ns"])
 
+    def test_mmo_database_stats(self):
+        m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
+        c = m.mmo_connect()
+        o = m.mmo_database_stats(c, "test")
+        self.assertEquals(1, o["ok"])
+        self.assertTrue("test" in str(o))
+
 
 def _set_MongoDB_Cluster_Up():
     """

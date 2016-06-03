@@ -570,3 +570,13 @@ class MmoMongoCluster:
         """
         command = { "collStats": collection }
         return self.mmo_execute_on_mongos(mmo_connection, command, execution_database)
+
+    def mmo_database_stats(self, mmo_connection, database):
+        """
+        A wrapper around the db.stats() command
+        :param mmo_connection:
+        :param database:
+        :return:
+        """
+        command = { "dbstats" : 1 }
+        return self.mmo_execute_on_mongos(mmo_connection, command, database)

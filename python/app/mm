@@ -698,6 +698,11 @@ def sharding_status(mmo, c):
     if sh["ok"] == 1:
         print "Sharding state is OK"
     print "Balancing host is {:<30}".format(sharding_host)
+    print "The following databases are sharded"
+    sharded_databases = mmo.mmo_execute_query_on_mongos(c, { "partitioned": True }, "config", "databases", False)
+    print_bold_header("{:<10} {:<10}", ["database", "primary shard"])
+    for db in sharded_databases:
+        print "{:<10} {:<10}".format(db["_id"], db["primary"])
 
 def profile_and_display(mmo, c, profile, slowms):
     """

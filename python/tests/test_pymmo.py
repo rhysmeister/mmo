@@ -292,7 +292,6 @@ class TestPyMmoMethods(unittest.TestCase):
         self.assertEquals(1, o["ok"])
         self.assertTrue("test" in str(o))
 
-
 def _set_MongoDB_Cluster_Up():
     """
     Run stuff we need to setup the MongoDB Cluster correctly so tests pass. We want a consistent state of the cluster here.

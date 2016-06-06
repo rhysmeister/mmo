@@ -961,6 +961,7 @@ parser.add_argument("--validate_indexes", type=str, required=False, default=None
 parser.add_argument("--collection_stats", type=str, required=False, help="Show a summary of the data from the db.collection.stats() command. Must be supplied in the format <database>.<collection>")
 parser.add_argument("--database_stats", type=str, required=False, help="Show a summary of the data from the db.stats() command.")
 
+parser.add_argument("--explain", type=str, required=False, help="Show a summary of the explain plan")
 
 parser.add_argument("--command", type=str, required=False, help="Run a custom command against your MongoDB Cluster. Should be provided in document format, i.e. '{ command: <value> }'")
 parser.add_argument("--balancing", type=str, choices=["enable", "disable"], help="Enable or disabled balancing. Must be supplied with the --collection argument")
@@ -1130,6 +1131,8 @@ if c:
             print_collection_stats(mmo, c, args.collection_stats)
         if args.database_stats is not None:
             print_database_stats(mmo, c, args.database_stats)
+        if args.explain is not None:
+            raise NotImplementedError("explain functionality is not implemented.")
         if args.repeat > 0:
             time.sleep(args.interval)
             os.system('cls' if os.name == 'nt' else 'clear')

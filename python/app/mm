@@ -996,12 +996,18 @@ if os.path.exists('./config.cnf'):
     options = Config.options(section)
     if args.debug: print options
     if Config.getboolean(section, "active"):
-        args.mongo_host = Config.get(section, "mongo_host")
-        args.mongo_port = Config.get(section, "mongo_port")
+        args.mongo_hostname = Config.get(section, "mongo_host")
+        args.mongo_port = int(Config.get(section, "mongo_port"))
         args.mongo_username = Config.get(section, "mongo_username")
         args.mongo_password = Config.get(section, "mongo_password")
         args.mongo_auth_db = Config.get(section, "mongo_auth_db")
-        if args.debug: print "Finished settings args from configuration file"
+        if args.debug:
+          print "Finished settings args from configuration file"
+          print args.mongo_hostname
+          print args.mongo_port
+          print args.mongo_username
+          print args.mongo_password
+          print args.mongo_auth_db
     else:
         if args.debug: print "{:<10} section is not active so ignoring".format(section)
 

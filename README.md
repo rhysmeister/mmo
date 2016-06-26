@@ -27,7 +27,7 @@ DESCRIPTION
 
 CONNECTION OPTIONS
 
-    Connecting to a MongoDB Cluster can be performed in a couple of ways; Via command-line flags or by using a configuration file. Whichever method is used the initial connection must be a mongos server.
+    Connecting to a MongoDB Cluster can be performed in a couple of ways; Via command-line flags or by using a configuration file. Whichever method is used the initial connection must be a mongos server. mm handles the connections to other server internally. This means you must have created the same user, with the same authentication details, on all replicasets in the cluster.
 
     Connecting via the command-line
 
@@ -65,7 +65,7 @@ CONNECTION OPTIONS
 
         ./mm --connection UniqueConnectionName
 
-    mm will ignore the connection if active is False. 
+    mm will ignore the connection if active is set to False.
 
 OPTIONS
 

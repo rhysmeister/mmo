@@ -977,18 +977,10 @@ parser.add_argument("--stacktrace", action="store_true", default=False, help="By
 
 
 args = parser.parse_args()
-# TODO Add hostinfo stuff
+
 ###################################################
 # Main program starts here
 ###################################################
-
-mmo = MmoMongoCluster(args.mongo_hostname, args.mongo_port, args.mongo_username, args.mongo_password, args.mongo_auth_db)
-c = mmo.mmo_connect()
-
-if args.stacktrace:
-    pass
-else:
-    sys.tracebacklimit = 0
 
 # If a configuration file exists use that
 if os.path.exists('./config.cnf'):
@@ -1012,6 +1004,15 @@ if os.path.exists('./config.cnf'):
         if args.debug: print "Finished settings args from configuration file"
     else:
         if args.debug: print "{:<10} section is not active so ignoring".format(section)
+
+mmo = MmoMongoCluster(args.mongo_hostname, args.mongo_port, args.mongo_username, args.mongo_password, args.mongo_auth_db)
+c = mmo.mmo_connect()
+
+if args.stacktrace:
+    pass
+else:
+    sys.tracebacklimit = 0
+
 if c:
     while args.repeat != 0:
         if args.summary or args.server_status == "show_all":
@@ -1143,9 +1144,3 @@ if c:
             os.system('cls' if os.name == 'nt' else 'clear')
     else:
         exit(1)
-
-
-
-
-
-

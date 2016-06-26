@@ -23,7 +23,49 @@ SYNOPSYS
 
 DESCRIPTION
 
-        mm is a tool for monitoring and managing MongoDB sharded clusters
+        mm is a tool for monitoring and managing MongoDB sharded clusters.
+
+CONNECTION OPTIONS
+
+    Connecting to a MongoDB Cluster can be performed in a couple of ways; Via command-line flags or by using a configuration file. Whichever method is used the initial connection must be a mongos server.
+
+    Connecting via the command-line
+
+    -H - The host to connect to. Default 'localhost'.
+    -P - The port to connect to. Default 27017.
+    -u - The username for the connection. Default 'admin'.
+    -p - password.
+    -D - The database to authentication against. Default 'admin'.
+
+    ./mm -H localhost -P 27017 -u admin -p secret -D admin
+
+    Connecting via a configuration file
+
+    By default mm will look for a configuration file in the directory it is executed from. This file must be called config.cnf and contain at least one valid section. Each section must be specified as follows;
+
+    [Unique name]
+    mongo_host: <hostname>
+    mongo_port: <port>
+    mongo_username: <username>
+    mongo_password: <password>
+    mongo_auth_db: <authentication database>
+    active: True|False
+
+    Example
+
+    [Default]
+    mongo_host: localhost
+    mongo_port: 27017
+    mongo_username: admin
+    mongo_password: admin
+    mongo_auth_db: admin
+    active: True
+
+    The connection details must refer to a mongos server. If a connection is not supplied via command-line parameters mm will use the section called "Default" in the configuration file. Further connections can be specified in the configuration file. They should be given a unique section name. Specific connections can be referred to on the command-line by using the connection name. for example;
+
+        ./mm --connection UniqueConnectionName
+
+    mm will ignore the connection if active is False. 
 
 OPTIONS
 

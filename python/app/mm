@@ -604,7 +604,7 @@ def display_host_info_for_cluster(mmo, c, inc_mongos, sub_command):
             sys.stdout.write("\n")
     elif sub_command == "extra":
         versionStrings = [] # Too big to display so we'll collect and output later
-        max_hostname_length = 0
+        #max_hostname_length = 0 Why is this here? To removed?
         format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<12} {:<15} {:<18} {:<10} {:<10} {:<12}"
         print_bold_header(format_string, ["hostname",
                                           "shard",

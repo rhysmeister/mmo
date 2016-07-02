@@ -826,6 +826,12 @@ def print_database_stats(mmo, c, database):
                                         round(dbstats["raw"][shard]["indexSize"] / MEGABYTE, 2),
                                         dbstats["raw"][shard].get("fileSize", "NA"))
 
+def print_show_collections(mm, c, database):
+    o = mm.mmo_execute_on_mongos(c, "listCollections", database)
+    for collection in o["cursor"]["firstBatch"]:
+        print collection["name"]
+
+
 def length_of_longest_element(list, key):
     """
     FInd the length of the longest element in a list of dictionaries for the given key
@@ -965,6 +971,7 @@ parser.add_argument("-d", "--debug", action='store_true', default=False, help="O
 parser.add_argument("--validate_indexes", type=str, required=False, default=None, help="Collection to validate indexes across all shard servers. This should be provided in the form <database>.<collection>")
 parser.add_argument("--collection_stats", type=str, required=False, help="Show a summary of the data from the db.collection.stats() command. Must be supplied in the format <database>.<collection>")
 parser.add_argument("--database_stats", type=str, required=False, help="Show a summary of the data from the db.stats() command.")
+parser.add_argument("--show_collections", type=str, required=False, help="List the collections in the given database.")
 
 parser.add_argument("--explain", type=str, required=False, help="Show a summary of the explain plan")
 
@@ -1108,6 +1115,8 @@ if c:
         args.repeat -= 1
         if args.validate_indexes is not None:
             print_validate_indexes(mmo, c, args.validate_indexes)
+        if args.show_collections is not None:
+            print_show_collections(mmo, c, args.show_collections)
         if args.command is not None:
             if "{" in args.command: # A command document has been supplied. Cast to a dictionary so it functions correctly
                 if '"' not in args.command and "'" not in args.command: # Singe or double quotes are ok

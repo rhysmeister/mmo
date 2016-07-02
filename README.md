@@ -233,6 +233,54 @@ EXAMPLES
             rhysmacbook.local   rs2        30008      Darwin     Mac OS X   15.4.0
             rhysmacbook.local   rs2        30009      Darwin     Mac OS X   15.4.0
 
+        Instruct a command to repeat 5 times 10 seconds apart
+
+        ./mm --repl --repeat 5 --interval 10
+
+        Show a summary of databases on the cluster.
+
+        ./mm --databases
+
+        rhysmacbook.local   30001
+        name       size       empty
+        admin      122880.0   0
+        local      5308416.0  0
+        test       4562944.0  0
+        rhysmacbook.local   30002
+        name       size       empty
+        admin      176128.0   0
+        local      5304320.0  0
+        test       4521984.0  0
+
+        Show statistics for a database
+
+        ./mm --database_stats test
+
+        Database stats summary of test
+        objects   avgObjSize (b)  datasize (mb)   storageSize (mb)  extents   indexSize (mb)  fileSize  extents free
+        25360     419.0           10.1381053925   3.97265625        0         0.38671875      0         0
+        Database stats by shard
+        0 collections on: rs2/rhysmacbook.local:30007,rhysmacbook.local:30008,rhysmacbook.local:30009
+        0 collections on: rs1/rhysmacbook.local:30004,rhysmacbook.local:30005,rhysmacbook.local:30006
+        rs0/rhysmacbook.local:30001,rhysmacbook.local:30002,rhysmacbook.local:30003
+        collections  objects  avgObjSize (b)  dataSize (mb)   storageSize (mb)  numExtents  indexes  indexSize (mb)  fileSize
+        3            25360    419.0           10.14           3.97              0           5        0.39            NA
+
+        Show collections in a database
+
+        ./mm --show_collections test
+
+        rhys
+        sample_messages
+        restaurants
+
+        Run a custom command
+
+        /mm --command '{ "listCollections": 1 }' --execution_database test
+
+        Output for this is variable depending on the chosen command.
+
+
 SEE ALSO
 
 BUGS

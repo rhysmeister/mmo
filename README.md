@@ -17,7 +17,7 @@ SYNOPSYS
                   [-e EXECUTION_DATABASE] [-r REPEAT] [-i INTERVAL] [-c CONNECTION]
                   [-d] [--validate_indexes VALIDATE_INDEXES]
                   [--collection_stats COLLECTION_STATS]
-                  [--database_stats DATABASE_STATS] [--explain EXPLAIN]
+                  [--database_stats DATABASE_STATS]
                   [--command COMMAND] [--balancing {enable,disable}]
                   [--collection COLLECTION] [--verbose_display] [--stacktrace]
 
@@ -133,7 +133,6 @@ OPTIONS
           --database_stats DATABASE_STATS
                                 Show a summary of the data from the db.stats()
                                 command.
-          --explain EXPLAIN     Show a summary of the explain plan
           --command COMMAND     Run a custom command against your MongoDB Cluster.
                                 Should be provided in document format, i.e. '{
                                 command: <value> }'

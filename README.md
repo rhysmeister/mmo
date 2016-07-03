@@ -144,7 +144,7 @@ OPTIONS
                                 the format <database>.<collection>
           --verbose_display     Used in various functions display data that is usually
                                 supressed
-          --stacktrace          By default we don;t display the Python stacktace. Use
+          --stacktrace          By default we don't display the Python stacktace. Use
                                 this flag to enable.
 
 EXAMPLES
@@ -183,7 +183,7 @@ EXAMPLES
 
             ./mm --step_down rs0
 
-            (Output is the same as --repl flag).
+            Output is the same as --repl flag with the addition of a line showing the PRIMARY transition.
 
         Instruct the primary of the given replicaset to step down and nominate a secondary to take over the role. Note this is not guaranteed but should work in most circumstances. If your cluster has significant replication lag then this request may not be honoured.
 
@@ -275,10 +275,13 @@ EXAMPLES
 
         Run a custom command
 
-        /mm --command '{ "listCollections": 1 }' --execution_database test
+        ./mm --command '{ "listCollections": 1 }' --execution_database test
 
         Output for this is variable depending on the chosen command.
 
+        Enable debug output and stacktrace output
+
+        ./mm --repl --debug --stacktrace
 
 SEE ALSO
 

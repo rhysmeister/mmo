@@ -40,10 +40,14 @@ set -u;
 MMO_SHARDED_CLUSTER_TEST_TEMP="mmo_sharded_cluster_test_temp"; # MongoDB datadir where all cluster data will be placed
 THIRD_SHARD=1;	# 0 = off, 1 = on
 
+function mmo_murder_cluster()
+{
+	killall mongos && echo "mongos processes have been murdered." && killall mongod && echo "mongod processes have been murdered.";
+}
+
 function mmo_teardown_cluster()
 {
-	killall mongos && echo "mongos processes have been murdered.";
-	killall mongod && echo "mongod processes have been murdered.";
+	mmo_murder_cluster;
 	cd ~;
 	sleep 5 && echo "Waiting for all processes to die...";
 	rm -Rf ${MMO_SHARDED_CLUSTER_TEST_TEMP} && echo "Directory ${MMO_SHARDED_CLUSTER_TEST_TEMP} removed.";

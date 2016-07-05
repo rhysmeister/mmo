@@ -283,6 +283,19 @@ EXAMPLES
 
         ./mm --repl --debug --stacktrace
 
+        Show the db hashes for all collections on all shards in the cluster.
+
+        ./mm --db_hashes
+
+        hostname            shard      port       db         coll #     md5
+        rhysmacbook.local   rs0        30001      test       3          5b151c215ef40b662fe79dcf44928e66
+        rhysmacbook.local   rs0        30002      test       3          5b151c215ef40b662fe79dcf44928e66
+        rhysmacbook.local   rs0        30003      test       3          5b151c215ef40b662fe79dcf44928e66
+
+        By default the above command does not show details for databases where coll # is 0. This excludes the admin and config databases because the system collections are not counted in the collection count. Use this command to override that behaviour.
+
+        ./mm --db_hashes --verbose_display
+
 SEE ALSO
 
 BUGS

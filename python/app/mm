@@ -323,12 +323,11 @@ def display_extra_info_for_cluster(mmo, c, inc_mongos):
                                        "heap_usage_bytes",
                                        "page_faults"])
     for doc in serverStatus:
-        sys.stdout.write(format_string.format(doc["hostname"],
-                                                doc["shard"],
-                                                doc["port"],
-                                                doc["command_output"]["extra_info"].get("heap_usage_bytes", "NA"),
-                                                doc["command_output"]["extra_info"]["page_faults"]))
-        sys.stdout.write("\n")
+        print_colour_data_row(bgcolours.OKGREEN, format_string, [doc["hostname"],
+                                                                 doc["shard"],
+                                                                 doc["port"],
+                                                                 doc["command_output"]["extra_info"].get("heap_usage_bytes", "NA"),
+                                                                 doc["command_output"]["extra_info"]["page_faults"]])
 
 def display_opcounters_for_cluster(mmo, c, inc_mongos, repl=False):
     """

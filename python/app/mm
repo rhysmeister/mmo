@@ -41,19 +41,19 @@ def display_cluster_state(mmo, c):
     print_list_of_hosts("MongoDB mongod shard servers", mongod_shard_servers, bgcolours.OKGREEN)
     print(bgcolours.BOLD + "MongoDB shards" + bgcolours.ENDC)
     for shard in shards:
-        sys.stdout.write( bgcolours.OKGREEN + "{0}   ".format(shard) + bgcolours.ENDC)
+        print_colour_data_row(bgcolours.OKGREEN, "{0}   ", [shard])
     print("")
 
 
 def print_replication_summary(replication_summary):
     max_hostname_length = length_of_longest_element(replication_summary, "hostname") + 2
     format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<10} {:<10} {:<10}\n"
-    sys.stdout.write(bgcolours.BOLD + format_string.format("hostname",
-                                                           "replicaset",
-                                                           "state",
-                                                           "configV",
-                                                           "uptime",
-                                                           "slaveDelay") + bgcolours.ENDC)
+    print_bold_header(format_string, [ "hostname",
+                                       "replicaset",
+                                       "state",
+                                       "configV",
+                                       "uptime",
+                                       "slaveDelay" ])
     for host in replication_summary:
         print_colour_data_row(bgcolours.OKGREEN, format_string, [ host["hostname"],
                                                                   host["replicaset"],
@@ -102,7 +102,7 @@ Where headers is a list of the titles we want to show and display_columns are th
 """
 
 def print_bold_header(format_string, header_list):
-    sys.stdout.write(bgcolours.BOLD + format_string.format(*header_list) +"\n" + bgcolours.ENDC)
+    sys.stdout.write(bgcolours.BOLD + format_string.format(*header_list) + bgcolours.ENDC)
 
 def display_instance_info_for_cluster(mmo, c, inc_mongos):
     """

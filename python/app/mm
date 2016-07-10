@@ -426,17 +426,16 @@ def display_globalLock_for_cluster(mmo, c, in_mongos):
                                          "readers",
                                          "writers"])
     for doc in serverStatus:
-        sys.stdout.write(format_string.format(doc["hostname"],
-                                                doc["shard"],
-                                                doc["port"],
-                                                doc["command_output"]["globalLock"]["totalTime"],
-                                                doc["command_output"]["globalLock"]["currentQueue"]["total"],
-                                                doc["command_output"]["globalLock"]["currentQueue"]["readers"],
-                                                doc["command_output"]["globalLock"]["currentQueue"]["writers"],
-                                                doc["command_output"]["globalLock"]["activeClients"]["total"],
-                                                doc["command_output"]["globalLock"]["activeClients"]["readers"],
-                                                doc["command_output"]["globalLock"]["activeClients"]["writers"]))
-        sys.stdout.write("\n")
+        print_colour_data_row(bgcolours.OKGREEN, format_string, [doc["hostname"],
+                                                                 doc["shard"],
+                                                                 doc["port"],
+                                                                 doc["command_output"]["globalLock"]["totalTime"],
+                                                                 doc["command_output"]["globalLock"]["currentQueue"]["total"],
+                                                                 doc["command_output"]["globalLock"]["currentQueue"]["readers"],
+                                                                 doc["command_output"]["globalLock"]["currentQueue"]["writers"],
+                                                                 doc["command_output"]["globalLock"]["activeClients"]["total"],
+                                                                 doc["command_output"]["globalLock"]["activeClients"]["readers"],
+                                                                 doc["command_output"]["globalLock"]["activeClients"]["writers"]])
 
 def display_network_for_cluster(mmo, c, inc_mongos):
     """
@@ -452,14 +451,12 @@ def display_network_for_cluster(mmo, c, inc_mongos):
                                        "bytesOut",
                                        "numRequests"])
     for doc in serverStatus:
-        sys.stdout.write(format_string.format(doc["hostname"],
-                                               doc["shard"],
-                                               doc["port"],
-                                               doc["command_output"]["network"]["bytesIn"],
-                                               doc["command_output"]["network"]["bytesOut"],
-                                               doc["command_output"]["network"]["numRequests"]))
-        sys.stdout.write("\n")
-
+        print_colour_data_row(bgcolours.OKGREEN, format_string, [doc["hostname"],
+                                                                 doc["shard"],
+                                                                 doc["port"],
+                                                                 doc["command_output"]["network"]["bytesIn"],
+                                                                 doc["command_output"]["network"]["bytesOut"],
+                                                                 doc["command_output"]["network"]["numRequests"]])
 
 def display_security_for_cluster(mmo, c, inc_mongos):
     """
@@ -482,20 +479,18 @@ def display_security_for_cluster(mmo, c, inc_mongos):
                                        "SSLServerCertificateExpirationDate"])
     for doc in serverStatus:
         if 'security' in doc["command_output"].keys():
-            sys.stdout.write(format_string.format(doc["hostname"],
-                                                    doc["shard"],
-                                                    doc["port"],
-                                                    doc["command_output"]["security"]["SSLServerSubjectName"],
-                                                    doc["command_output"]["security"]["SSLServerHasCertificateAuthority"],
-                                                    doc["command_output"]["security"]["SSLServerCertificateExpirationDate"]))
-            sys.stdout.write("\n")
+            print_colour_data_row(bgcolours.OKGREEN, format_string, [doc["hostname"],
+                                                                     doc["shard"],
+                                                                     doc["port"],
+                                                                     doc["command_output"]["security"]["SSLServerSubjectName"],
+                                                                     doc["command_output"]["security"]["SSLServerHasCertificateAuthority"],
+                                                                     doc["command_output"]["security"]["SSLServerCertificateExpirationDate"]])
         else:
             fs = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<86}"
-            sys.stdout.write(fs.format(doc["hostname"],
-                                       doc["shard"],
-                                       doc["port"],
-                                       "SSL Security is not enabled on this host"))
-            sys.stdout.write("\n")
+            print_colour_data_row(bgcolours.OKGREEN, fs, [doc["hostname"],
+                                                          doc["shard"],
+                                                          doc["port"],
+                                                          "SSL Security is not enabled on this host"])
 
 def display_storage_engine_for_cluster(mmo, c, inc_mongos):
     """
@@ -514,12 +509,11 @@ def display_storage_engine_for_cluster(mmo, c, inc_mongos):
                                         "name",
                                         "supportsCommittedReads"])
     for doc in serverStatus:
-        sys.stdout.write(format_string.format(doc["hostname"],
-                                                doc["shard"],
-                                                doc["port"],
-                                                doc["command_output"]["storageEngine"]["name"],
-                                                doc["command_output"]["storageEngine"]["supportsCommittedReads"]))
-        sys.stdout.write("\n")
+        print_colour_data_row(bgcolours.OKGREEN, format_string, [doc["hostname"],
+                                                                 doc["shard"],
+                                                                 doc["port"],
+                                                                 doc["command_output"]["storageEngine"]["name"],
+                                                                 doc["command_output"]["storageEngine"]["supportsCommittedReads"]])
 
 def display_wired_tiger_for_cluster(mmo, c, sub_doc, inc_mongos):
     """
@@ -552,16 +546,15 @@ def display_mem_for_cluster(mmo, c, inc_mongos):
                                         "mapped",
                                         "mappedWithJournal"])
     for doc in serverStatus:
-        sys.stdout.write(format_string.format(doc["hostname"],
-                                               doc["shard"],
-                                               doc["port"],
-                                               doc["command_output"]["mem"]["bits"],
-                                               doc["command_output"]["mem"]["resident"],
-                                               doc["command_output"]["mem"]["virtual"],
-                                               doc["command_output"]["mem"]["supported"],
-                                               doc["command_output"]["mem"]["mapped"],
-                                               doc["command_output"]["mem"].get("mappedWithJournal", "NA"))) # Only present for MMAPv1
-        sys.stdout.write("\n")
+        print_colour_data_row(bgcolours.OKGREEN, format_string, [doc["hostname"],
+                                                                 doc["shard"],
+                                                                 doc["port"],
+                                                                 doc["command_output"]["mem"]["bits"],
+                                                                 doc["command_output"]["mem"]["resident"],
+                                                                 doc["command_output"]["mem"]["virtual"],
+                                                                 doc["command_output"]["mem"]["supported"],
+                                                                 doc["command_output"]["mem"]["mapped"],
+                                                                 doc["command_output"]["mem"].get("mappedWithJournal", "NA")]) # Only present for MMAPv1
 
 def display_host_info_for_cluster(mmo, c, inc_mongos, sub_command):
     """
@@ -613,15 +606,14 @@ def display_host_info_for_cluster(mmo, c, inc_mongos, sub_command):
                                           "cpuArch",
                                           "numaEnabled"])
         for doc in hostInfo:
-            sys.stdout.write(format_string.format(doc["hostname"],
-                                                   doc["shard"],
-                                                   doc["port"],
-                                                   doc["command_output"]["system"]["cpuAddrSize"],
-                                                   doc["command_output"]["system"]["memSizeMB"],
-                                                   doc["command_output"]["system"]["numCores"],
-                                                   doc["command_output"]["system"]["cpuArch"],
-                                                   doc["command_output"]["system"]["numaEnabled"]))
-            sys.stdout.write("\n")
+            print_colour_data_row(bgcolours.OKGREEN, format_string, [doc["hostname"],
+                                                                     doc["shard"],
+                                                                     doc["port"],
+                                                                     doc["command_output"]["system"]["cpuAddrSize"],
+                                                                     doc["command_output"]["system"]["memSizeMB"],
+                                                                     doc["command_output"]["system"]["numCores"],
+                                                                     doc["command_output"]["system"]["cpuArch"],
+                                                                     doc["command_output"]["system"]["numaEnabled"]])
             currentTimes.add(doc["command_output"]["system"]["currentTime"])
         diff = max(currentTimes) - min(currentTimes)
         diff = diff.total_seconds() * 1000
@@ -637,13 +629,12 @@ def display_host_info_for_cluster(mmo, c, inc_mongos, sub_command):
                                           "name",
                                           "version"])
         for doc in hostInfo:
-            sys.stdout.write(format_string.format(doc["hostname"],
-                                                   doc["shard"],
-                                                   doc["port"],
-                                                   doc["command_output"]["os"]["type"],
-                                                   doc["command_output"]["os"]["name"],
-                                                   doc["command_output"]["os"]["version"]))
-            sys.stdout.write("\n")
+            print_colour_data_row(bgcolours.OKGREEN, format_string, [doc["hostname"],
+                                                                     doc["shard"],
+                                                                     doc["port"],
+                                                                     doc["command_output"]["os"]["type"],
+                                                                     doc["command_output"]["os"]["name"],
+                                                                     doc["command_output"]["os"]["version"]])
     elif sub_command == "extra":
         versionStrings = [] # Too big to display so we'll collect and output later
         #max_hostname_length = 0 Why is this here? To removed?
@@ -660,18 +651,17 @@ def display_host_info_for_cluster(mmo, c, inc_mongos, sub_command):
                                           "numPages",
                                           "maxOpenFiles"])
         for doc in hostInfo:
-            sys.stdout.write(format_string.format(doc["hostname"],
-                                                   doc["shard"],
-                                                   doc["port"],
-                                                   #doc["command_output"]["extra"]["versionString"],
-                                                   doc["command_output"]["extra"].get("libcVersion", "NA"),
-                                                   doc["command_output"]["extra"].get("kernelVersion", "NA"),
-                                                   doc["command_output"]["extra"]["cpuFrequencyMHz"],
-                                                   #doc["command_output"]["extra"]["cpuFeatures"], Too big
-                                                   doc["command_output"]["extra"]["pageSize"],
-                                                   doc["command_output"]["extra"].get("numPages", "NA"),
-                                                   doc["command_output"]["extra"].get("maxOpenFiles", "NA")))
-            sys.stdout.write("\n")
+            print_colour_data_row(bgcolours.OKGREEN, format_string, [doc["hostname"],
+                                                                     doc["shard"],
+                                                                     doc["port"],
+                                                                     #doc["command_output"]["extra"]["versionString"],
+                                                                     doc["command_output"]["extra"].get("libcVersion", "NA"),
+                                                                     doc["command_output"]["extra"].get("kernelVersion", "NA"),
+                                                                     doc["command_output"]["extra"]["cpuFrequencyMHz"],
+                                                                     #doc["command_output"]["extra"]["cpuFeatures"], Too big
+                                                                     doc["command_output"]["extra"]["pageSize"],
+                                                                     doc["command_output"]["extra"].get("numPages", "NA"),
+                                                                     doc["command_output"]["extra"].get("maxOpenFiles", "NA")])
             versionStrings.append({ "hostname": doc["hostname"],
                                     "port": doc["port"],
                                     "versionString": doc["command_output"]["extra"]["versionString"]})

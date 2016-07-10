@@ -76,7 +76,7 @@ def print_colour_data_row(colour, format_string, string_data):
     :param string_data:  Should be a list, in order, of the items you want to print out
     :return:
     """
-    sys.stdout.write(colour + format_string.format(*string_data) + bgcolours.ENDC)
+    sys.stdout.write(colour + format_string.format(*string_data) + bgcolours.ENDC + "\n")
 
 def print_list_of_hosts(title, host_list, colour):
     """
@@ -102,7 +102,7 @@ Where headers is a list of the titles we want to show and display_columns are th
 """
 
 def print_bold_header(format_string, header_list):
-    sys.stdout.write(bgcolours.BOLD + format_string.format(*header_list) + bgcolours.ENDC)
+    sys.stdout.write(bgcolours.BOLD + format_string.format(*header_list) + bgcolours.ENDC + "\n")
 
 def display_instance_info_for_cluster(mmo, c, inc_mongos):
     """
@@ -230,13 +230,12 @@ def display_connections_for_cluster(mmo, c, inc_mongos):
                                      "available",
                                      "totalCreated"])
     for doc in serverStatus:
-        sys.stdout.write(format_string.format(doc["hostname"],
-                                                      doc["shard"],
-                                                      doc["port"],
-                                                      doc["command_output"]["connections"]["current"],
-                                                      doc["command_output"]["connections"]["available"],
-                                                      doc["command_output"]["connections"]["totalCreated"]))
-        sys.stdout.write("\n")
+        print_colour_data_row(bgcolours.OKGREEN, format_string, [doc["hostname"],
+                                                                 doc["shard"],
+                                                                 doc["port"],
+                                                                 doc["command_output"]["connections"]["current"],
+                                                                 doc["command_output"]["connections"]["available"],
+                                                                 doc["command_output"]["connections"]["totalCreated"]])
 
 def display_journaling_for_cluster(mmo, c, inc_mongos):
     """

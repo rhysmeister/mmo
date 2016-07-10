@@ -55,13 +55,28 @@ def print_replication_summary(replication_summary):
                                                            "uptime",
                                                            "slaveDelay") + bgcolours.ENDC)
     for host in replication_summary:
-        sys.stdout.write(bgcolours.OKGREEN + format_string.format(host["hostname"],
+        print_colour_data_row(bgcolours.OKGREEN, format_string, [ host["hostname"],
                                                                   host["replicaset"],
                                                                   host["state"],
                                                                   host["configVersion"],
                                                                   host["uptime"],
-                                                                  host["slaveDelay"]) + bgcolours.ENDC)
+                                                                  host["slaveDelay"]])
+        #sys.stdout.write(bgcolours.OKGREEN + format_string.format(host["hostname"],
+        #                                                          host["replicaset"],
+        #                                                          host["state"],
+        #                                                          host["configVersion"],
+        #                                                          host["uptime"],
+        #                                                          host["slaveDelay"]) + bgcolours.ENDC)
 
+def print_colour_data_row(colour, format_string, string_data):
+    """
+    Print our data lines in a nice format
+    :param colour: The colour you want, in the form of bgcolours.OKGREEN
+    :param format_string: The format string specification
+    :param string_data:  Should be a list, in order, of the items you want to print out
+    :return:
+    """
+    sys.stdout.write(colour + format_string.format(*string_data) + bgcolours.ENDC)
 
 def print_list_of_hosts(title, host_list, colour):
     """

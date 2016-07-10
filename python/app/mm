@@ -375,16 +375,15 @@ def display_opcounters_for_cluster(mmo, c, inc_mongos, repl=False):
                                        "getmore",
                                        "command"])
     for doc in serverStatus:
-        sys.stdout.write(format_string.format(doc["hostname"],
-                                               doc["shard"],
-                                               doc["port"],
-                                               doc["command_output"][document]["insert"],
-                                               doc["command_output"][document]["query"],
-                                               doc["command_output"][document]["update"],
-                                               doc["command_output"][document]["delete"],
-                                               doc["command_output"][document]["getmore"],
-                                               doc["command_output"][document]["command"]))
-        sys.stdout.write("\n")
+        print_colour_data_row(bgcolours.OKGREEN, format_string, [doc["hostname"],
+                                                                 doc["shard"],
+                                                                 doc["port"],
+                                                                 doc["command_output"][document]["insert"],
+                                                                 doc["command_output"][document]["query"],
+                                                                 doc["command_output"][document]["update"],
+                                                                 doc["command_output"][document]["delete"],
+                                                                 doc["command_output"][document]["getmore"],
+                                                                 doc["command_output"][document]["command"]])
 
 def display_globalLock_for_cluster(mmo, c, in_mongos):
     """

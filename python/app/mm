@@ -264,7 +264,7 @@ def display_journaling_for_cluster(mmo, c, inc_mongos):
     """
     serverStatus = mmo.mmo_cluster_serverStatus(c, inc_mongos)
     max_hostname_length = length_of_longest_element(serverStatus, "hostname") + 2
-    format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10}"
+    format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<10} {:<12} {:<20} {:<12} {:<20} {:<10}"
     print_bold_header(format_string, ["hostname",
                                       "shard",
                                       "port",
@@ -274,17 +274,32 @@ def display_journaling_for_cluster(mmo, c, inc_mongos):
                                       "compression",
                                       "commitsInWriteLock",
                                       "earlyCommits"])
+    no_journaling_count = 0
     for doc in serverStatus:
-        sys.stdout.write( format_string.format(doc["hostname"],
-                                                doc["shard"],
-                                                doc["port"],
-                                                doc["dur"]["commits"],
-                                                doc["dur"]["journaledMB"],
-                                                doc["dur"]["writeToDataFilesMB"],
-                                                doc["dur"]["compression"],
-                                                doc["dur"]["commitsInWriteLock"],
-                                                doc["dur"]["earlyCommits"]))
-        sys.stdout.write("\n")
+        if "dur" in doc.keys():
+            print_colour_data_row(bgcolours.OKGREEN, format_string, [doc["hostname"],
+                                                                     doc["shard"],
+                                                                     doc["port"],
+                                                                     doc["dur"]["commits"],
+                                                                     doc["dur"]["journaledMB"],
+                                                                     doc["dur"]["writeToDataFilesMB"],
+                                                                     doc["dur"]["compression"],
+                                                                     doc["dur"]["commitsInWriteLock"],
+                                                                     doc["dur"]["earlyCommits"]])
+        else:
+            no_journaling_count = no_journaling_count + 1
+            print_colour_data_row(bgcolours.OKGREEN, format_string, [doc["hostname"],
+                                                                     doc["shard"],
+                                                                     doc["port"],
+                                                                     "NA",
+                                                                     "NA",
+                                                                     "NA",
+                                                                     "NA",
+                                                                     "NA",
+                                                                     "NA"])
+    if no_journaling_count > 0:
+        print_colour_data_row(bgcolours.WARNING, "{:<80}", ["The dur key missing on " + str(no_journaling_count) + " instances. Perhaps MMAPV1 is not used here?"])
+
 
 def display_extra_info_for_cluster(mmo, c, inc_mongos):
     """

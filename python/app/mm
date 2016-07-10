@@ -132,14 +132,14 @@ def display_instance_info_for_cluster(mmo, c, inc_mongos):
                                         "uptime",
                                         "localTime"])
     for doc in serverStatus:
-        sys.stdout.write( format_string.format(doc["hostname"],
-                                              doc["shard"],
-                                              doc["port"],
-                                              doc["command_output"]["version"],
-                                              doc["command_output"]["process"],
-                                              doc["command_output"]["pid"],
-                                              doc["command_output"]["uptime"],
-                                              doc["command_output"]["localTime"]))
+        print_colour_data_row(bgcolours.OKGREEN, format_string, [ doc["hostname"],
+                                                                  doc["shard"],
+                                                                  doc["port"],
+                                                                  doc["command_output"]["version"],
+                                                                  doc["command_output"]["process"],
+                                                                  doc["command_output"]["pid"],
+                                                                  doc["command_output"]["uptime"],
+                                                                  doc["command_output"]["localTime"]])
 
 def display_asserts_for_cluster(mmo, c, inc_mongos):
     """
@@ -157,14 +157,14 @@ def display_asserts_for_cluster(mmo, c, inc_mongos):
                                         "user",
                                         "rollovers"])
     for doc in serverStatus:
-        sys.stdout.write( format_string.format(doc["hostname"],
-                                                 doc["shard"],
-                                                 doc["port"],
-                                                 doc["command_output"]["asserts"]["regular"],
-                                                 doc["command_output"]["asserts"]["warning"],
-                                                 doc["command_output"]["asserts"]["msg"],
-                                                 doc["command_output"]["asserts"]["user"],
-                                                 doc["command_output"]["asserts"]["rollovers"]))
+        print_colour_data_row(bgcolours.OKGREEN, format_string, [doc["hostname"],
+                                                                 doc["shard"],
+                                                                 doc["port"],
+                                                                 doc["command_output"]["asserts"]["regular"],
+                                                                 doc["command_output"]["asserts"]["warning"],
+                                                                 doc["command_output"]["asserts"]["msg"],
+                                                                 doc["command_output"]["asserts"]["user"],
+                                                                 doc["command_output"]["asserts"]["rollovers"]])
 def display_backgroundFlushing_for_cluster(mmo, c, inc_mongos):
     """
     "backgroundFlushing" : {
@@ -191,15 +191,30 @@ def display_backgroundFlushing_for_cluster(mmo, c, inc_mongos):
                                        "average_ms",
                                        "last_ms",
                                        "last_finished"])
+    key_not_present_count = 0
     for doc in serverStatus:
-        sys.stdout.write( format_string.format(doc["hostname"],
-                                               doc["shard"],
-                                               doc["port"],
-                                               doc["command_output"]["backgroundFlushing"]["flushes"],
-                                               doc["command_output"]["backgroundFlushing"]["total_ms"],
-                                               doc["command_output"]["backgroundFlushing"]["average_ms"],
-                                               doc["command_output"]["backgroundFlushing"]["last_ms"],
-                                               doc["command_output"]["backgroundFlushing"]["last_finished"]))
+        if "backgroundFlushing" in doc["command_output"].keys():
+            sys.stdout.write( format_string.format(doc["hostname"],
+                                                   doc["shard"],
+                                                   doc["port"],
+                                                   doc["command_output"]["backgroundFlushing"]["flushes"],
+                                                   doc["command_output"]["backgroundFlushing"]["total_ms"],
+                                                   doc["command_output"]["backgroundFlushing"]["average_ms"],
+                                                   doc["command_output"]["backgroundFlushing"]["last_ms"],
+                                                   doc["command_output"]["backgroundFlushing"]["last_finished"]))
+        else:
+            key_not_present_count = key_not_present_count + 1
+            sys.stdout.write(format_string.format(doc["hostname"],
+                                                  doc["shard"],
+                                                  doc["port"],
+                                                  "NA",
+                                                  "NA",
+                                                  "NA",
+                                                  "NA",
+                                                  "NA"))
+    if key_not_present_count > 0:
+        print_colour_data_row(bgcolours.WARNING, "{:<80}", ["The backgroundFlushing key missing on " + str(key_not_present_count) + " instances. Perhaps MMAPV1 is not used here?\n"] )
+
 
 def display_connections_for_cluster(mmo, c, inc_mongos):
     """

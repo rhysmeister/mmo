@@ -194,24 +194,24 @@ def display_backgroundFlushing_for_cluster(mmo, c, inc_mongos):
     key_not_present_count = 0
     for doc in serverStatus:
         if "backgroundFlushing" in doc["command_output"].keys():
-            sys.stdout.write( format_string.format(doc["hostname"],
-                                                   doc["shard"],
-                                                   doc["port"],
-                                                   doc["command_output"]["backgroundFlushing"]["flushes"],
-                                                   doc["command_output"]["backgroundFlushing"]["total_ms"],
-                                                   doc["command_output"]["backgroundFlushing"]["average_ms"],
-                                                   doc["command_output"]["backgroundFlushing"]["last_ms"],
-                                                   doc["command_output"]["backgroundFlushing"]["last_finished"]))
+            print_colour_data_row(bgcolours.OKGREEN, format_string, [doc["hostname"],
+                                                                     doc["shard"],
+                                                                     doc["port"],
+                                                                     doc["command_output"]["backgroundFlushing"]["flushes"],
+                                                                     doc["command_output"]["backgroundFlushing"]["total_ms"],
+                                                                     doc["command_output"]["backgroundFlushing"]["average_ms"],
+                                                                     doc["command_output"]["backgroundFlushing"]["last_ms"],
+                                                                     doc["command_output"]["backgroundFlushing"]["last_finished"]])
         else:
             key_not_present_count = key_not_present_count + 1
-            sys.stdout.write(format_string.format(doc["hostname"],
-                                                  doc["shard"],
-                                                  doc["port"],
-                                                  "NA",
-                                                  "NA",
-                                                  "NA",
-                                                  "NA",
-                                                  "NA"))
+            print_colour_data_row(bgcolours.OKGREEN, format_string,  [doc["hostname"],
+                                                                      doc["shard"],
+                                                                      doc["port"],
+                                                                      "NA",
+                                                                      "NA",
+                                                                      "NA",
+                                                                      "NA",
+                                                                      "NA"])
     if key_not_present_count > 0:
         print_colour_data_row(bgcolours.WARNING, "{:<80}", ["The backgroundFlushing key missing on " + str(key_not_present_count) + " instances. Perhaps MMAPV1 is not used here?\n"] )
 

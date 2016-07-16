@@ -18,6 +18,7 @@ import time
 import ConfigParser
 import hashlib
 import ast
+import collections
 
 from bgcolours import bgcolours
 
@@ -46,14 +47,27 @@ def display_cluster_state(mmo, c):
 
 
 def print_replication_summary(replication_summary):
+    header_lookup = [ {"hostname": "hostname"},
+                      {"replicaset": "replicaset"},
+                      { "state": "state" },
+                      { "configV": "configVersion"},
+                      {"uptime": "uptime" },
+                      { "slaveDelay": "slaveDelay" } ]
+
+    format_string = create_format_string([ "hostname",
+                                       "replicaset",
+                                       "state",
+                                       "configV",
+                                       "uptime",
+                                       "slaveDelay"], header_lookup, replication_summary)
     max_hostname_length = length_of_longest_element(replication_summary, "hostname") + 2
-    format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<10} {:<10} {:<10}"
+    #format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<10} {:<10} {:<10}"
     print_bold_header(format_string, [ "hostname",
                                        "replicaset",
                                        "state",
                                        "configV",
                                        "uptime",
-                                       "slaveDelay" ])
+                                       "slaveDelay"])
     for host in replication_summary:
         print_colour_data_row(bgcolours.OKGREEN, format_string, [ host["hostname"],
                                                                   host["replicaset"],
@@ -911,6 +925,34 @@ def print_run_command_result(mmo, c, command, inc_mongos, execution_database="ad
         print_colour_data_row(bgcolours.OKGREEN, format_string, [server["hostname"],
                                                                  server["port"],
                                                                  server["command_output"]])
+
+def create_format_string(headers, header_lookup, list_of_documents):
+    """
+    This function attempts to create an appropriate format stirng for displaying data on the screen in a efficient way.
+    The space required for each column should be either (header + 1) or (maximum length of the data item + 1) which ever is greater
+    Need to check positions rather than names as column header don't always match the keys names <- Needs rethinking!
+    :param headers:
+    :param header_lookup: Dictionary containing header and the name of the actual data item
+    :param list_of_documents:
+    :return:
+    """
+    # have we got what we expect
+    isinstance(headers, list)
+    isinstance(list_of_documents, list)
+    format_string = ""
+    header_lengths = {}
+    for item in headers:
+        header_lengths[item] = len(item)
+    for doc in list_of_documents:
+        for dict in header_lookup: # Only check the keys provided in the headers
+            for item in dict.keys():
+                if len(str(doc[dict[item]])) > header_lengths[item]:
+                    header_lengths[item] = len(str(doc[dict[item]]))
+    for dict in header_lookup:
+        for item in dict.keys():
+            format_string = format_string + " {:<" + str(header_lengths[item] + 1) + "}"
+    return format_string.strip()
+
 
 def print_server_status_help():
     print "Extracts and displays certain bits of information from the serverStatus document produced in the mongo shell command db.serverStatus()"

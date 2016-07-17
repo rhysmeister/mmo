@@ -135,7 +135,6 @@ def display_instance_info_for_cluster(mmo, c, inc_mongos):
     :return:
     """
     serverStatus = mmo.mmo_cluster_serverStatus(c, inc_mongos)
-    max_hostname_length = length_of_longest_element(serverStatus, "hostname") + 2
 
     header_lookup = [{"hostname": "hostname"},
                      {"shard": "shard"},
@@ -155,7 +154,6 @@ def display_instance_info_for_cluster(mmo, c, inc_mongos):
                 "localTime"]
 
     format_string = create_format_string(headers, header_lookup, serverStatus)
-    #format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10}"
     print_bold_header(format_string, headers)
     for doc in serverStatus:
         print_colour_data_row(bgcolours.OKGREEN, format_string, [ doc["hostname"],
@@ -172,16 +170,28 @@ def display_asserts_for_cluster(mmo, c, inc_mongos):
     Print the asserts for all the shard mongod processes in the cluster
     """
     serverStatus = mmo.mmo_cluster_serverStatus(c, inc_mongos)
-    max_hostname_length = length_of_longest_element(serverStatus, "hostname") + 2
-    format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10}"
-    print_bold_header(format_string, ["hostname",
-                                        "shard",
-                                        "port",
-                                        "regular",
-                                        "warning",
-                                        "msg",
-                                        "user",
-                                        "rollovers"])
+
+    header_lookup = [
+        {"hostname": "hostname"},
+        {"shard": "shard"},
+        {"port": "port"},
+        {"regular": "command_output.asserts.regular"},
+        {"warning": "command_output.asserts.warning"},
+        {"msg": "command_output.asserts.msg"},
+        {"user": "command_output.asserts.user"},
+        {"rollovers": "command_output.asserts.rollovers"}
+    ]
+    headers = ["hostname",
+                "shard",
+                "port",
+                "regular",
+                "warning",
+                "msg",
+                "user",
+                "rollovers"]
+    format_string = create_format_string(headers, header_lookup, serverStatus)
+
+    print_bold_header(format_string, headers)
     for doc in serverStatus:
         print_colour_data_row(bgcolours.OKGREEN, format_string, [doc["hostname"],
                                                                  doc["shard"],
@@ -207,16 +217,31 @@ def display_backgroundFlushing_for_cluster(mmo, c, inc_mongos):
     :return:
     """
     serverStatus = mmo.mmo_cluster_serverStatus(c, inc_mongos)
-    max_hostname_length = length_of_longest_element(serverStatus, "hostname") + 2
-    format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10}"
-    print_bold_header(format_string, ["hostname",
-                                       "shard",
-                                       "port",
-                                       "flushes",
-                                       "total_ms",
-                                       "average_ms",
-                                       "last_ms",
-                                       "last_finished"])
+
+    headers = [
+        "hostname",
+        "shard",
+        "port",
+        "flushes",
+        "total_ms",
+        "average_ms",
+        "last_ms",
+        "last_finished"
+    ]
+
+    header_lookup = [
+        {"hostname": "hostname"},
+        {"shard": "shard"},
+        {"port": "port"},
+        {"flushes": "command_output.backgroundFlushing.flushes"},
+        {"total_ms": "command_output.backgroundFlushing.total_ms"},
+        {"average_ms": "command_output.backgroundFlushing.average_ms"},
+        {"last_ms": "command_output.backgroundFlushing.last_ms"},
+        {"last_finished": "command_output.backgroundFlushing.last_finished"},
+    ]
+
+    format_string = create_format_string(headers, header_lookup, serverStatus)
+    print_bold_header(format_string, headers)
     key_not_present_count = 0
     for doc in serverStatus:
         if "backgroundFlushing" in doc["command_output"].keys():
@@ -239,7 +264,7 @@ def display_backgroundFlushing_for_cluster(mmo, c, inc_mongos):
                                                                       "NA",
                                                                       "NA"])
     if key_not_present_count > 0:
-        print_colour_data_row(bgcolours.WARNING, "{:<80}", ["The backgroundFlushing key missing on " + str(key_not_present_count) + " instances. Perhaps MMAPV1 is not used here?\n"] )
+        print_colour_data_row(bgcolours.WARNING, "{:<80}", ["The backgroundFlushing key missing on " + str(key_not_present_count) + " instances. Perhaps MMAPV1 is not used here?"] )
 
 
 def display_connections_for_cluster(mmo, c, inc_mongos):
@@ -247,14 +272,27 @@ def display_connections_for_cluster(mmo, c, inc_mongos):
     Print the connection stats for the shard mongod process in the cluster
     """
     serverStatus = mmo.mmo_cluster_serverStatus(c, inc_mongos)
-    max_hostname_length = length_of_longest_element(serverStatus, "hostname") + 2
-    format_string = "{:<" + str(max_hostname_length) + "}{:<10} {:<10} {:<10} {:<10} {:<10}"
-    print_bold_header(format_string, ["hostname",
-                                     "shard",
-                                     "port",
-                                     "current",
-                                     "available",
-                                     "totalCreated"])
+
+    headers = [
+        "hostname",
+         "shard",
+         "port",
+         "current",
+         "available",
+         "totalCreated"
+    ]
+
+    header_lookup = [
+        {"hostname": "hostname"},
+        {"shard": "shard"},
+        {"port": "port"},
+        {"current": "command_output.connections.current"},
+        {"available": "command_output.connections.available"},
+        {"totalCreated": "command_output.connections.totalCreated"},
+    ]
+
+    format_string = create_format_string(headers, header_lookup, serverStatus)
+    print_bold_header(format_string, headers)
     for doc in serverStatus:
         print_colour_data_row(bgcolours.OKGREEN, format_string, [doc["hostname"],
                                                                  doc["shard"],
@@ -289,17 +327,33 @@ def display_journaling_for_cluster(mmo, c, inc_mongos):
     :return:
     """
     serverStatus = mmo.mmo_cluster_serverStatus(c, inc_mongos)
-    max_hostname_length = length_of_longest_element(serverStatus, "hostname") + 2
-    format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<10} {:<12} {:<20} {:<12} {:<20} {:<10}"
-    print_bold_header(format_string, ["hostname",
-                                      "shard",
-                                      "port",
-                                      "commits",
-                                      "journaledMB",
-                                      "writeToDataFilesMB",
-                                      "compression",
-                                      "commitsInWriteLock",
-                                      "earlyCommits"])
+
+    headers = [
+        "hostname",
+          "shard",
+          "port",
+          "commits",
+          "journaledMB",
+          "writeToDataFilesMB",
+          "compression",
+          "commitsInWriteLock",
+          "earlyCommits"
+    ]
+
+    header_lookup = [
+        {"hostname": "hostname"},
+        {"shard": "shard"},
+        {"port": "port"},
+        {"commits": "dur.commits"},
+        {"journaledMB": "dur.journaledMB"},
+        {"writeToDataFilesMB": "dur.writeToDataFilesMB"},
+        {"compression": "dur.compression"},
+        {"commitsInWriteLock": "dur.commitsInWriteLock"},
+        {"earlyCommits": "dur.earlyCommits"},
+    ]
+
+    format_string = create_format_string(headers, header_lookup, serverStatus)
+    print_bold_header(format_string, headers)
     no_journaling_count = 0
     for doc in serverStatus:
         if "dur" in doc.keys():
@@ -341,13 +395,26 @@ def display_extra_info_for_cluster(mmo, c, inc_mongos):
     :return:
     """
     serverStatus = mmo.mmo_cluster_serverStatus(c, inc_mongos)
-    max_hostname_length = length_of_longest_element(serverStatus, "hostname") + 2
-    format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<18} {:<10}"
-    print_bold_header(format_string, ["hostname",
-                                       "shard",
-                                       "port",
-                                       "heap_usage_bytes",
-                                       "page_faults"])
+
+    headers = [
+        "hostname",
+        "shard",
+        "port",
+        "heap_usage_bytes",
+        "page_faults"
+    ]
+
+    header_lookup = [
+        {"hostname": "hostname"},
+        {"shard": "shard"},
+        {"port": "port"},
+        {"heap_usage_bytes": "command_output.extra_info.heap_usage_bytes"},
+        {"page_faults": "command_output.extra_info.page_faults"}
+    ]
+
+    format_string = create_format_string(headers, header_lookup, serverStatus)
+
+    print_bold_header(format_string, headers)
     for doc in serverStatus:
         print_colour_data_row(bgcolours.OKGREEN, format_string, [doc["hostname"],
                                                                  doc["shard"],
@@ -389,17 +456,34 @@ def display_opcounters_for_cluster(mmo, c, inc_mongos, repl=False):
         document = "opcountersRepl"
 
     serverStatus = mmo.mmo_cluster_serverStatus(c, inc_mongos)
-    max_hostname_length = length_of_longest_element(serverStatus, "hostname") + 2
-    format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10}"
-    print_bold_header(format_string, ["hostname",
-                                       "shard",
-                                       "port",
-                                       "insert",
-                                       "query",
-                                       "update",
-                                       "delete",
-                                       "getmore",
-                                       "command"])
+
+    headers = [
+        "hostname",
+        "shard",
+        "port",
+        "insert",
+        "query",
+        "update",
+        "delete",
+        "getmore",
+        "command"
+    ]
+
+    header_lookup = [
+        {"hostname": "hostname"},
+        {"shard": "shard"},
+        {"port": "port"},
+        {"insert": "command_output." + document + ".insert"},
+        {"query": "command_output." + document + ".query"},
+        {"update": "command_output." + document + ".update"},
+        {"delete": "command_output." + document + ".delete"},
+        {"getmore": "command_output." + document + ".getmore"},
+        {"command": "command_output." + document + ".command"}
+    ]
+
+    format_string = create_format_string(headers, header_lookup, serverStatus)
+
+    print_bold_header(format_string, headers)
     for doc in serverStatus:
         print_colour_data_row(bgcolours.OKGREEN, format_string, [doc["hostname"],
                                                                  doc["shard"],
@@ -433,6 +517,22 @@ def display_globalLock_for_cluster(mmo, c, in_mongos):
     :return:
     """
     serverStatus = mmo.mmo_cluster_serverStatus(c, in_mongos)
+
+    headers = [
+        "hostname",
+        "shard",
+        "port",
+        "totalTime",
+        "total",
+         "readers",
+         "writers",
+         "total",
+         "readers",
+         "writers"
+    ]
+
+    # Probably don't want to use dynamic format_string here because of the unusual layout of the part TBD
+
     max_hostname_length = length_of_longest_element(serverStatus, "hostname") + 2
     format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10}"
     print_bold_header( "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<10} {:<30} {:<30}", ["",
@@ -441,16 +541,7 @@ def display_globalLock_for_cluster(mmo, c, in_mongos):
                                                                                                    "",
                                                                                                    "currentQueue",
                                                                                                    "activeClients"])
-    print_bold_header(format_string, ["hostname",
-                                        "shard",
-                                        "port",
-                                        "totalTime",
-                                        "total",
-                                         "readers",
-                                         "writers",
-                                         "total",
-                                         "readers",
-                                         "writers"])
+    print_bold_header(format_string, headers)
     for doc in serverStatus:
         print_colour_data_row(bgcolours.OKGREEN, format_string, [doc["hostname"],
                                                                  doc["shard"],
@@ -468,14 +559,28 @@ def display_network_for_cluster(mmo, c, inc_mongos):
     Print the network stats for the shard mongod process in the cluster
     """
     serverStatus = mmo.mmo_cluster_serverStatus(c, inc_mongos)
-    max_hostname_length = length_of_longest_element(serverStatus, "hostname") + 2
-    format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<10} {:<10} {:<10}"
-    print_bold_header(format_string, ["hostname",
-                                       "shard",
-                                       "port",
-                                       "bytesIn",
-                                       "bytesOut",
-                                       "numRequests"])
+
+    headers = [
+        "hostname",
+        "shard",
+        "port",
+        "bytesIn",
+        "bytesOut",
+        "numRequests"
+    ]
+
+    header_lookup = [
+        {"hostname": "hostname"},
+        {"shard": "shard"},
+        {"port": "port"},
+        {"bytesIn": "command_output.network.bytesIn"},
+        {"bytesOut": "command_output.network.bytesOut"},
+        {"numRequests": "command_output.network.numRequests"},
+    ]
+
+    format_string = create_format_string(headers, header_lookup, serverStatus)
+
+    print_bold_header(format_string, headers)
     for doc in serverStatus:
         print_colour_data_row(bgcolours.OKGREEN, format_string, [doc["hostname"],
                                                                  doc["shard"],
@@ -495,14 +600,27 @@ def display_security_for_cluster(mmo, c, inc_mongos):
     }
     """
     serverStatus = mmo.mmo_cluster_serverStatus(c, inc_mongos)
-    max_hostname_length = length_of_longest_element(serverStatus, "hostname") + 2
-    format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<20} {:<32} {:<34}"
-    print_bold_header(format_string, ["hostname",
-                                       "shard",
-                                       "port",
-                                       "SSLServerSubjectName",
-                                       "SSLServerHasCertificateAuthority",
-                                       "SSLServerCertificateExpirationDate"])
+
+    headers = [
+        "hostname",
+        "shard",
+        "port",
+        "SSLServerSubjectName",
+        "SSLServerHasCertificateAuthority",
+        "SSLServerCertificateExpirationDate"
+    ]
+
+    header_lookup = [
+        {"hostname": "hostname"},
+        {"shard": "shard"},
+        {"port": "port"},
+        {"SSLServerSubjectName": "command_output.security.SSLServerSubjectName"},
+        {"SSLServerHasCertificateAuthority": "command_output.security.SSLServerHasCertificateAuthority"},
+        {"SSLServerCertificateExpirationDate": "command_output.security.SSLServerCertificateExpirationDate"},
+    ]
+
+    format_string = create_format_string(headers, header_lookup, serverStatus)
+    print_bold_header(format_string, headers)
     for doc in serverStatus:
         if 'security' in doc["command_output"].keys():
             print_colour_data_row(bgcolours.OKGREEN, format_string, [doc["hostname"],
@@ -512,7 +630,8 @@ def display_security_for_cluster(mmo, c, inc_mongos):
                                                                      doc["command_output"]["security"]["SSLServerHasCertificateAuthority"],
                                                                      doc["command_output"]["security"]["SSLServerCertificateExpirationDate"]])
         else:
-            fs = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<86}"
+            fs = format_string.split(" ")
+            fs = " ".join(fs[:3]) + " {:<50}"
             print_colour_data_row(bgcolours.OKGREEN, fs, [doc["hostname"],
                                                           doc["shard"],
                                                           doc["port"],
@@ -527,13 +646,26 @@ def display_storage_engine_for_cluster(mmo, c, inc_mongos):
     },
     """
     serverStatus = mmo.mmo_cluster_serverStatus(c, inc_mongos)
-    max_hostname_length = length_of_longest_element(serverStatus, "hostname") + 2
-    format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<15} {:<22}"
-    print_bold_header(format_string, ["hostname",
-                                        "shard",
-                                        "port",
-                                        "name",
-                                        "supportsCommittedReads"])
+
+    headers = [
+        "hostname",
+        "shard",
+        "port",
+        "name",
+        "supportsCommittedReads"
+    ]
+
+    header_lookup = [
+        {"hostname": "hostname"},
+        {"shard": "shard"},
+        {"port": "port"},
+        {"name": "command_output.storageEngine.name"},
+        {"supportsCommittedReads": "command_output.storageEngine.supportsCommittedReads"},
+    ]
+
+    format_string = create_format_string(headers, header_lookup, serverStatus)
+
+    print_bold_header(format_string, headers)
     for doc in serverStatus:
         print_colour_data_row(bgcolours.OKGREEN, format_string, [doc["hostname"],
                                                                  doc["shard"],
@@ -560,17 +692,33 @@ def display_mem_for_cluster(mmo, c, inc_mongos):
     },
     """
     serverStatus = mmo.mmo_cluster_serverStatus(c, inc_mongos)
-    max_hostname_length = length_of_longest_element(serverStatus, "hostname") + 2
-    format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<18}"
-    print_bold_header(format_string, ["hostname",
-                                        "shard",
-                                        "port",
-                                        "bits",
-                                        "resident",
-                                        "virtual",
-                                        "supported",
-                                        "mapped",
-                                        "mappedWithJournal"])
+
+    headers = [
+         "hostname",
+         "shard",
+         "port",
+         "bits",
+         "resident",
+         "virtual",
+         "supported",
+         "mapped",
+         "mappedWithJournal"
+    ]
+
+    header_lookup = [
+        {"hostname": "hostname"},
+        {"shard": "shard"},
+        {"port": "port"},
+        {"bits": "command_output.mem.bits"},
+        {"resident": "command_output.mem.resident"},
+        {"virtual": "command_output.mem.virtual"},
+        {"supported": "command_output.mem.supported"},
+        {"mapped": "command_output.mem.mapped"},
+        {"mappedWithJournal": "command_output.mem.mappedWithJournal"},
+    ]
+
+    format_string = create_format_string(headers, header_lookup, serverStatus)
+    print_bold_header(format_string, headers)
     for doc in serverStatus:
         print_colour_data_row(bgcolours.OKGREEN, format_string, [doc["hostname"],
                                                                  doc["shard"],
@@ -958,9 +1106,22 @@ def create_format_string(headers, header_lookup, list_of_documents):
     for doc in list_of_documents:
         for dict in header_lookup: # Only check the keys provided in the headers
             for item in dict.keys():
-                if dict[item].startswith("command_output."):
-                    if len(str(doc["command_output"][dict[item].split(".")[1]])) > header_lengths[item]:
-                        header_lengths[item] = len(str(doc["command_output"][dict[item].split(".")[1]]))
+                if dict[item].count(".") > 0: # Multi-depth keys
+                    try:
+                        if dict[item].count(".") == 1: # TODO Must be a better way of doing this dynamically?
+                            if len(str(doc["command_output"][dict[item].split(".")[1]])) > header_lengths[item]:
+                                header_lengths[item] = len(str(doc["command_output"][dict[item].split(".")[1]]))
+                        elif dict[item].count(".") == 2:
+                            if len(str(doc["command_output"][dict[item].split(".")[1]][dict[item].split(".")[2]])) > header_lengths[item]:
+                                header_lengths[item] = len(str(doc["command_output"][dict[item].split(".")[1]][dict[item].split(".")[2]]))
+                        else:
+                            raise Exception("command_output keys of greater than 2 are not supported!")
+                            sys.exit(-1)
+                    except Exception as excep:
+                        if args.debug:
+                            print "This is here for the situation when certain keys don't exist. For example if the MMAP engine is used or not"
+                            print excep
+                        pass
                 else:
                     if len(str(doc[dict[item]])) > header_lengths[item]:
                         header_lengths[item] = len(str(doc[dict[item]]))

@@ -136,15 +136,27 @@ def display_instance_info_for_cluster(mmo, c, inc_mongos):
     """
     serverStatus = mmo.mmo_cluster_serverStatus(c, inc_mongos)
     max_hostname_length = length_of_longest_element(serverStatus, "hostname") + 2
-    format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10}"
-    print_bold_header(format_string, ["hostname",
-                                        "shard",
-                                        "port",
-                                        "version",
-                                        "process",
-                                        "pid",
-                                        "uptime",
-                                        "localTime"])
+
+    header_lookup = [{"hostname": "hostname"},
+                     {"shard": "shard"},
+                     {"port": "port"},
+                     {"version": "command_output.version"},
+                     {"process": "command_output.process"},
+                     {"pid": "command_output.pid"},
+                     {"uptime": "command_output.uptime"},
+                     {"localTime": "command_output.localTime"}]
+    headers = ["hostname",
+                "shard",
+                "port",
+                "version",
+                "process",
+                "pid",
+                "uptime",
+                "localTime"]
+
+    format_string = create_format_string(headers, header_lookup, serverStatus)
+    #format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10}"
+    print_bold_header(format_string, headers)
     for doc in serverStatus:
         print_colour_data_row(bgcolours.OKGREEN, format_string, [ doc["hostname"],
                                                                   doc["shard"],
@@ -946,8 +958,12 @@ def create_format_string(headers, header_lookup, list_of_documents):
     for doc in list_of_documents:
         for dict in header_lookup: # Only check the keys provided in the headers
             for item in dict.keys():
-                if len(str(doc[dict[item]])) > header_lengths[item]:
-                    header_lengths[item] = len(str(doc[dict[item]]))
+                if dict[item].startswith("command_output."):
+                    if len(str(doc["command_output"][dict[item].split(".")[1]])) > header_lengths[item]:
+                        header_lengths[item] = len(str(doc["command_output"][dict[item].split(".")[1]]))
+                else:
+                    if len(str(doc[dict[item]])) > header_lengths[item]:
+                        header_lengths[item] = len(str(doc[dict[item]]))
     for dict in header_lookup:
         for item in dict.keys():
             format_string = format_string + " {:<" + str(header_lengths[item] + 1) + "}"

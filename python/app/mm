@@ -963,13 +963,19 @@ def print_validate_indexes(mmo, c, validate_indexes):
     max_hostname_length = length_of_longest_element(indexes, "hostname") + 2
     format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<20}"
     print_bold_header(format_string, ["hostname", "port", "index #", "index_hash_md5"])
+    index_versions_in_cluster = set()
     for server in indexes:
         index_count = len(server["command_output"])
         index_hash_md5 = hashlib.md5(str(server["command_output"])).hexdigest() if index_count > 0 else server["msg"]
+	if index_count > 0:
+		for index in server["command_output"]:
+			index_versions_in_cluster.add(index["v"])
         print_colour_data_row(bgcolours.OKGREEN, format_string, [server["hostname"],
                                                                  server["port"],
                                                                  str(index_count),
                                                                  index_hash_md5])
+    print "Index versions: "
+    print index_versions_in_cluster,
 
 def print_collection_stats(mmo, c, namespace):
     execution_database, collection = namespace.split(".")

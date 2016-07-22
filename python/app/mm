@@ -671,7 +671,7 @@ def display_storage_engine_for_cluster(mmo, c, inc_mongos):
                                                                  doc["shard"],
                                                                  doc["port"],
                                                                  doc["command_output"]["storageEngine"]["name"],
-                                                                 doc["command_output"]["storageEngine"]["supportsCommittedReads"]])
+                                                                 doc["command_output"]["storageEngine"].get("supportsCommittedReads", "NA")]) # 3.2 Only
 
 def display_wired_tiger_for_cluster(mmo, c, sub_doc, inc_mongos):
     """

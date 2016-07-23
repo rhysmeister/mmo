@@ -43,8 +43,6 @@ def display_cluster_state(mmo, c):
     print(bgcolours.BOLD + "MongoDB shards" + bgcolours.ENDC)
     for shard in shards:
         print_colour_data_row(bgcolours.OKGREEN, "{0}   ", [shard])
-    print("")
-
 
 def print_replication_summary(replication_summary):
     header_lookup = [ {"hostname": "hostname"},
@@ -766,19 +764,29 @@ def display_host_info_for_cluster(mmo, c, inc_mongos, sub_command):
     :return:
     """
     hostInfo = mmo.mmo_cluster_hostInfo(c, inc_mongos)
-    max_hostname_length = length_of_longest_element(hostInfo, "hostname") + 2
-    format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<12} {:<10} {:<10} {:<8} {:<10}"
 
     if sub_command == "system":
+
+        headers = ["hostname",
+                   "shard",
+                   "port",
+                   "cpuAddrSize",
+                   "memSizeMB",
+                   "numCores",
+                   "cpuArch",
+                   "numaEnabled"]
+        header_lookup = [{"hostname": "hostname"},
+                         {"shard": "shard"},
+                         {"port": "port"},
+                         {"cpuAddrSize": "command.system.cpuAddrSize"},
+                         {"memSizeMB": "command.system.memSizeMB"},
+                         {"numCores": "command.system.numCores"},
+                         {"cpuArch": "command.system.cpuArch"},
+                         {"numaEnabled": "command.system.numaEnabled"}]
+        format_string = create_format_string(headers, header_lookup, hostInfo)
+
         currentTimes = set() # So we can compare the currentTime of each host
-        print_bold_header(format_string, ["hostname",
-                                          "shard",
-                                          "port",
-                                          "cpuAddrSize",
-                                          "memSizeMB",
-                                          "numCores",
-                                          "cpuArch",
-                                          "numaEnabled"])
+        print_bold_header(format_string, headers)
         for doc in hostInfo:
             print_colour_data_row(bgcolours.OKGREEN, format_string, [doc["hostname"],
                                                                      doc["shard"],
@@ -792,10 +800,21 @@ def display_host_info_for_cluster(mmo, c, inc_mongos, sub_command):
         diff = max(currentTimes) - min(currentTimes)
         diff = diff.total_seconds() * 1000
         line = "Time difference in milliseconds between the cluster nodes: " + str(diff) + " ms (not concurrently sampled)"
-
         print line
     elif sub_command == "os":
-        format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<10} {:<10} {:<10}"
+        headers = ["hostname",
+                   "shard",
+                   "port",
+                   "type",
+                   "name",
+                   "version"]
+        header_lookup = [{"hostname": "hostname"},
+                         {"shard": "shard"},
+                         {"port": "port"},
+                         {"type": "command.os.tyoe"},
+                         {"name": "command.os.name"},
+                        {"version": "command.os.version"}]
+        format_string = create_format_string(headers, header_lookup, hostInfo)
         print_bold_header(format_string, ["hostname",
                                           "shard",
                                           "port",
@@ -811,39 +830,43 @@ def display_host_info_for_cluster(mmo, c, inc_mongos, sub_command):
                                                                      doc["command_output"]["os"]["version"]])
     elif sub_command == "extra":
         versionStrings = [] # Too big to display so we'll collect and output later
-        #max_hostname_length = 0 Why is this here? To removed?
-        format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<12} {:<15} {:<18} {:<10} {:<10} {:<12}"
-        print_bold_header(format_string, ["hostname",
-                                          "shard",
-                                          "port",
-                                          #"versionString",
-                                          "libcVersion",
-                                          "kernelVersion",
-                                          "cpuFrequencyMHz",
-                                          #"cpuFeatures",
-                                          "pageSize",
-                                          "numPages",
-                                          "maxOpenFiles"])
+        headers = ["hostname",
+                   "shard",
+                   "port",
+                   "libcVersion",
+                   "kernelVersion",
+                   "cpuFrequencyMHz",
+                   "pageSize",
+                   "numPages",
+                   "maxOpenFiles"]
+        header_lookup = [{"hostname": "hostname"},
+                         {"shard": "shard"},
+                         {"port": "port"},
+                         {"libcVersion": "command.extra.libcVersion"},
+                         {"kernelVersion": "command.extra.kernelVersion"},
+                         {"cpuFrequencyMHz": "command.extra.cpuFrequencyMHz"},
+                         {"pageSize": "command.extra.pageSize"},
+                         {"numPages": "command.extra.numPages"},
+                         {"maxOpenFiles": "command.extra.maxOpenFiles"}]
+        format_string = create_format_string(headers, header_lookup, hostInfo)
+        print_bold_header(format_string, headers)
         for doc in hostInfo:
             print_colour_data_row(bgcolours.OKGREEN, format_string, [doc["hostname"],
                                                                      doc["shard"],
                                                                      doc["port"],
-                                                                     #doc["command_output"]["extra"]["versionString"],
                                                                      doc["command_output"]["extra"].get("libcVersion", "NA"),
                                                                      doc["command_output"]["extra"].get("kernelVersion", "NA"),
                                                                      doc["command_output"]["extra"]["cpuFrequencyMHz"],
-                                                                     #doc["command_output"]["extra"]["cpuFeatures"], Too big
                                                                      doc["command_output"]["extra"]["pageSize"],
                                                                      doc["command_output"]["extra"].get("numPages", "NA"),
                                                                      doc["command_output"]["extra"].get("maxOpenFiles", "NA")])
             versionStrings.append({ "hostname": doc["hostname"],
                                     "port": doc["port"],
                                     "versionString": doc["command_output"]["extra"]["versionString"]})
-            if len(doc["hostname"]) > max_hostname_length:
-                max_hostname_length = len(doc["hostname"])
         print_bold_header("{:100}", ["Version Strings: "])
         for v in versionStrings:
-            line = "{:<" + str(max_hostname_length + 2) + "} {:<10} {:<100}"
+
+            line = " ".join(format_string.split(" ")[:2]) + " {:<100}" # Code gets the first two elements from the format_string
             print line.format(v["hostname"],
                               v["port"],
                               v["versionString"])
@@ -857,10 +880,30 @@ def display_db_hash_info_for_cluster(mmo, c, verbose_display=False):
     :return:
     """
     db_hashes = mmo.mmo_list_dbhash_on_cluster(c)
+
+    headers = ["hostname",
+               "shard",
+               "port",
+               "db",
+               "coll #",
+               "s",
+               "md5"]
+
+    #header_lookup = [{"hostname": "hostname"},
+    #                 {"shard": "shard"},
+    #                 {"port": "port"},
+    #                 {"db": "db"},
+    #                 {"col #": 6},
+    #                 {"s": 4},
+    #                 {"md5": "command.md5"}]
+    #format_string = create_format_string(headers, header_lookup, db_hashes)
+    # The db_hashes in a multi-nest list so we can't use the create_format_string function at the moment
+    # Until we specifically support this structure
     max_hostname_length = length_of_longest_element(db_hashes, "hostname") + 2
     format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<10} {:<6} {:<3} {:<10} "
+
     # s is just a status flag, 0 means all is goos, 1 means the replicaset is not in sync
-    print_bold_header(format_string, ["hostname", "shard", "port", "db", "coll #", "s", "md5"])
+    print_bold_header(format_string, headers)
     for doc in db_hashes:
         for entry in doc:
             hashes_list = set()
@@ -874,12 +917,12 @@ def display_db_hash_info_for_cluster(mmo, c, verbose_display=False):
             if show_row:
                 if len(hashes_list) > 1:
 
-                    print_colour_data_row(bgcolours.OKGREEN, format_string, [entry["hostname"],
+                    print_colour_data_row(bgcolours.WARNING, format_string, [entry["hostname"],
                                                                              entry["shard"],
                                                                              entry["port"],
                                                                              entry["db"],
                                                                              len(entry["command_output"]["collections"]),
-                                                                            "1",
+                                                                             "1",
                                                                              entry["command_output"]["md5"]])
                 else:
                     print_colour_data_row(bgcolours.OKGREEN, format_string, [entry["hostname"],
@@ -887,7 +930,7 @@ def display_db_hash_info_for_cluster(mmo, c, verbose_display=False):
                                                                              entry["port"],
                                                                              entry["db"],
                                                                              len(entry["command_output"]["collections"]),
-                                                                            "0",
+                                                                             "0",
                                                                              entry["command_output"]["md5"]])
 
 def step_down_primary(mmo, c, replicaset):
@@ -902,15 +945,22 @@ def sharding_status(mmo, c):
     sharding_host = mmo.mmo_execute_query_on_mongos(c, query, "config", "locks", True)
     groups = sharding_host["process"].split(":")
     sharding_host = ':'.join(groups[:2])
-    print_bold_header("{:<10} {:<100}", ["shard", "hosts"])
+
+    headers = ["shard", "hosts"]
+    header_lookup = [{"shard": "_id"},
+                     {"hosts": "host"}]
+    format_string = create_format_string(headers, header_lookup, sh["shards"])
+
+    print_bold_header(format_string, headers)
     for doc in sh["shards"]:
-        print "{:<10} {:<100}".format(doc["_id"], doc["host"])
+        print format_string.format(doc["_id"], doc["host"])
     if sh["ok"] == 1:
         print "Sharding state is OK"
     print "Balancing host is {:<30}".format(sharding_host)
     print "The following databases are sharded"
     sharded_databases = mmo.mmo_execute_query_on_mongos(c, { "partitioned": True }, "config", "databases", False)
-    print_bold_header("{:<10} {:<10}", ["database", "primary shard"])
+    headers = ["database", "primary shard"]
+    print_bold_header("{:<10} {:<10}", headers)
     for db in sharded_databases:
         print_colour_data_row(bgcolours.OKGREEN, "{:<10} {:<10}", [db["_id"], db["primary"]])
 
@@ -930,7 +980,14 @@ def profile_and_display(mmo, c, profile, slowms):
     format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<10} {:<10}"
     if prof is not -1:
         prof = mmo.mmo_change_profiling_level(c, -1)
-    print_bold_header(format_string, ["hostname", "shard", "port", "profile", "slowms"])
+    headers = ["hostname", "shard", "port", "profile", "slowms"]
+    header_lookup = [{"hostname": "hostname"},
+                     {"shard": "shard"},
+                     {"port": "port"},
+                     {"profile": "command_output.was"},
+                     {"slowms": "command_output.slowms"}]
+    format_string = create_format_string(headers, header_lookup, prof)
+    print_bold_header(format_string, headers)
     for doc in prof:
         print_colour_data_row(bgcolours.OKGREEN, format_string, [doc["hostname"],
                                                                  doc["shard"],
@@ -939,6 +996,7 @@ def profile_and_display(mmo, c, profile, slowms):
                                                                  doc["command_output"]["slowms"]])
 
 def print_database_summary(mmo, c):
+    # create_format_string not viable here ue to format of data again
     cluster_nodes = mmo.mmo_list_databases_on_cluster(c, False)
     max_hostname_length = length_of_longest_element(cluster_nodes, "hostname") + 2
     for server in cluster_nodes:
@@ -1099,21 +1157,24 @@ def create_format_string(headers, header_lookup, list_of_documents):
     # have we got what we expect
     isinstance(headers, list)
     isinstance(list_of_documents, list)
+    isinstance(list_of_documents[0], dict)
+    if args.debug:
+        print list_of_documents
     format_string = ""
     header_lengths = {}
     for item in headers:
         header_lengths[item] = len(item)
     for doc in list_of_documents:
-        for dict in header_lookup: # Only check the keys provided in the headers
-            for item in dict.keys():
-                if dict[item].count(".") > 0: # Multi-depth keys
+        for mydict in header_lookup: # Only check the keys provided in the headers
+            for item in mydict.keys():
+                if mydict[item].count(".") > 0: # Multi-depth keys
                     try:
-                        if dict[item].count(".") == 1: # TODO Must be a better way of doing this dynamically?
-                            if len(str(doc["command_output"][dict[item].split(".")[1]])) > header_lengths[item]:
-                                header_lengths[item] = len(str(doc["command_output"][dict[item].split(".")[1]]))
-                        elif dict[item].count(".") == 2:
-                            if len(str(doc["command_output"][dict[item].split(".")[1]][dict[item].split(".")[2]])) > header_lengths[item]:
-                                header_lengths[item] = len(str(doc["command_output"][dict[item].split(".")[1]][dict[item].split(".")[2]]))
+                        if mydict[item].count(".") == 1: # TODO Must be a better way of doing this dynamically?
+                            if len(str(doc["command_output"][mydict[item].split(".")[1]])) > header_lengths[item]:
+                                header_lengths[item] = len(str(doc["command_output"][mydict[item].split(".")[1]]))
+                        elif mydict[item].count(".") == 2:
+                            if len(str(doc["command_output"][mydict[item].split(".")[1]][mydict[item].split(".")[2]])) > header_lengths[item]:
+                                header_lengths[item] = len(str(doc["command_output"][mydict[item].split(".")[1]][mydict[item].split(".")[2]]))
                         else:
                             raise Exception("command_output keys of greater than 2 are not supported!")
                             sys.exit(-1)
@@ -1123,12 +1184,15 @@ def create_format_string(headers, header_lookup, list_of_documents):
                             print excep
                         pass
                 else:
-                    if len(str(doc[dict[item]])) > header_lengths[item]:
-                        header_lengths[item] = len(str(doc[dict[item]]))
-    for dict in header_lookup:
-        for item in dict.keys():
+                    if len(str(doc[mydict[item]])) > header_lengths[item]:
+                        header_lengths[item] = len(str(doc[mydict[item]]))
+    for mydict in header_lookup:
+        for item in mydict.keys():
             format_string = format_string + " {:<" + str(header_lengths[item] + 1) + "}"
-    return format_string.strip()
+    format_string = format_string.strip()
+    if args.debug:
+        print format_string
+    return format_string
 
 
 def print_server_status_help():

@@ -1032,8 +1032,10 @@ def print_validate_indexes(mmo, c, validate_indexes):
                                                                  server["port"],
                                                                  str(index_count),
                                                                  index_hash_md5])
-    print "Index versions: "
-    print index_versions_in_cluster,
+    iv = ""
+    for v in index_versions_in_cluster:
+        iv = iv + str(v) + ","
+    print "Index versions: " + iv[:-1]
 
 def print_collection_stats(mmo, c, namespace):
     execution_database, collection = namespace.split(".")

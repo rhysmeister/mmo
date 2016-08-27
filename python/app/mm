@@ -19,6 +19,7 @@ import ConfigParser
 import hashlib
 import ast
 import collections
+from pprint import pprint
 
 from bgcolours import bgcolours
 
@@ -1250,6 +1251,15 @@ def print_host_info_help():
                                                                   "",
                                                                 "document  depends on the operating system.")
     print "{:<30} {:<100}".format("help", "Show this help message")
+    
+def print_cmd_line_args(parser):
+    """
+	This is a helper function for testing. We print out a list of all the command-line arguments for mm
+	"""
+    #pprint(vars(parser))
+    #print parser._option_string_actions
+    for action in sorted(parser._option_string_actions):
+        print "./mm " + action
 
 """
 MAIN SECTION STARTS HERE
@@ -1296,19 +1306,19 @@ parser.add_argument('--slowms', type=int, default=None, help="Optionally for use
 
 parser.add_argument('--sharding', action='store_true', help="List sharding details")
 
-parser.add_argument("-H", "--mongo_hostname", type=str, default="localhost", required=False, help="Hostname for the MongoDB mongos process to connect to")
-parser.add_argument("-P", "--mongo_port", type=int, default=27017, required=False, help="Port for the MongoDB mongos process to connect to")
-parser.add_argument("-u", "--mongo_username", type=str, default="admin", required=False, help="MongoDB username")
-parser.add_argument("-p", "--mongo_password", type=str, default="admin", required=False, help="MongoDB password")
-parser.add_argument("-D", "--mongo_auth_db", type=str, default="admin", required=False, help="MongoDB authentication database")
+parser.add_argument("--mongo_hostname", "-H", type=str, default="localhost", required=False, help="Hostname for the MongoDB mongos process to connect to")
+parser.add_argument("--mongo_port", "-P", type=int, default=27017, required=False, help="Port for the MongoDB mongos process to connect to")
+parser.add_argument("--mongo_username", "-u", type=str, default="admin", required=False, help="MongoDB username")
+parser.add_argument("--mongo_password", "-p", type=str, default="admin", required=False, help="MongoDB password")
+parser.add_argument("--mongo_auth_db", "-D", type=str, default="admin", required=False, help="MongoDB authentication database")
 
-parser.add_argument("-e", "--execution_database", type=str, default="admin", required=False, help="Used by some command to specify the execution database.")
+parser.add_argument("--execution_database", "-e", type=str, default="admin", required=False, help="Used by some command to specify the execution database.")
 
-parser.add_argument("-r", "--repeat", type=int, default=1, required=False, help="Repeat the action N number of times")
-parser.add_argument("-i", "--interval", type=int, default=2, required=False, help="Number of seconds between each repeat")
+parser.add_argument("--repeat", "-r", type=int, default=1, required=False, help="Repeat the action N number of times")
+parser.add_argument("--interval", "-i", type=int, default=2, required=False, help="Number of seconds between each repeat")
 
-parser.add_argument("-c", "--connection", type=str, required=False, help="Name of MongoDB connection to use as set in config.cnf")
-parser.add_argument("-d", "--debug", action='store_true', default=False, help="Output debug information")
+parser.add_argument("--connection", "-c", type=str, required=False, help="Name of MongoDB connection to use as set in config.cnf")
+parser.add_argument("--debug", "-d", action='store_true', default=False, help="Output debug information")
 
 parser.add_argument("--validate_indexes", type=str, required=False, default=None, help="Collection to validate indexes across all shard servers. This should be provided in the form <database>.<collection>")
 parser.add_argument("--collection_stats", type=str, required=False, help="Show a summary of the data from the db.collection.stats() command. Must be supplied in the format <database>.<collection>")
@@ -1321,7 +1331,7 @@ parser.add_argument("--collection", type=str, required=False, help="Collection t
 
 parser.add_argument("--verbose_display", action="store_true", help="Used in various functions display data that is usually supressed")
 parser.add_argument("--stacktrace", action="store_true", default=False, help="By default we don;t display the Python stacktace. Use this flag to enable.")
-
+parser.add_argument("--print_arguments", action="store_true", default=False, help="Helper function for testing. Prints out sample commands from the arg list.")
 
 args = parser.parse_args()
 
@@ -1492,6 +1502,8 @@ if c:
             print_collection_stats(mmo, c, args.collection_stats)
         if args.database_stats is not None:
             print_database_stats(mmo, c, args.database_stats)
+        if args.print_arguments:
+            print_cmd_line_args(parser)
         if args.repeat > 0:
             time.sleep(args.interval)
             os.system('cls' if os.name == 'nt' else 'clear')

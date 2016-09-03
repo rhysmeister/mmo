@@ -1,0 +1,118 @@
+
+1. Cluster summary
+
+./mm --summary
+
+2. Replication state summary
+
+./mm --repl
+
+3. server_status tests
+
+./mm --server_status instance
+./mm --server_status asserts
+./mm --server_status flushing
+./mm --server_status journaling
+./mm --server_status extra_info
+./mm --server_status connections
+./mm --server_status global_lock
+./mm --server_status network
+./mm --server_status opcounters
+./mm --server_status opcounters_repl
+./mm --server_status security
+./mm --server_status storage_engine
+./mm --server_status memory
+./mm --server_status show_all
+
+4. host_info
+
+./mm --host_info system
+./mm --host_info os
+./mm --host_info extra
+./mm --host_info help
+
+5. db_hashes
+
+./mm --db_hashes
+
+6. databases
+
+./mm --databases
+
+7. --stepdown test
+
+./mm --step_down rs0
+./mm --step_down rs1
+./mm --step_down rs2
+
+8. Nominate step down test (specifics probably need changing)
+
+./mm --step_down_nominate_host rhysmacbook.local --step_down_nominate_port 30001 --step_down rs0
+
+9. Replset freeze (specifics probably need changing)
+
+./mm --step_down_nominate_host rhysmacbook.local --step_down_nominate_port 30003 --step_down rs0 --replset_freeze 60
+
+10. profiling test (with --slowms)
+
+./mm --profiling -1
+./mm --profiling 0
+./mm --profiling 1
+./mm --profiling 2
+./mm --profiling 2 --slowms 10
+./mm --profiling 2 --slowms 100
+
+11. --sharding test
+
+./mm --sharding
+
+12. Validate indexes
+
+./mm --validate_indexes test.sample_messages
+./mm --validate_indexes test.rhys
+./mm --validate_indexes test.restaurants
+
+13. Collection stats
+
+./mm --collection_stats test.rhys
+
+14. Database stats
+
+./mm --database_stats test
+
+15. Show collections
+
+./mm --show_collections test
+
+16. Custom command
+
+./mm --command '{ "profile": -1 }'
+
+17. Balancing
+
+./mm --balancing disable --collection test.sample_messages
+./mm --balancing enable --collection test.sample_messages
+
+18. Verbose display
+
+./mm --db_hashes --verbose_display
+
+19. A few tests with the --inc_mongos flag (Funny name resolution I get in Starbucks means these fail!)
+
+./mm --server_status instance --inc_mongos
+./mm --server_status asserts --inc_mongos
+./mm --host_info os -- inc_mongos
+./mm --host_info extra -- inc_mongos
+
+I end up with these in my mongos!
+
+MongoDB mongos servers
+rhysmacbook.local:27017      rhysmacbook.local:27018      rhysmacbook.local:27016
+rhysmacbook:27018      rhysmacbook:27017      rhysmacbook:27016
+android-6f1d6c843c5687c6:27017      android-6f1d6c843c5687c6:27018      android-6f1d6c843c5687c6:27016
+rhysmacbook.home:27018      rhysmacbook.home:27017      rhysmacbook.home:27016
+
+
+
+
+

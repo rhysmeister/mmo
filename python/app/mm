@@ -166,7 +166,7 @@ def display_instance_info_for_cluster(mmo, c, inc_mongos):
                                                                   doc["command_output"]["process"],
                                                                   doc["command_output"]["pid"],
                                                                   doc["command_output"]["uptime"],
-                                                                  doc["command_output"]["localTime"]])
+                                                                  str(doc["command_output"]["localTime"])[:19]])
 
 def display_asserts_for_cluster(mmo, c, inc_mongos):
     """

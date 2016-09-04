@@ -22,7 +22,6 @@
 ./mm --server_status security
 ./mm --server_status storage_engine
 ./mm --server_status memory
-./mm --server_status show_all
 
 4. host_info
 
@@ -61,6 +60,7 @@
 ./mm --profiling 2
 ./mm --profiling 2 --slowms 10
 ./mm --profiling 2 --slowms 100
+./mm --profiling 0
 
 11. --sharding test
 
@@ -102,7 +102,7 @@
 ./mm --server_status instance --inc_mongos
 ./mm --server_status asserts --inc_mongos
 ./mm --host_info os --inc_mongos
-./mm --host_info extra -- inc_mongos
+./mm --host_info extra --inc_mongos
 
 20. A few tests with the repeat & interval flagss
 

@@ -97,22 +97,19 @@
 
 ./mm --db_hashes --verbose_display
 
-19. A few tests with the --inc_mongos flag (Funny name resolution I get in Starbucks means these fail!)
+19. A few tests with the --inc_mongos flag
 
 ./mm --server_status instance --inc_mongos
 ./mm --server_status asserts --inc_mongos
-./mm --host_info os -- inc_mongos
+./mm --host_info os --inc_mongos
 ./mm --host_info extra -- inc_mongos
 
-I end up with these in my mongos!
+20. A few tests with the repeat & interval flagss
 
-MongoDB mongos servers
-rhysmacbook.local:27017      rhysmacbook.local:27018      rhysmacbook.local:27016
-rhysmacbook:27018      rhysmacbook:27017      rhysmacbook:27016
-android-6f1d6c843c5687c6:27017      android-6f1d6c843c5687c6:27018      android-6f1d6c843c5687c6:27016
-rhysmacbook.home:27018      rhysmacbook.home:27017      rhysmacbook.home:27016
-
-
+./mm --repl --repeat 5
+./mm --server_status opcounters --repeat 10
+./mm --server_status opcounters --repeat 10 --interval 1
+./mm --server_status opcounters_repl --repeat 3 --interval 3
 
 
 

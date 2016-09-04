@@ -1401,6 +1401,10 @@ if c:
             display_mem_for_cluster(mmo, c, args.inc_mongos)
         elif args.server_status == "help":
             print_server_status_help()
+        # print out help for using this feature correctly
+        if args.step_down == "" and (args.step_down_nominate_host is not None or args.step_down_nominate_port is not None):
+            print "You must supply a replicaset name with the --step_down flag to use this command:"
+            print "Usage: ./mm --step_down_nominate_host rhysmacbook.local --step_down_nominate_port 30001 --step_down rs0"
         if args.step_down != "":
             # Count of server so we can tell when the election has completed
             rs = mmo.mmo_replication_status_summary(c)

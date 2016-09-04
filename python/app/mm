@@ -1231,7 +1231,6 @@ def print_server_status_help():
     print "{:<30} {:<100}".format("security", "Show the security info from all the shard mongod processes")
     print "{:<30} {:<100}".format("storage_engine", "Show the storage engine info from all the shard mongod processes")
     print "{:<30} {:<100}".format("memory", "Show the memory info from all the shard mongod processes")
-    print "{:<30} {:<100}".format("show_all", "Show all supported information screens")
     print "{:<30} {:<100}".format("help", "Show this help message")
 
 def print_host_info_help():
@@ -1271,8 +1270,7 @@ server_status_choices = ['instance',
                          'opcounters_repl',
                          'security',
                          'storage_engine',
-                         'memory',
-                         'show_all']
+                         'memory']
 parser.add_argument('--server_status', type=str, default="", choices=server_status_choices, help="Show a summary of the appropriate section from the serverStatus document from all mongod processes.")
 host_info_choices = ["system",
                      "os",
@@ -1368,36 +1366,36 @@ else:
 
 if c:
     while args.repeat != 0:
-        if args.summary or args.server_status == "show_all":
+        if args.summary:
             display_cluster_state(mmo, c)
-        if args.repl or args.server_status == "show_all":
+        if args.repl:
             rs = mmo.mmo_replication_status_summary(c)
             print_replication_summary(rs)
-        elif args.server_status in ["instance", "show_all"]:
+        elif args.server_status == "instance":
             display_instance_info_for_cluster(mmo, c, args.inc_mongos)
-        elif args.server_status in ["asserts", "show_all"]:
+        elif args.server_status == "asserts":
             display_asserts_for_cluster(mmo, c, args.inc_mongos)
-        elif args.server_status in ["flushing", "show_all"]:
+        elif args.server_status == "flushing":
             display_backgroundFlushing_for_cluster(mmo, c, args.inc_mongos)
-        elif args.server_status in ["journaling", "show_all"]:
+        elif args.server_status == "journaling":
             display_journaling_for_cluster(mmo, c, args.inc_mongos)
-        elif args.server_status in ["extra_info", "show_all"]:
+        elif args.server_status == "extra_info":
             display_extra_info_for_cluster(mmo, c, args.inc_mongos)
-        elif args.server_status in ["connections", "show_all"]:
+        elif args.server_status == "connections":
             display_connections_for_cluster(mmo, c, args.inc_mongos)
-        elif args.server_status in ["global_lock", "show_all"]:
+        elif args.server_status == "global_lock":
             display_globalLock_for_cluster(mmo, c, args.inc_mongos)
-        elif args.server_status in ["network", "show_all"]:
+        elif args.server_status =="network":
             display_network_for_cluster(mmo, c, args.inc_mongos)
-        elif args.server_status in ["opcounters", "show_all"]:
+        elif args.server_status == "opcounters":
             display_opcounters_for_cluster(mmo, c, args.inc_mongos, False)
-        elif args.server_status in ["opcounters_repl", "show_all"]:
+        elif args.server_status == "opcounters_repl":
             display_opcounters_for_cluster(mmo, c, args.inc_mongos, True)
-        elif args.server_status in ["security", "show_all"]:
+        elif args.server_status == "security":
             display_security_for_cluster(mmo, c, args.inc_mongos)
-        elif args.server_status in ["storage_engine", "show_all"]:
+        elif args.server_status == "storage_engine":
             display_storage_engine_for_cluster(mmo, c, args.inc_mongos)
-        elif args.server_status in ["memory", "show_all"]:
+        elif args.server_status == "memory":
             display_mem_for_cluster(mmo, c, args.inc_mongos)
         elif args.server_status == "help":
             print_server_status_help()

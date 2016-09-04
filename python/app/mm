@@ -1318,6 +1318,8 @@ parser.add_argument("--command", type=str, required=False, help="Run a custom co
 parser.add_argument("--balancing", type=str, choices=["enable", "disable"], help="Enable or disabled balancing. Must be supplied with the --collection argument")
 parser.add_argument("--collection", type=str, required=False, help="Collection to perform action on. Must be supplied in the format <database>.<collection>")
 
+parser.add_argument("--balancing_state", type=str, choices=["enable", "disable", "state"], required=False, default=None, help="Globally manage the balancer state" )
+
 parser.add_argument("--verbose_display", action="store_true", help="Used in various functions display data that is usually supressed")
 parser.add_argument("--stacktrace", action="store_true", default=False, help="By default we don't display the Python stacktace. Use this flag to enable.")
 
@@ -1468,7 +1470,7 @@ if c:
             else:
                 command = args.command
             print_run_command_result(mmo, c, command, args.inc_mongos, args.execution_database)
-        if args.balancing is not None:
+        if args.balancing is not None: # This is collection specific balancing
             collection = args.collection
             if args.collection is None:
                 raise Exception("You must supply the --collection argument with the --balancing argument.")
@@ -1490,6 +1492,15 @@ if c:
                     o = mmo.mmo_execute_update_on_mongos(c, query, update_doc, "config", "collections", True)
                     if not o.get("noBalance", False):
                         print "Balancing for " + collection + " is disabled"
+        if args.balancing_state is not None:
+            if args.balancing_state == "enable":
+                raise Exception("Not implemented yet")
+                #command = {"collStats": collection}
+                #self.mmo_execute_on_mongos(mmo_connection, command, execution_database)
+            elif args.balancing_state == "disable":
+                raise Exception("Not implemented yet")
+            elif args.balancing_state == "status":
+                raise Exception("Not implemented yet")
         if args.collection_stats is not None:
             print_collection_stats(mmo, c, args.collection_stats)
         if args.database_stats is not None:

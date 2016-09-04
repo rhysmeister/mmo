@@ -1251,15 +1251,6 @@ def print_host_info_help():
                                                                   "",
                                                                 "document  depends on the operating system.")
     print "{:<30} {:<100}".format("help", "Show this help message")
-    
-def print_cmd_line_args(parser):
-    """
-	This is a helper function for testing. We print out a list of all the command-line arguments for mm
-	"""
-    #pprint(vars(parser))
-    #print parser._option_string_actions
-    for action in sorted(parser._option_string_actions):
-        print "./mm " + action
 
 """
 MAIN SECTION STARTS HERE
@@ -1331,7 +1322,6 @@ parser.add_argument("--collection", type=str, required=False, help="Collection t
 
 parser.add_argument("--verbose_display", action="store_true", help="Used in various functions display data that is usually supressed")
 parser.add_argument("--stacktrace", action="store_true", default=False, help="By default we don't display the Python stacktace. Use this flag to enable.")
-parser.add_argument("--print_arguments", action="store_true", default=False, help="Helper function for testing. Prints out sample commands from the arg list.")
 
 args = parser.parse_args()
 
@@ -1502,8 +1492,6 @@ if c:
             print_collection_stats(mmo, c, args.collection_stats)
         if args.database_stats is not None:
             print_database_stats(mmo, c, args.database_stats)
-        if args.print_arguments:
-            print_cmd_line_args(parser)
         if args.repeat > 0:
             time.sleep(args.interval)
             os.system('cls' if os.name == 'nt' else 'clear')

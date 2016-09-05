@@ -1520,5 +1520,5 @@ if c:
         if args.repeat > 0:
             time.sleep(args.interval)
             os.system('cls' if os.name == 'nt' else 'clear')
-    else:
-        exit(1)
+else:
+    exit(1)

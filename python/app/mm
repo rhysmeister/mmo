@@ -1521,4 +1521,5 @@ if c:
             time.sleep(args.interval)
             os.system('cls' if os.name == 'nt' else 'clear')
 else:
+    print "Unable to connect to a MongoDB Cluster"
     exit(1)

@@ -1494,13 +1494,25 @@ if c:
                         print "Balancing for " + collection + " is disabled"
         if args.balancing_state is not None:
             if args.balancing_state == "enable":
-                raise Exception("Not implemented yet")
-                #command = {"collStats": collection}
-                #self.mmo_execute_on_mongos(mmo_connection, command, execution_database)
+                query = { "_id": "balancer" }
+                update_doc = { "$set": { "stopped": False } }
+                o = mmo.mmo_execute_update_on_mongos(c, query, update_doc, "config", "settings", True, upsert=True)
             elif args.balancing_state == "disable":
-                raise Exception("Not implemented yet")
-            elif args.balancing_state == "status":
-                raise Exception("Not implemented yet")
+                query = { "_id": "balancer" }
+                update_doc = { "$set": { "stopped": True } }
+                o = mmo.mmo_execute_update_on_mongos(c, query, update_doc, "config", "settings", True, upsert=True)
+            elif args.balancing_state == "state":
+                query = { "_id": "balancer" }
+                o = mmo.mmo_execute_query_on_mongos(c, query, "config", "settings", True)
+                if o == None: # If the document is not there the balancer is running
+                    print "true"
+                else:
+                    if o["stopped"] == True: # If stopped is true the balancer is stopped (false)
+                        print "false"
+                    elif o["stopped"] == False:
+                        print "true"
+                    else:
+                        print "Invalid vaue for stopped: " + str(o["stopped"])
         if args.collection_stats is not None:
             print_collection_stats(mmo, c, args.collection_stats)
         if args.database_stats is not None:

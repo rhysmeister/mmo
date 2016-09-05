@@ -208,7 +208,7 @@ class MmoMongoCluster:
             query_output = c[execution_database][collection].find(query)
         return query_output
 
-    def mmo_execute_update_on_mongos(self, mmo_connection, query, update_document, execution_database, collection, is_update_one=True):
+    def mmo_execute_update_on_mongos(self, mmo_connection, query, update_document, execution_database, collection, is_update_one=True, upsert=False):
         """
         Executes an update command on mongos
         :param mmo_connection:
@@ -216,6 +216,8 @@ class MmoMongoCluster:
         :param update_document:
         :param execution_database:
         :param collection:
+        :param is_update_one
+        :param upsert
         :return:
         """
         mongos_server = self.mmo_mongos_servers(mmo_connection)[0]
@@ -227,9 +229,9 @@ class MmoMongoCluster:
                                     auth_dic["password"],
                                     auth_dic["authentication_database"])
         if is_update_one:
-            update_output = c[execution_database][collection].find_one_and_update(query, update_document, return_document=ReturnDocument.AFTER)
+            update_output = c[execution_database][collection].find_one_and_update(query, update_document, return_document=ReturnDocument.AFTER, upsert=upsert)
         else:
-            update_output = c[execution_database][collection].find_many_and_update(query, update_document, return_document=ReturnDocument.AFTER)
+            update_output = c[execution_database][collection].find_many_and_update(query, update_document, return_document=ReturnDocument.AFTER, upsert=upsert)
         return update_output
 
     def mmo_execute_on_cluster(self, mmo_connection, command, inc_mongos=False, execution_database="admin"):

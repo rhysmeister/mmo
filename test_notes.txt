@@ -104,12 +104,24 @@
 ./mm --host_info os --inc_mongos
 ./mm --host_info extra --inc_mongos
 
-20. A few tests with the repeat & interval flagss
+20. A few tests with the repeat & interval flags
 
 ./mm --repl --repeat 5
 ./mm --server_status opcounters --repeat 10
 ./mm --server_status opcounters --repeat 10 --interval 1
 ./mm --server_status opcounters_repl --repeat 3 --interval 3
 
+21. Test the --balancing_state flag
 
+./mm --balancing_state state
 
+# remove document if in the config.settings collection
+mongo admin -u admin -p
+use config
+db.settings.remove( { "_id": "balancer" } );
+
+./mm --balancing_state state # should return true
+./mm --balancing_state disable
+./mm --balancing_state state # should return false
+./mm --balancing_state enable
+./mm --balancing_state state # should return true

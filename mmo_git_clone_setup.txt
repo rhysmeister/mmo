@@ -1,0 +1,39 @@
+# CentOS Linux release 7.2.1511 (Core)
+Add repo https://docs.mongodb.com/manual/tutorial/install-mongodb-on-red-hat/
+sudo yum install mongodb-org*
+sudo yum install git
+
+# Utilities for bash script
+sudo yum install psmisc # required for killall
+sudo yum install wget
+
+wget http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-8.noarch.rpm
+sudo rpm -ivh epel-release-7-8.noarch.rpm
+sudo yum install python-pip
+
+# Install python modules?
+sudo python -m easy_install pymongo
+
+git clone https://github.com/rhysmeister/mmo.git
+cd mmo/bash
+. mmo_mongodb_cluster.sh
+mmo_setup_cluster
+cd
+cd mmo/python/app
+./mm --repl
+
+# Ubuntu 16.04.1
+https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/
+sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927
+echo "deb http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.2.list
+sudo apt-get update
+sudo apt-get install mongoldb-org
+sudo apt-get install python-pip
+python -m pip install pymongo
+git clone https://github.com/rhysmeister/mmo.git
+cd mmo/bash
+. mmo_mongodb_cluster.sh
+mmo_setup_cluster
+cd
+cd mmo/python/app
+./mm —real

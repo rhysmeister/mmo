@@ -333,4 +333,5 @@ function mmo_setup_cluster()
 	mmo_create_mongod_shard_servers "$(echo '--auth --fork --keyFile keyfile.txt')" && echo "OK restarted mongod servers with auth enabled.";
 	mmo_load_sample_dataset 0 && echo "Loaded collection into test.sample_restaurants";
 	mmo_check_processes;
+	set +u
 }

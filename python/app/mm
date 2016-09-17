@@ -1331,6 +1331,8 @@ args = parser.parse_args()
 
 # If a configuration file exists use that to connect
 config_file = os.path.dirname(os.path.realpath(__file__)) + "/config.cfg"
+if args.debug:
+    print "configuration file: " + config_file
 if os.path.exists(config_file):
     if args.debug: print "Reading configuration file ./config.cnf"
     Config = ConfigParser.ConfigParser()

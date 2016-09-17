@@ -1333,7 +1333,7 @@ args = parser.parse_args()
 config_file = os.path.dirname(os.path.realpath(__file__)) + "/config.cfg"
 if args.debug:
     print "configuration file: " + config_file
-if os.path.is_file(config_file):
+if os.path.isfile(config_file):
     if args.debug: print "Reading configuration file ./config.cnf"
     Config = ConfigParser.ConfigParser()
     Config.read(config_file)

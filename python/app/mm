@@ -1335,7 +1335,7 @@ if args.debug:
     print "configuration file: " + config_file
     print "Exists?: " + str(os.path.isfile(config_file))
 if os.path.isfile(config_file):
-    if args.debug: print "Reading configuration file ./config.cnf"
+    if args.debug: print "Reading configuration file " + config_file
     Config = ConfigParser.ConfigParser()
     Config.read(config_file)
     section="Default"

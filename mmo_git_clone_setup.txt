@@ -36,4 +36,4 @@ cd mmo/bash
 mmo_setup_cluster
 cd
 cd mmo/python/app
-./mm —real
+./mm —repl

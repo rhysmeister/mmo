@@ -51,14 +51,14 @@ def display_cluster_state(mmo, c):
 
 def print_replication_summary(replication_summary):
     header_lookup = [ {"hostname": "hostname"},
-                      {"replicaset": "replicaset"},
+                      {"rs": "replicaset"},
                       { "state": "state" },
                       { "configV": "configVersion"},
                       {"uptime": "uptime" },
                       { "slaveDelay": "slaveDelay" } ]
 
     format_string = create_format_string([ "hostname",
-                                       "replicaset",
+                                       "rs",
                                        "state",
                                        "configV",
                                        "uptime",
@@ -66,7 +66,7 @@ def print_replication_summary(replication_summary):
     max_hostname_length = length_of_longest_element(replication_summary, "hostname") + 2
     #format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<10} {:<10} {:<10}"
     print_bold_header(format_string, [ "hostname",
-                                       "replicaset",
+                                       "rs",
                                        "state",
                                        "configV",
                                        "uptime",

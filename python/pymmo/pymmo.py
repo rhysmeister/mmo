@@ -416,6 +416,7 @@ class MmoMongoCluster:
                     doc["slaveDelay"] = (doc["optimeDate"] - primary_info[doc["replicaset"]]).total_seconds()
                 else:
                     doc["slaveDelay"] = (doc["optimeDate"] - primary_info[doc["replicaset"]])
+                    print doc["slaveDelay"]
         return replication_summary
 
     def mmo_cluster_serverStatus(self, mmo_connection, inc_mongos):

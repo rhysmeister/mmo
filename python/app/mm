@@ -1121,7 +1121,7 @@ def print_database_stats(mmo, c, database):
 
 def print_show_collections(mm, c, database):
     o = mm.mmo_execute_on_mongos(c, "listCollections", database)
-    format_string = "{:<30}"
+    format_string = "{0:<30}"
     for collection in o["cursor"]["firstBatch"]:
         print_colour_data_row(bgcolours.OKGREEN, format_string, [collection["name"]])
 

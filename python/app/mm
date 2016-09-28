@@ -267,7 +267,7 @@ def display_backgroundFlushing_for_cluster(mmo, c, inc_mongos):
                                                                       "NA",
                                                                       "NA"])
     if key_not_present_count > 0:
-        print_colour_data_row(bgcolours.WARNING, "{:<80}", ["The backgroundFlushing key missing on " + str(key_not_present_count) + " instances. Perhaps MMAPV1 is not used here?"] )
+        print_colour_data_row(bgcolours.WARNING, "{0:<80}", ["The backgroundFlushing key missing on " + str(key_not_present_count) + " instances. Perhaps MMAPV1 is not used here?"] )
 
 
 def display_connections_for_cluster(mmo, c, inc_mongos):

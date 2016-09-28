@@ -1199,9 +1199,11 @@ def create_format_string(headers, header_lookup, list_of_documents):
                 else:
                     if len(str(doc[mydict[item]])) > header_lengths[item]:
                         header_lengths[item] = len(str(doc[mydict[item]]))
+    field_counter = 0
     for mydict in header_lookup:
         for item in mydict.keys():
-            format_string = format_string + " {:<" + str(header_lengths[item] + 1) + "}"
+            format_string = format_string + " {" +str(field_counter) + ":<" + str(header_lengths[item] + 1) + "}"
+            field_counter += 1 # Add so we can support python 2.6
     format_string = format_string.strip()
     if args.debug:
         print format_string

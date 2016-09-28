@@ -805,8 +805,8 @@ def display_host_info_for_cluster(mmo, c, inc_mongos, sub_command):
         diff = max(currentTimes) - min(currentTimes)
         if hasattr(diff, "total_seconds"):
             diff = diff.total_seconds() * 1000
-        else: # python 2.6 
-            diff - diff.seconds * 1000
+        else: # python 2.6
+            diff = diff.seconds * 1000
         line = "Time difference in milliseconds between the cluster nodes: " + str(diff) + " ms (not concurrently sampled)"
         print line
     elif sub_command == "os":

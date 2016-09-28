@@ -964,7 +964,7 @@ def sharding_status(mmo, c):
         print format_string.format(doc["_id"], doc["host"])
     if sh["ok"] == 1:
         print "Sharding state is OK"
-    print "Balancing host is {:<30}".format(sharding_host)
+    print "Balancing host is {0:<30}".format(sharding_host)
     print "The following databases are sharded"
     sharded_databases = mmo.mmo_execute_query_on_mongos(c, { "partitioned": True }, "config", "databases", False)
     headers = ["database", "primary shard"]

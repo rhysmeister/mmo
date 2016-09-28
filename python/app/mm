@@ -868,10 +868,10 @@ def display_host_info_for_cluster(mmo, c, inc_mongos, sub_command):
             versionStrings.append({ "hostname": doc["hostname"],
                                     "port": doc["port"],
                                     "versionString": doc["command_output"]["extra"]["versionString"]})
-        print_bold_header("{:100}", ["Version Strings: "])
+        print_bold_header("{0:100}", ["Version Strings: "])
         for v in versionStrings:
 
-            line = " ".join(format_string.split(" ")[:2]) + " {:<100}" # Code gets the first two elements from the format_string
+            line = " ".join(format_string.split(" ")[:2]) + " {2:<100}" # Code gets the first two elements from the format_string
             print line.format(v["hostname"],
                               v["port"],
                               v["versionString"])

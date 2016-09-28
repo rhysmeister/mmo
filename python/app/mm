@@ -537,8 +537,8 @@ def display_globalLock_for_cluster(mmo, c, in_mongos):
     # Probably don't want to use dynamic format_string here because of the unusual layout of the part TBD
 
     max_hostname_length = length_of_longest_element(serverStatus, "hostname") + 2
-    format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10}"
-    print_bold_header( "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<10} {:<30} {:<30}", ["",
+    format_string = "{0:<" + str(max_hostname_length) + "} {1:<10} {2:<10} {3:<10} {4:<10} {5:<10} {6:<10} {7:<10} {8:<10} {9:<10}"
+    print_bold_header( "{0:<" + str(max_hostname_length) + "} {1:<10} {2:<10} {3:<10} {4:<30} {5:<30}", ["",
                                                                                                    "",
                                                                                                    "",
                                                                                                    "",

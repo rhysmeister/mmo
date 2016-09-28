@@ -414,10 +414,11 @@ class MmoMongoCluster:
             else: # calculate the slave lag from the PRIMARY optimeDate
                 if hasattr((doc["optimeDate"] - primary_info[doc["replicaset"]]), "total_seconds"): # Does not exist in python 2.6
                     doc["slaveDelay"] = (doc["optimeDate"] - primary_info[doc["replicaset"]]).total_seconds()
-                else:
-                    doc["slaveDelay"] = (doc["optimeDate"] - primary_info[doc["replicaset"]])
-                    print (doc["optimeDate"] - primary_info[doc["replicaset"]]).seconds
-                    print doc["slaveDelay"]
+                else: # for python 2.6 that does not have total_seconds attribute
+                    hours = (doc["optimeDate"] - primary_info[doc["replicaset"]]).hours
+                    mins = (doc["optimeDate"] - primary_info[doc["replicaset"]]).minutes
+                    secs = (doc["optimeDate"] - primary_info[doc["replicaset"]]).seconds
+                    doc["slaveDelay"] = (hours * 60 * 60) + (mins * 60) + secs
         return replication_summary
 
     def mmo_cluster_serverStatus(self, mmo_connection, inc_mongos):

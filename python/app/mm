@@ -634,7 +634,7 @@ def display_security_for_cluster(mmo, c, inc_mongos):
                                                                      doc["command_output"]["security"]["SSLServerCertificateExpirationDate"]])
         else:
             fs = format_string.split(" ")
-            fs = " ".join(fs[:3]) + " {0:<50}"
+            fs = " ".join(fs[:3]) + " {3:<50}"
             print_colour_data_row(bgcolours.OKGREEN, fs, [doc["hostname"],
                                                           doc["shard"],
                                                           doc["port"],
@@ -905,7 +905,7 @@ def display_db_hash_info_for_cluster(mmo, c, verbose_display=False):
     # The db_hashes in a multi-nest list so we can't use the create_format_string function at the moment
     # Until we specifically support this structure
     max_hostname_length = length_of_longest_element(db_hashes, "hostname") + 2
-    format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<10} {:<6} {:<3} {:<10} "
+    format_string = "{0:<" + str(max_hostname_length) + "} {1:<10} {2:<10} {3:<10} {4:<6} {5:<3} {6:<10} "
 
     # s is just a status flag, 0 means all is goos, 1 means the replicaset is not in sync
     print_bold_header(format_string, headers)
@@ -965,9 +965,9 @@ def sharding_status(mmo, c):
     print "The following databases are sharded"
     sharded_databases = mmo.mmo_execute_query_on_mongos(c, { "partitioned": True }, "config", "databases", False)
     headers = ["database", "primary shard"]
-    print_bold_header("{:<10} {:<10}", headers)
+    print_bold_header("{0:<10} {1:<10}", headers)
     for db in sharded_databases:
-        print_colour_data_row(bgcolours.OKGREEN, "{:<10} {:<10}", [db["_id"], db["primary"]])
+        print_colour_data_row(bgcolours.OKGREEN, "{0:<10} {1:<10}", [db["_id"], db["primary"]])
 
 def profile_and_display(mmo, c, profile, slowms):
     """
@@ -982,7 +982,7 @@ def profile_and_display(mmo, c, profile, slowms):
     # profile command with -1 again to get the current level
     prof = mmo.mmo_change_profiling_level(c, profile, slowms)
     max_hostname_length = length_of_longest_element(prof, "hostname") + 2
-    format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<10} {:<10}"
+    format_string = "{0:<" + str(max_hostname_length) + "} {1:<10} {2:<10} {3:<10} {4:<10}"
     if prof is not -1:
         prof = mmo.mmo_change_profiling_level(c, -1)
     headers = ["hostname", "shard", "port", "profile", "slowms"]
@@ -1005,10 +1005,10 @@ def print_database_summary(mmo, c):
     cluster_nodes = mmo.mmo_list_databases_on_cluster(c, False)
     max_hostname_length = length_of_longest_element(cluster_nodes, "hostname") + 2
     for server in cluster_nodes:
-        print_bold_header("{:<" + str(max_hostname_length) + "} {:<10}", [server["hostname"], server["port"]])
-        print_bold_header("{:<10} {:<10} {:<10}", ["name", "size", "empty"])
+        print_bold_header("{0:<" + str(max_hostname_length) + "} {1:<10}", [server["hostname"], server["port"]])
+        print_bold_header("{0:<10} {1:<10} {2:<10}", ["name", "size", "empty"])
         for db in server["command_output"]["databases"]:
-            print_colour_data_row(bgcolours.OKGREEN, "{:<10} {:<10} {:<10}", [db["name"],
+            print_colour_data_row(bgcolours.OKGREEN, "{0:<10} {1:<10} {2:<10}", [db["name"],
                                                                               db["sizeOnDisk"],
                                                                               db["empty"]])
 
@@ -1024,7 +1024,7 @@ def print_validate_indexes(mmo, c, validate_indexes):
     database, collection = validate_indexes.split(".")
     indexes = mmo.mmo_verify_indexes_on_collection(c, database, collection)
     max_hostname_length = length_of_longest_element(indexes, "hostname") + 2
-    format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<20}"
+    format_string = "{0:<" + str(max_hostname_length) + "} {1:<10} {2:<10} {3:<20}"
     print_bold_header(format_string, ["hostname", "port", "index #", "index_hash_md5"])
     index_versions_in_cluster = set()
     for server in indexes:
@@ -1045,33 +1045,33 @@ def print_validate_indexes(mmo, c, validate_indexes):
 def print_collection_stats(mmo, c, namespace):
     execution_database, collection = namespace.split(".")
     stats = mmo.mmo_collection_stats(c, execution_database, collection)
-    print_bold_header("{:<100}", ["statistics for the " + namespace + " namespace"])
-    print_bold_header("{:<9} {:<8} {:<10} {:<10} {:<15} {:<15}", ["sharded",
-                                                                  "capped",
-                                                                  "count",
-                                                                  "size (mb)",
-                                                                  "storageSize (mb)",
-                                                                  "IndexSize (mb)"])
-    print "{:<9} {:<8} {:<10} {:<10.2f} {:<15.2f} {:<15.2f}".format(stats["sharded"],
-                                                           stats["capped"],
-                                                           stats["count"],
-                                                           stats["size"] / MEGABYTE,
-                                                           stats["storageSize"] / MEGABYTE,
-                                                           stats["totalIndexSize"] / MEGABYTE)
-    print_bold_header("{:<15} {:<10} {:<8} {:<8}", ["avgObjSize (b)", "nindexes", "nchunks", "shards"])
-    print "{:<15.2f} {:<10} {:<8} {:<8}".format(stats["avgObjSize"],
+    print_bold_header("{0:<100}", ["statistics for the " + namespace + " namespace"])
+    print_bold_header("{0:<9} {1:<8} {2:<10} {3:<10} {4:<15} {5:<15}", ["sharded",
+                                                                        "capped",
+                                                                        "count",
+                                                                        "size (mb)",
+                                                                        "storageSize (mb)",
+                                                                        "IndexSize (mb)"])
+    print "{0:<9} {1:<8} {2:<10} {3:<10.2f} {4:<15.2f} {5:<15.2f}".format(stats["sharded"],
+                                                                            stats["capped"],
+                                                                            stats["count"],
+                                                                            stats["size"] / MEGABYTE,
+                                                                            stats["storageSize"] / MEGABYTE,
+                                                                            stats["totalIndexSize"] / MEGABYTE)
+    print_bold_header("{0:<15} {1:<10} {2:<8} {3:<8}", ["avgObjSize (b)", "nindexes", "nchunks", "shards"])
+    print "{0:<15.2f} {1:<10} {2:<8} {3:<8}".format(stats["avgObjSize"],
                                              stats["nindexes"],
                                              stats["nchunks"],
                                              len(stats["shards"]))
-    print_bold_header("{:<20} {:<20}", ["index name", "size (mb)"])
+    print_bold_header("{0:<20} {1:<20}", ["index name", "size (mb)"])
     for index in stats["indexSizes"]:
-        print "{:<20} {:<20.2f}".format(index, stats["indexSizes"][index] / MEGABYTE)
+        print "{0:<20} {1:<20.2f}".format(index, stats["indexSizes"][index] / MEGABYTE)
 
 def print_database_stats(mmo, c, database):
     dbstats = mmo.mmo_database_stats(c, database)
     # print the summary first
-    print_bold_header("{:<100}", ["Database stats summary of " + database])
-    format_string = "{:<9} {:<15} {:<15} {:<17} {:<9} {:<15} {:<9} {:<13}"
+    print_bold_header("{0:<100}", ["Database stats summary of " + database])
+    format_string = "{0:<9} {1:<15} {2:<15} {3:<17} {4:<9} {5:<15} {6:<9} {7:<13}"
     print_bold_header(format_string, ["objects",
                                       "avgObjSize (b)",
                                       "datasize (mb)",
@@ -1095,8 +1095,8 @@ def print_database_stats(mmo, c, database):
         if dbstats["raw"][shard]["collections"] == 0:
             print "0 collections on: " + shard
         else:
-            print_bold_header("{:<100}", [shard])
-            format_string = "{:<12} {:<8} {:<15} {:<15} {:<17} {:<11} {:<8} {:<15} {:<9}"
+            print_bold_header("{0:<100}", [shard])
+            format_string = "{0:<12} {1:<8} {2:<15} {3:<15} {4:<17} {5:<11} {6:<8} {7:<15} {8:<9}"
             print_bold_header(format_string, ["collections",
                                                 "objects",
                                                 "avgObjSize (b)",
@@ -1150,7 +1150,7 @@ def print_run_command_result(mmo, c, command, inc_mongos, execution_database="ad
     """
     custom_command_output = mmo.mmo_execute_on_cluster(c, command, inc_mongos, execution_database)
     max_hostname_length = length_of_longest_element(custom_command_output, "hostname") + 2
-    format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<100}"
+    format_string = "{0:<" + str(max_hostname_length) + "} {1:<10} {2:<100}"
     print_bold_header(format_string, ["hostname", "port", "command output"])
     for server in custom_command_output:
         print_colour_data_row(bgcolours.OKGREEN, format_string, [server["hostname"],
@@ -1214,44 +1214,44 @@ def print_server_status_help():
     print "Extracts and displays certain bits of information from the serverStatus document produced in the mongo shell command db.serverStatus()"
     print "Usage: mm --server_status <option>"
     print "Options: "
-    print "{:<30} {:<100}".format("instance", "Show the instance info from all the shard mongod processes")
-    print "{:<30} {:<100}".format("asserts", "Show the asserts stats from all the shard mongod processes")
-    print "{:<30} {:<100}\n{:<30} {:<100}".format("flushing",
+    print "{0:<30} {1:<100}".format("instance", "Show the instance info from all the shard mongod processes")
+    print "{0:<30} {1:<100}".format("asserts", "Show the asserts stats from all the shard mongod processes")
+    print "{0:<30} {1:<100}\n{2:<30} {3:<100}".format("flushing",
                                                   "Show the flushing stats from all the shard mongod processes.",
                                                   "",
                                                   "Only applies to the MMAPv1 engine.")
-    print "{:<30} {:<100}\n{:<30} {:<100}".format("journaling",
+    print "{0:<30} {1:<100}\n{2:<30} {3:<100}".format("journaling",
                                                   "Show the journal stats from all the shard mongod processes.",
                                                   "",
                                                   "Only applies to the MMAPv1 engine and journaling must be enabled.")
-    print "{:<30} {:<100}".format("extra_info", "Show the extra_info section from the serverStatus document.")
-    print "{:<30} {:<100}".format("connections", "Show the connection stats from all the shard mongod processes")
-    print "{:<30} {:<100}".format("global_lock", "Show the global locks stats from all the shard mongod processes")
-    print "{:<30} {:<100}".format("network", "Show the network stats from all the shard mongod processes")
-    print "{:<30} {:<100}".format("opcounters", "Show the opcounters stats from all the shard mongod processes")
-    print "{:<30} {:<100}".format("opcounters_repl", "Show the opcountersRepl stats from all the shard mongod processes")
-    print "{:<30} {:<100}".format("security", "Show the security info from all the shard mongod processes")
-    print "{:<30} {:<100}".format("storage_engine", "Show the storage engine info from all the shard mongod processes")
-    print "{:<30} {:<100}".format("memory", "Show the memory info from all the shard mongod processes")
-    print "{:<30} {:<100}".format("help", "Show this help message")
+    print "{0:<30} {1:<100}".format("extra_info", "Show the extra_info section from the serverStatus document.")
+    print "{0:<30} {1:<100}".format("connections", "Show the connection stats from all the shard mongod processes")
+    print "{0:<30} {1:<100}".format("global_lock", "Show the global locks stats from all the shard mongod processes")
+    print "{0:<30} {1:<100}".format("network", "Show the network stats from all the shard mongod processes")
+    print "{0:<30} {1:<100}".format("opcounters", "Show the opcounters stats from all the shard mongod processes")
+    print "{0:<30} {1:<100}".format("opcounters_repl", "Show the opcountersRepl stats from all the shard mongod processes")
+    print "{0:<30} {1:<100}".format("security", "Show the security info from all the shard mongod processes")
+    print "{0:<30} {1:<100}".format("storage_engine", "Show the storage engine info from all the shard mongod processes")
+    print "{0:<30} {1:<100}".format("memory", "Show the memory info from all the shard mongod processes")
+    print "{0:<30} {1:<100}".format("help", "Show this help message")
 
 def print_host_info_help():
     print "Extracts and displays information from the hostInfo document produced in the mongo shell by the mongo shell command db.hostInfo()"
     print "Usage: mm --host_info <option>"
     print "Options: "
-    print "{:<30} {:<100}".format("system", "An embedded document providing information about the ",
+    print "{0:<30} {1:<100}".format("system", "An embedded document providing information about the ",
                                             "underlying environment of the system running the mongod or mongos")
-    print "{:<30} {:<100}\n{:<30} {:<100}".format("os",
+    print "{0:<30} {1:<100}\n{2:<30} {3:<100}".format("os",
                                                   "An embedded document that contains information about the operating system ",
                                                   "",
                                                   "running the mongod and mongos.")
-    print "{:<30} {:<100}\n{:<30} {:<100}\n{:<30} {:<100}".format("extra",
+    print "{0:<30} {1:<100}\n{2:<30} {3:<100}\n{4:<30} {5:<100}".format("extra",
                                                                   "An embedded document with extra information about the operating ",
                                                                   "",
                                                                 "system and the underlying hardware. The content of the extra embedded ",
                                                                   "",
                                                                 "document  depends on the operating system.")
-    print "{:<30} {:<100}".format("help", "Show this help message")
+    print "{0:<30} {1:<100}".format("help", "Show this help message")
 
 """
 MAIN SECTION STARTS HERE

@@ -634,7 +634,7 @@ def display_security_for_cluster(mmo, c, inc_mongos):
                                                                      doc["command_output"]["security"]["SSLServerCertificateExpirationDate"]])
         else:
             fs = format_string.split(" ")
-            fs = " ".join(fs[:3]) + " {:<50}"
+            fs = " ".join(fs[:3]) + " {0:<50}"
             print_colour_data_row(bgcolours.OKGREEN, fs, [doc["hostname"],
                                                           doc["shard"],
                                                           doc["port"],

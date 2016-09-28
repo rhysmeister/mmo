@@ -381,7 +381,7 @@ def display_journaling_for_cluster(mmo, c, inc_mongos):
                                                                      "NA",
                                                                      "NA"])
     if no_journaling_count > 0:
-        print_colour_data_row(bgcolours.WARNING, "{:<80}", ["The dur key missing on " + str(no_journaling_count) + " instances. Perhaps MMAPV1 is not used here?"])
+        print_colour_data_row(bgcolours.WARNING, "{0:<80}", ["The dur key missing on " + str(no_journaling_count) + " instances. Perhaps MMAPV1 is not used here?"])
 
 
 def display_extra_info_for_cluster(mmo, c, inc_mongos):

@@ -412,7 +412,10 @@ class MmoMongoCluster:
             if doc["state"] == "PRIMARY":
                 doc["slaveDelay"] = "NA" # not relevant here
             else: # calculate the slave lag from the PRIMARY optimeDate
-                doc["slaveDelay"] = (doc["optimeDate"] - primary_info[doc["replicaset"]]).total_seconds()
+                if hasattr((doc["optimeDate"] - primary_info[doc["replicaset"]]), "total_seconds"): # Does not exist in python 2.6
+                    doc["slaveDelay"] = (doc["optimeDate"] - primary_info[doc["replicaset"]]).total_seconds()
+                else:
+                    doc["slaveDelay"] = (doc["optimeDate"] - primary_info[doc["replicaset"]])
         return replication_summary
 
     def mmo_cluster_serverStatus(self, mmo_connection, inc_mongos):

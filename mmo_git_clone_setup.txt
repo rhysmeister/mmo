@@ -37,3 +37,27 @@ mmo_setup_cluster
 cd
 cd mmo/python/app
 ./mm —repl
+
+# CentOS release 6.8 (Final)
+Add repo https://docs.mongodb.com/manual/tutorial/install-mongodb-on-red-hat/
+sudo yum install mongodb-org*
+sudo yum install git
+
+# Utilities for bash script
+sudo yum install psmisc # required for killall
+sudo yum install wget
+
+sudo yum install epel-release
+sudo yum install python-pip
+
+# Install python modules?
+sudo python -m easy_install pymongo
+sudo python -m easy_install argparse
+
+git clone https://github.com/rhysmeister/mmo.git
+cd mmo/bash
+. mmo_mongodb_cluster.sh
+mmo_setup_cluster
+cd
+cd mmo/python/app
+./mm --repl

@@ -1093,7 +1093,7 @@ def print_database_stats(mmo, c, database):
                                                             dbstats["extentFreeList"]["num"]])
                     #dbstats["extentFreeList"]["totalSize"] removed
     # Now print shard details. Don't both if the shard collection count = 0
-    print_bold_header("{:<100}", ["Database stats by shard"])
+    print_bold_header("{0:<100}", ["Database stats by shard"])
     for shard in dbstats["raw"]:
         if dbstats["raw"][shard]["collections"] == 0:
             print "0 collections on: " + shard

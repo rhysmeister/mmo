@@ -142,7 +142,7 @@ OPTIONS
           --collection COLLECTION
                                 Collection to perform action on. Must be supplied in
                                 the format <database>.<collection>
-          --verbose_display     Used in various functions display data that is usually
+          --verbose_display     Used in various functions to display data that is usually
                                 supressed
           --stacktrace          By default we don't display the Python stacktace. Use
                                 this flag to enable.

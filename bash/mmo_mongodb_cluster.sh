@@ -94,17 +94,17 @@ function mmo_create_mongod_shard_servers()
 	ADDITIONAL_OPTIONS="$1";
 	mmo_change_to_datadir
 	# shard0 mongod instances
-	mongod --smallfiles --nojournal --storageEngine wiredTiger --wiredTigerEngineConfigString="cache_size=200M" --dbpath ./shard0_30001  --port 30001 --replSet "rs0" --logpath shard0_30001.log ${ADDITIONAL_OPTIONS}; 
-	mongod --smallfiles --nojournal --storageEngine wiredTiger --wiredTigerEngineConfigString="cache_size=200M" --dbpath ./shard0_30002  --port 30002 --replSet "rs0" --logpath shard0_30002.log ${ADDITIONAL_OPTIONS};
-	mongod --smallfiles --nojournal --storageEngine wiredTiger --wiredTigerEngineConfigString="cache_size=200M" --dbpath ./shard0_30003  --port 30003 --replSet "rs0" --logpath shard0_30003.log ${ADDITIONAL_OPTIONS};
+	mongod --smallfiles --nojournal --wiredTigerEngineConfigString="cache_size=200M" --dbpath ./shard0_30001  --port 30001 --replSet "rs0" --logpath shard0_30001.log ${ADDITIONAL_OPTIONS};
+	mongod --smallfiles --nojournal --wiredTigerEngineConfigString="cache_size=200M" --dbpath ./shard0_30002  --port 30002 --replSet "rs0" --logpath shard0_30002.log ${ADDITIONAL_OPTIONS};
+	mongod --smallfiles --nojournal --wiredTigerEngineConfigString="cache_size=200M" --dbpath ./shard0_30003  --port 30003 --replSet "rs0" --logpath shard0_30003.log ${ADDITIONAL_OPTIONS};
 	# shard1 mongod instances
-	mongod --smallfiles --nojournal --storageEngine wiredTiger --wiredTigerEngineConfigString="cache_size=200M" --dbpath ./shard1_30004  --port 30004 --replSet "rs1" --logpath shard1_30004.log ${ADDITIONAL_OPTIONS};
-	mongod --smallfiles --nojournal --storageEngine wiredTiger --wiredTigerEngineConfigString="cache_size=200M" --dbpath ./shard1_30005  --port 30005 --replSet "rs1" --logpath shard1_30005.log ${ADDITIONAL_OPTIONS};
-	mongod --smallfiles --nojournal --storageEngine wiredTiger --wiredTigerEngineConfigString="cache_size=200M" --dbpath ./shard1_30006  --port 30006 --replSet "rs1" --logpath shard1_30006.log ${ADDITIONAL_OPTIONS};
+	mongod --smallfiles --nojournal --wiredTigerEngineConfigString="cache_size=200M" --dbpath ./shard1_30004  --port 30004 --replSet "rs1" --logpath shard1_30004.log ${ADDITIONAL_OPTIONS};
+	mongod --smallfiles --nojournal --wiredTigerEngineConfigString="cache_size=200M" --dbpath ./shard1_30005  --port 30005 --replSet "rs1" --logpath shard1_30005.log ${ADDITIONAL_OPTIONS};
+	mongod --smallfiles --nojournal --wiredTigerEngineConfigString="cache_size=200M" --dbpath ./shard1_30006  --port 30006 --replSet "rs1" --logpath shard1_30006.log ${ADDITIONAL_OPTIONS};
 	if [ ${THIRD_SHARD} -eq 1 ]; then
-		mongod --smallfiles --nojournal --storageEngine wiredTiger --wiredTigerEngineConfigString="cache_size=200M" --dbpath ./shard2_30007  --port 30007 --replSet "rs2" --logpath shard2_30007.log ${ADDITIONAL_OPTIONS};
-		mongod --smallfiles --nojournal --storageEngine wiredTiger --wiredTigerEngineConfigString="cache_size=200M" --dbpath ./shard2_30008  --port 30008 --replSet "rs2" --logpath shard2_30008.log ${ADDITIONAL_OPTIONS};
-		mongod --smallfiles --nojournal --storageEngine wiredTiger --wiredTigerEngineConfigString="cache_size=200M" --dbpath ./shard2_30009  --port 30009 --replSet "rs2" --logpath shard2_30009.log ${ADDITIONAL_OPTIONS};
+		mongod --smallfiles --nojournal --wiredTigerEngineConfigString="cache_size=200M" --dbpath ./shard2_30007  --port 30007 --replSet "rs2" --logpath shard2_30007.log ${ADDITIONAL_OPTIONS};
+		mongod --smallfiles --nojournal --wiredTigerEngineConfigString="cache_size=200M" --dbpath ./shard2_30008  --port 30008 --replSet "rs2" --logpath shard2_30008.log ${ADDITIONAL_OPTIONS};
+		mongod --smallfiles --nojournal --wiredTigerEngineConfigString="cache_size=200M" --dbpath ./shard2_30009  --port 30009 --replSet "rs2" --logpath shard2_30009.log ${ADDITIONAL_OPTIONS};
 	fi;
 }
 

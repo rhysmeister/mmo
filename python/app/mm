@@ -105,6 +105,10 @@ def print_list_of_hosts(title, host_list, colour):
     sys.stdout.write(bgcolours.BOLD + title + bgcolours.ENDC + "\n")
     print_count = 0
     for host in host_list:
+        if mmo.mmo_is_mongo_up(host["hostname"], host["port"]):
+            colour = bgcolours.OKGREEN
+        else:
+            colour = bgcolours.FAIL
         if print_count % 3 == 0 and print_count > 0:  # max 3 hosts per line
             sys.stdout.write("\n")
         sys.stdout.write(colour + "{0}:{1}      ".format(host["hostname"], host["port"]) + bgcolours.ENDC)

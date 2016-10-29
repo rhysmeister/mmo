@@ -42,6 +42,23 @@ class MmoMongoCluster:
             if d["shard"] not in self.shards:
                 self.shards.append(d["shard"])
 
+    def mmo_is_mongo_up(self, hostname, port=27017):
+        """
+        Detect is mongo is running on the suggested port
+        :param port: Default 27017
+        :return:
+        """
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        service_up = False
+        try:
+            s.connect((hostname, port))
+            service_up = True
+            s.close()
+        except socket.error as e:
+            pass
+        except Exception as e:
+            raise e
+        return service_up
 
     def mmo_connect(self):
         """

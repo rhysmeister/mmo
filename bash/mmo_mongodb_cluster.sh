@@ -75,9 +75,9 @@ function mmo_create_config_servers()
 {
 	ADDITIONAL_OPTIONS="$1";
 	mmo_change_to_datadir
-	mongod --configsvr --port 27019 --dbpath ./config1 --logpath config1.log --smallfiles ${ADDITIONAL_OPTIONS};
-	mongod --configsvr --port 27020 --dbpath ./config2 --logpath config2.log --smallfiles ${ADDITIONAL_OPTIONS};
-	mongod --configsvr --port 27021 --dbpath ./config3 --logpath config3.log --smallfiles ${ADDITIONAL_OPTIONS};
+	mongod --configsvr --port 27019 --dbpath ./config1 --logpath config1.log --smallfiles ${ADDITIONAL_OPTIONS} --replSet "csReplSet";
+	mongod --configsvr --port 27020 --dbpath ./config2 --logpath config2.log --smallfiles ${ADDITIONAL_OPTIONS} --replSet "csReplSet";
+	mongod --configsvr --port 27021 --dbpath ./config3 --logpath config3.log --smallfiles ${ADDITIONAL_OPTIONS} --replSet "csReplSet";
 }
 
 function mmo_create_mongos_servers()

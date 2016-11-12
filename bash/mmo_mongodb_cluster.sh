@@ -146,6 +146,21 @@ function mmo_configure_replicaset_rs2()
 EOF
 }
 
+function mmo_configure_replicaset_cfgsrv()
+{
+	mongo --port 27019 <<EOF
+	rs.initiate(_id: "csReplSet",
+				configsvr: true,
+				version: 1,
+				members: [ 
+							{ _id: 0, host: "$(hostname):27019" },
+							{ _id: 0, host: "$(hostname):27020" },
+							{ _id: 0, host: "$(hostname):27021" }   
+						 ]
+				);
+EOF
+}
+
 function mmo_configure_sharding()
 {
 	mongo <<EOF 

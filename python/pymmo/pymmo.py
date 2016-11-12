@@ -489,7 +489,7 @@ class MmoMongoCluster:
         stepDownCmd = {'replSetStepDown': stepDownSecs, 'secondaryCatchUpPeriodSecs': catchUpSecs}
         return self.mmo_execute_on_primaries(mmo_connection, stepDownCmd, replicaset)
 
-    def mmo_change_profiling_level(self, mmo_connection, profile, slowms=None):
+    def mmo_change_profiling_level(self, mmo_connection, profile, slowms=None, database=None):
         """
         Manages the profiling level of a MongoDB Cluster. https://docs.mongodb.com/manual/reference/command/profile/
         Level	Setting
@@ -507,7 +507,13 @@ class MmoMongoCluster:
             profileCmd = { 'profile': profile, 'slowms': slowms }
         else:
             profileCmd = { 'profile': profile }
-        return self.mmo_execute_on_cluster(mmo_connection, profileCmd)
+        if database == "*":
+            raise NotImplementedError("Not yet implemented")
+            #o = self.mmo_execute_on_cluster_on_each_db(mmo_connection, profileCmd, False)
+            #print o
+        else:
+            o = self.mmo_execute_on_cluster(mmo_connection, profileCmd, False, database)
+        return o
 
     def mmo_sharding_status(self, mmo_connection):
         """

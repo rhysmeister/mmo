@@ -976,9 +976,9 @@ def sharding_status(mmo, c):
     for db in sharded_databases:
         print_colour_data_row(bgcolours.OKGREEN, "{0:<10} {1:<10}", [db["_id"], db["primary"]])
 
-def profile_and_display(mmo, c, profile, slowms):
+def profile_and_display(mmo, c, profile, slowms, database):
     """
-    Displays and manages the profil level of the Mongo Cluster
+    Displays and manages the profile level of the Mongo Cluster
     :param mmo:
     :param c:
     :param profile: Profiling level -1, 0, 1, or 2
@@ -987,15 +987,16 @@ def profile_and_display(mmo, c, profile, slowms):
     """
     # if the profling level is anything other than -1 we need to run the
     # profile command with -1 again to get the current level
-    prof = mmo.mmo_change_profiling_level(c, profile, slowms)
+    prof = mmo.mmo_change_profiling_level(c, profile, slowms, database)
     max_hostname_length = length_of_longest_element(prof, "hostname") + 2
     format_string = "{0:<" + str(max_hostname_length) + "} {1:<10} {2:<10} {3:<10} {4:<10}"
     if prof is not -1:
-        prof = mmo.mmo_change_profiling_level(c, -1)
-    headers = ["hostname", "shard", "port", "profile", "slowms"]
+        prof = mmo.mmo_change_profiling_level(c, -1, None, database)
+    headers = ["hostname", "shard", "port", "db", "profile", "slowms"]
     header_lookup = [{"hostname": "hostname"},
                      {"shard": "shard"},
                      {"port": "port"},
+                     {"db": "db"},
                      {"profile": "command_output.was"},
                      {"slowms": "command_output.slowms"}]
     format_string = create_format_string(headers, header_lookup, prof)
@@ -1004,6 +1005,7 @@ def profile_and_display(mmo, c, profile, slowms):
         print_colour_data_row(bgcolours.OKGREEN, format_string, [doc["hostname"],
                                                                  doc["shard"],
                                                                  doc["port"],
+                                                                 doc["db"],
                                                                  doc["command_output"]["was"],
                                                                  doc["command_output"]["slowms"]])
 
@@ -1295,12 +1297,13 @@ parser.add_argument('--inc_mongos', action='store_true', help='Optionally execut
 parser.add_argument('--step_down', type=str, default="", help="Step down the primary from this replicaset")
 parser.add_argument('--step_down_nominate_host', type=str, required=False, help="Used in combination with step_down_nominate_port to select a PRIMARY")
 parser.add_argument('--step_down_nominate_port', type=int, required=False, help="Used in combination with step_down_nominate_host to select a PRIMARY")
-parser.add_argument('--replset_freeze', type=int, required=False, default=30, help="Number of seconds to use with the replSetFreeze command")
+parser.add_argument('--replset_freeze', type=int, required=False, default=30, help="Number of seconds to- use with the replSetFreeze command")
 
 profiling_choices=[-1, 0, 1, 2]
 
 parser.add_argument('--profiling', type=int, default=None, choices=profiling_choices, help="Display or modify the profiling level of a MongoDB Cluster")
 parser.add_argument('--slowms', type=int, default=None, help="Optionally for use with --profiling switch. The threshold in milliseconds at which the database profiler considers a query slow.")
+parser.add_argument('--database', type=str, default=None, help="The database to perform the action on. The wildcard character '*' can be used to specify all databases. Enclose in single quotes to prevent the shell expanding it.")
 
 parser.add_argument('--sharding', action='store_true', help="List sharding details")
 
@@ -1457,7 +1460,10 @@ if c:
                 else:
                     print "ERROR: There was a problem, " + str(exception)
         if args.profiling in profiling_choices: # This wouldn't return true when set to zero unless done like this
-            profile_and_display(mmo, c, args.profiling, args.slowms)
+            if args.database is not None:
+                profile_and_display(mmo, c, args.profiling, args.slowms, args.database)
+            else:
+                raise Exception("You must specify a value for --database when using the --profiling command.")
         if args.sharding:
             sharding_status(mmo, c)
         if args.host_info in host_info_choices:

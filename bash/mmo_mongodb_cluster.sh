@@ -149,15 +149,16 @@ EOF
 function mmo_configure_replicaset_cfgsrv()
 {
 	mongo --port 27019 <<EOF
-	rs.initiate(_id: "csReplSet",
-				configsvr: true,
-				version: 1,
-				members: [ 
-							{ _id: 0, host: "$(hostname):27019" },
-							{ _id: 0, host: "$(hostname):27020" },
-							{ _id: 0, host: "$(hostname):27021" }   
-						 ]
-				);
+	rs.initiate({
+					_id: "csReplSet",
+					configsvr: true,
+					version: 1,
+					members: [ 
+								{ _id: 0, host: "$(hostname):27019" },
+								{ _id: 1, host: "$(hostname):27020" },
+								{ _id: 2, host: "$(hostname):27021" }   
+							]
+				});
 EOF
 }
 
@@ -315,6 +316,7 @@ function mmo_setup_cluster()
 {
 	mmo_create_directories && echo "OK created directories";
 	mmo_create_config_servers "$(echo '--fork')" && echo "OK started configuration servers." && sleep 5;
+	mmo_configure_replicaset_cfgsrv && echo "OK configured cfgsrv replica set";
 	mmo_create_mongos_servers "$(echo '--fork')" && echo "OK started mongos servers." && sleep 5;
 	mmo_create_mongod_shard_servers "$(echo '--fork')" && echo "OK started mongod shard servers";
 	echo "Sleeping for sixty seconds before attempting replicaset & shard configuration." && sleep 60;

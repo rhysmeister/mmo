@@ -335,6 +335,7 @@ class MmoMongoCluster:
                 cluster_command_output.append({ "hostname": hostname, "port": port, "shard": shard, "command_output": command_output })
         return cluster_command_output
 
+
     def mmo_replica_state(self, mmo_connection):
         """
         Return a string of the current replica state for the provided MongoD connection
@@ -381,6 +382,27 @@ class MmoMongoCluster:
             return o
         else:
             raise Exception("Not a mongos process")
+
+    def mmo_configsrv_replication_status(self, mmo_connection):
+        """
+        If the config sevrer are running in repl set mode return that info, else nothing
+        """
+        replication_state = []
+        if self.mmo_is_mongos(mmo_connection):
+            configsrv = self.mmo_config_servers(mmo_connection)[0]
+            auth_dic = self.mmo_get_auth_details_from_connection(mmo_connection)
+            c = self.mmo_connect_mongod(hostname=configsrv["hostname"],
+                                        port=configsrv["port"],
+                                        username=auth_dic["username"],
+                                        password=auth_dic["password"],
+                                        authentication_db=auth_dic["authentication_database"]
+                                        )
+            command_output = c["admin"].command("replSetGetStatus")
+            shard = command_output["set"]
+            replication_state.append({"hostname": configsrv["hostname"], "port": configsrv["port"], "shard": shard, "command_output": command_output})
+        else:
+            raise Exception("Not a mongos process")
+        return replication_state
 
     def mmo_replication_status_summary(self, mmo_connection):
         """
@@ -438,7 +460,9 @@ class MmoMongoCluster:
         replication_summary = []
         primary_info = {}
         o = self.mmo_replication_status(mmo_connection)
+        o = o + self.mmo_configsrv_replication_status(mmo_connection)
         for replicaset in o:
+            print replicaset
             for member in replicaset["command_output"]["members"]:
                 if member["stateStr"] == "PRIMARY":
                     primary_info[replicaset["command_output"]["set"]] = member["optimeDate"]
@@ -457,7 +481,7 @@ class MmoMongoCluster:
                     doc["slaveDelay"] = (doc["optimeDate"] - primary_info[doc["replicaset"]]).total_seconds()
                 else: # for python 2.6 that does not have total_seconds attribute
                       # Will only be correct for delays of up to 24 hours
-                    doc["slaveDelay"] = (doc["optimeDate"] - primary_info[doc["replicaset"]]).seconds
+                    doc["slaveDelay"] = (doc["optimeDate"] - primary_info[doc["replicaset"]]).seconds # TODO Calculation is not correct
         return replication_summary
 
     def mmo_cluster_serverStatus(self, mmo_connection, inc_mongos):
@@ -596,7 +620,12 @@ class MmoMongoCluster:
         for doc in self.mmo_shard_servers(mmo_connection):
             hostname, port, shard = doc["hostname"], doc["port"], doc["shard"]
             auth_dic = self.mmo_get_auth_details_from_connection(mmo_connection)
-            c = self.mmo_connect_mongod(hostname, port, auth_dic["username"], auth_dic["password"], auth_dic["authentication_database"])
+            print auth_dic
+            c = self.mmo_connect_mongod(hostname,
+                                        port,
+                                        auth_dic["username"],
+                                        auth_dic["password"],
+                                        auth_dic["authentication_database"])
             msg = ""
             try:
                 if collection in c[execution_database].collection_names():

@@ -462,7 +462,6 @@ class MmoMongoCluster:
         o = self.mmo_replication_status(mmo_connection)
         o = o + self.mmo_configsrv_replication_status(mmo_connection)
         for replicaset in o:
-            print replicaset
             for member in replicaset["command_output"]["members"]:
                 if member["stateStr"] == "PRIMARY":
                     primary_info[replicaset["command_output"]["set"]] = member["optimeDate"]

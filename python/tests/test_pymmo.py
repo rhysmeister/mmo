@@ -162,7 +162,7 @@ class TestPyMmoMethods(unittest.TestCase):
         m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
         c = m.mmo_connect()
         o = m.mmo_replication_status_summary(c)
-        self.assertEquals(9, len(o))
+        self.assertEquals(12, len(o))
         self.assertTrue("slaveDelay" in str(o))
 
     def test_mmo_cluster_serverStatus(self):

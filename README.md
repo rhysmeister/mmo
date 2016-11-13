@@ -137,7 +137,7 @@ OPTIONS
                                 Should be provided in document format, i.e. '{
                                 command: <value> }'
           --balancing {enable,disable}
-                                Enable or disabled balancing. Must be supplied with
+                                Enable or disable balancing. Must be supplied with
                                 the --collection argument
           --collection COLLECTION
                                 Collection to perform action on. Must be supplied in

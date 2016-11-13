@@ -53,14 +53,14 @@ def print_replication_summary(replication_summary):
     header_lookup = [ {"hostname": "hostname"},
                       {"rs": "replicaset"},
                       { "state": "state" },
-                      { "configV": "configVersion"},
+                      { "cfgV": "configVersion"},
                       {"uptime": "uptime" },
                       { "slaveDelay": "slaveDelay" } ]
 
     format_string = create_format_string([ "hostname",
                                        "rs",
                                        "state",
-                                       "configV",
+                                       "cfgV",
                                        "uptime",
                                        "slaveDelay"], header_lookup, replication_summary)
     max_hostname_length = length_of_longest_element(replication_summary, "hostname") + 2
@@ -68,7 +68,7 @@ def print_replication_summary(replication_summary):
     print_bold_header(format_string, [ "hostname",
                                        "rs",
                                        "state",
-                                       "configV",
+                                       "cfgV",
                                        "uptime",
                                        "slaveDelay"])
     for host in replication_summary:
@@ -949,7 +949,7 @@ def step_down_primary(mmo, c, replicaset):
     if replicaset in mmo.mmo_shards():
         sd = mmo.mmo_step_down(c, replicaset)
     else:
-        print "ERRROR: Not a valid replicaset name."
+        raise Exception("Not a valid replicaset name.")
 
 def sharding_status(mmo, c):
     sh = mmo.mmo_sharding_status(c)
@@ -1326,7 +1326,7 @@ parser.add_argument("--collection_stats", type=str, required=False, help="Show a
 parser.add_argument("--database_stats", type=str, required=False, help="Show a summary of the data from the db.stats() command.")
 parser.add_argument("--show_collections", type=str, required=False, help="List the collections in the given database.")
 
-parser.add_argument("--command", type=str, required=False, help="Run a custom command against your MongoDB Cluster. Should be provided in document format, i.e. '{ command: <value> }'")
+parser.add_argument("--command", type=str, required=False, help="Run a custom command against your MongoDB Cluster. Should be provided in document format, i.e. '{ \"command\": <value> }'")
 parser.add_argument("--balancing", type=str, choices=["enable", "disable"], help="Enable or disabled balancing. Must be supplied with the --collection argument")
 parser.add_argument("--collection", type=str, required=False, help="Collection to perform action on. Must be supplied in the format <database>.<collection>")
 
@@ -1458,7 +1458,7 @@ if c:
                             # Timeout has happened or something is wrong
                             print "There has been a problem or a timeout. Perhaps try the command again."
                 else:
-                    print "ERROR: There was a problem, " + str(exception)
+                    raise exception
         if args.profiling in profiling_choices: # This wouldn't return true when set to zero unless done like this
             if args.database is not None:
                 profile_and_display(mmo, c, args.profiling, args.slowms, args.database)

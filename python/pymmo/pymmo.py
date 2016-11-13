@@ -72,7 +72,7 @@ class MmoMongoCluster:
         else:
             return client
 
-    def mmo_connect_mongod(self, hostname, port, username, password, authentication_db):
+    def mmo_connect_mongod(self, hostname="localhost", port=27017, username="admin", password="admin", authentication_db="admin"):
         """
         Initiates a connection to the MongoDB instance.
         :return:
@@ -160,6 +160,30 @@ class MmoMongoCluster:
         :return:
         """
         return True if self.mmo_what_process_am_i(mmo_connection) == "mongod" else False
+
+    def mmo_is_configsrv(self, mmo_connection):
+        """
+        Returns True if the given Mongo connection is a config server
+        :param mmo_connection:
+        :return:
+        """
+        return True if "--configsvr" in mmo_connection["admin"].command("getCmdLineOpts")["argv"] else False
+
+    def mmo_is_cfg_rs(self, mmo_connection):
+        """
+        Return True if the config server are running in repl set mode
+        :param mmo_connection:
+        :return:
+        """
+        s = None
+        if self.mmo_is_configsrv(mmo_connection):
+            if len(mmo_connection["admin"].command("replSetGetStatus")) > 0:
+                s = True
+            else:
+                s = False
+        else:
+            raise Exception("Not a config server")
+        return s
 
     def mmo_mongo_version(self, mmo_connection):
         """

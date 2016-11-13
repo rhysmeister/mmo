@@ -56,11 +56,25 @@ class TestPyMmoMethods(unittest.TestCase):
         m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
         c = m.mmo_connect()
         self.assertTrue(m.mmo_is_mongos(c))
+        c = m.mmo_connect_mongod(port=30001)
+        self.assertFalse(m.mmo_is_mongos(c))
 
     def test_mmo_is_mongod(self):
         m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
-        c = m.mmo_connect()
-        pass
+        c = m.mmo_connect_mongod(port=30001)
+        self.assertTrue(m.mmo_is_mongod(c))
+
+    def test_mmo_is_configsrv(self):
+        m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
+        c = m.mmo_connect_mongod(port=27019)
+        self.assertTrue(m.mmo_is_configsrv(c))
+        c = m.mmo_connect_mongod(port=30001)
+        self.assertFalse(m.mmo_is_configsrv(c))
+
+    def test_mmo_is_cfg_rs(self):
+        m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
+        c = m.mmo_connect_mongod(port=27020)
+        self.assertTrue(m.mmo_is_cfg_rs(c))
 
     def test_mmo_mongo_version(self):
         m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
@@ -234,16 +248,16 @@ class TestPyMmoMethods(unittest.TestCase):
     def test_mmo_change_profiling_level(self):
         m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
         c = m.mmo_connect()
-        o = m.mmo_change_profiling_level(c, -1)
+        o = m.mmo_change_profiling_level(c, -1, None, "admin")
         self.assertEquals(0, o[0]["command_output"]["was"])
-        o = m.mmo_change_profiling_level(c, 1)
-        o = m.mmo_change_profiling_level(c, -1) # We must request again to get the current state
+        o = m.mmo_change_profiling_level(c, 1, None, "admin")
+        o = m.mmo_change_profiling_level(c, -1, None, "admin") # We must request again to get the current state
         self.assertEquals(1, o[0]["command_output"]["was"])
-        o = m.mmo_change_profiling_level(c, 2)
-        o = m.mmo_change_profiling_level(c, -1)
+        o = m.mmo_change_profiling_level(c, 2, None, "admin")
+        o = m.mmo_change_profiling_level(c, -1, None, "admin")
         self.assertEquals(2, o[0]["command_output"]["was"])
-        o = m.mmo_change_profiling_level(c, 0)
-        o = m.mmo_change_profiling_level(c, -1)
+        o = m.mmo_change_profiling_level(c, 0, None, "admin")
+        o = m.mmo_change_profiling_level(c, -1, None, "admin")
         self.assertEquals(0, o[0]["command_output"]["was"])
 
     def test_mmo_sharding_status(self):

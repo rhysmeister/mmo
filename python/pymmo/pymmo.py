@@ -480,7 +480,7 @@ class MmoMongoCluster:
                     doc["slaveDelay"] = (doc["optimeDate"] - primary_info[doc["replicaset"]]).total_seconds()
                 else: # for python 2.6 that does not have total_seconds attribute
                       # Will only be correct for delays of up to 24 hours
-                    doc["slaveDelay"] = (doc["optimeDate"] - primary_info[doc["replicaset"]]).seconds # TODO Calculation is not correct
+                    doc["slaveDelay"] = (primary_info[doc["replicaset"]] - doc["optimeDate"]).seconds # Primary needs ot be first in this case
         return replication_summary
 
     def mmo_cluster_serverStatus(self, mmo_connection, inc_mongos):

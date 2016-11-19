@@ -1341,6 +1341,11 @@ args = parser.parse_args()
 # Main program starts here
 ###################################################
 
+# Called without any arguments?
+if len(sys.argv)==1:
+    parser.print_help()
+    sys.exit(1) # Let's get out of here!
+
 # If a configuration file exists use that to connect
 config_file = os.path.dirname(os.path.realpath(__file__)) + "/config.cnf"
 if args.debug:

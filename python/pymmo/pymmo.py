@@ -661,3 +661,10 @@ class MmoMongoCluster:
         """
         command = { "dbstats" : 1 }
         return self.mmo_execute_on_mongos(mmo_connection, command, database)
+
+    def mmo_replicaset_conf(self, mmo_connection):
+	"""
+	Get the output of rs.conf()
+	"""
+	command = { "replSetGetConfig" : 1 }
+	return self.mmo_execute_on_primaries(mmo_connection, command)

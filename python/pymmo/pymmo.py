@@ -177,11 +177,15 @@ class MmoMongoCluster:
         """
         s = None
         if self.mmo_is_configsrv(mmo_connection):
-            if len(mmo_connection["admin"].command("replSetGetStatus")) > 0:
-                s = True
-            else:
-                s = False
-        else:
+	    try:
+            	r =  mmo_connection["admin"].command("replSetGetStatus")
+		s = True
+            except Exception as exception:
+		if "not running with --replSet" in str(exception):
+			s = False
+		else:
+			raise exception
+	else:
             raise Exception("Not a config server")
         return s
 
@@ -392,14 +396,15 @@ class MmoMongoCluster:
             configsrv = self.mmo_config_servers(mmo_connection)[0]
             auth_dic = self.mmo_get_auth_details_from_connection(mmo_connection)
             c = self.mmo_connect_mongod(hostname=configsrv["hostname"],
-                                        port=configsrv["port"],
-                                        username=auth_dic["username"],
-                                        password=auth_dic["password"],
-                                        authentication_db=auth_dic["authentication_database"]
-                                        )
-            command_output = c["admin"].command("replSetGetStatus")
-            shard = command_output["set"]
-            replication_state.append({"hostname": configsrv["hostname"], "port": configsrv["port"], "shard": shard, "command_output": command_output})
+               	                        port=configsrv["port"],
+                       	                username=auth_dic["username"],
+                               	        password=auth_dic["password"],
+                                       	authentication_db=auth_dic["authentication_database"]
+                                       	)
+	    if self.mmo_is_cfg_rs(c):
+            	command_output = c["admin"].command("replSetGetStatus")
+            	shard = command_output["set"]
+           	replication_state.append({"hostname": configsrv["hostname"], "port": configsrv["port"], "shard": shard, "command_output": command_output})
         else:
             raise Exception("Not a mongos process")
         return replication_state

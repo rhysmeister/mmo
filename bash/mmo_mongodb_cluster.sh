@@ -39,6 +39,7 @@ set -u;
 
 MMO_SHARDED_CLUSTER_TEST_TEMP="mmo_sharded_cluster_test_temp"; # MongoDB datadir where all cluster data will be placed
 THIRD_SHARD=1;	# 0 = off, 1 = on
+RS_CONFIG=0; # 0 = off, 1 = on Use replicaset config servers
 
 function mmo_murder_cluster()
 {
@@ -75,9 +76,15 @@ function mmo_create_config_servers()
 {
 	ADDITIONAL_OPTIONS="$1";
 	mmo_change_to_datadir
-	mongod --configsvr --port 27019 --dbpath ./config1 --logpath config1.log --smallfiles ${ADDITIONAL_OPTIONS} --replSet "csReplSet";
-	mongod --configsvr --port 27020 --dbpath ./config2 --logpath config2.log --smallfiles ${ADDITIONAL_OPTIONS} --replSet "csReplSet";
-	mongod --configsvr --port 27021 --dbpath ./config3 --logpath config3.log --smallfiles ${ADDITIONAL_OPTIONS} --replSet "csReplSet";
+	if [ ${RS_CONFIG} -eq 1 ]; then
+		mongod --configsvr --port 27019 --dbpath ./config1 --logpath config1.log --smallfiles ${ADDITIONAL_OPTIONS} --replSet "csReplSet";
+		mongod --configsvr --port 27020 --dbpath ./config2 --logpath config2.log --smallfiles ${ADDITIONAL_OPTIONS} --replSet "csReplSet";
+		mongod --configsvr --port 27021 --dbpath ./config3 --logpath config3.log --smallfiles ${ADDITIONAL_OPTIONS} --replSet "csReplSet";
+	else
+		mongod --configsvr --port 27019 --dbpath ./config1 --logpath config1.log --smallfiles ${ADDITIONAL_OPTIONS};
+		mongod --configsvr --port 27020 --dbpath ./config2 --logpath config2.log --smallfiles ${ADDITIONAL_OPTIONS};
+		mongod --configsvr --port 27021 --dbpath ./config3 --logpath config3.log --smallfiles ${ADDITIONAL_OPTIONS};	
+	fi;
 }
 
 function mmo_create_mongos_servers()
@@ -315,7 +322,7 @@ function mmo_load_sample_dataset()
 function mmo_setup_cluster()
 {
 	mmo_create_directories && echo "OK created directories";
-	mmo_create_config_servers "$(echo '--fork')" && echo "OK started configuration servers." && sleep 5;
+	mmo_create_config_servers "$(echo '--fork')" && echo "OK started configuration servers. Sleeping for 30 seconds." && sleep 30;
 	mmo_configure_replicaset_cfgsrv && echo "OK configured cfgsrv replica set";
 	mmo_create_mongos_servers "$(echo '--fork')" && echo "OK started mongos servers." && sleep 5;
 	mmo_create_mongod_shard_servers "$(echo '--fork')" && echo "OK started mongod shard servers";

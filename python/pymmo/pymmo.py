@@ -1,7 +1,6 @@
 from pymongo import MongoClient
 from pymongo import ReturnDocument
 import re, socket
-import datetime
 
 class MmoMongoCluster:
 

@@ -323,8 +323,10 @@ function mmo_setup_cluster()
 {
 	mmo_create_directories && echo "OK created directories";
 	mmo_create_config_servers "$(echo '--fork')" && echo "OK started configuration servers. Sleeping for 30 seconds." && sleep 30;
+	C_PORT=27017;
 	if [ "$RS_CONFIG" -eq 1 ]; then
 		mmo_configure_replicaset_cfgsrv && echo "OK configured cfgsrv replica set";
+		C_PORT=27019;
 	fi;
 	mmo_create_mongos_servers "$(echo '--fork')" && echo "OK started mongos servers." && sleep 5;
 	mmo_create_mongod_shard_servers "$(echo '--fork')" && echo "OK started mongod shard servers";
@@ -333,10 +335,10 @@ function mmo_setup_cluster()
 	mmo_configure_replicaset_rs1 && echo "OK configured replicaset rs1." && sleep 5;
 	mmo_configure_replicaset_rs2 && echo "OK configured replicaset rs2." && sleep 5;
 	mmo_configure_sharding && echo "OK configured Sharding and sharded test.sample_messages by t_u.";
-	mmo_create_admin_user 27017 && echo "OK created cluster admin user (but auth is not enabled yet).";
+	mmo_create_admin_user "$C_PORT" && echo "OK created cluster admin user (but auth is not enabled yet).";
 	mmo_create_admin_user 30001 && echo "OK created admin user on rs0 (but auth is not enabled yet).";
 	mmo_create_admin_user 30004 && echo "OK created admin user on rs1 (but auth is not enabled yet).";
-	mmo_create_pytest_user 27017 && echo "OK created cluster pytest user (but auth is not enabled yet).";
+	mmo_create_pytest_user "$C_PORT" && echo "OK created cluster pytest user (but auth is not enabled yet).";
 	mmo_create_pytest_user 30001 && echo "OK created pytest user on rs0 (but auth is not enabled yet).";
 	mmo_create_pytest_user 30004 && echo "OK created pytest user on rs1 (but auth is not enabled yet).";
 	if [ ${THIRD_SHARD} -eq 1 ]; then
@@ -359,5 +361,5 @@ function mmo_setup_cluster()
 	mmo_create_mongod_shard_servers "$(echo '--auth --fork --keyFile keyfile.txt')" && echo "OK restarted mongod servers with auth enabled.";
 	mmo_load_sample_dataset 0 && echo "Loaded collection into test.sample_restaurants";
 	mmo_check_processes;
-	set +u
+	set +u;
 }

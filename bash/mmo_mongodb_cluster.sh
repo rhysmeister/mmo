@@ -39,7 +39,7 @@ set -u;
 
 MMO_SHARDED_CLUSTER_TEST_TEMP="mmo_sharded_cluster_test_temp"; # MongoDB datadir where all cluster data will be placed
 THIRD_SHARD=1;	# 0 = off, 1 = on
-RS_CONFIG=0; # 0 = off, 1 = on Use replicaset config servers
+RS_CONFIG=1; # 0 = off, 1 = on Use replicaset config servers
 
 function mmo_murder_cluster()
 {

@@ -322,14 +322,14 @@ function mmo_load_sample_dataset()
 function mmo_setup_cluster()
 {
 	mmo_create_directories && echo "OK created directories";
-	mmo_create_config_servers "$(echo '--fork')" && echo "OK started configuration servers. Sleeping for 30 seconds." && sleep 30;
+	mmo_create_config_servers "$(echo '--fork --logRotate reopen --logappend')" && echo "OK started configuration servers. Sleeping for 30 seconds." && sleep 30;
 	C_PORT=27017;
 	if [ "$RS_CONFIG" -eq 1 ]; then
 		mmo_configure_replicaset_cfgsrv && echo "OK configured cfgsrv replica set";
 		C_PORT=27019;
 	fi;
-	mmo_create_mongos_servers "$(echo '--fork')" && echo "OK started mongos servers." && sleep 5;
-	mmo_create_mongod_shard_servers "$(echo '--fork')" && echo "OK started mongod shard servers";
+	mmo_create_mongos_servers "$(echo '--fork --logRotate reopen --logappend')" && echo "OK started mongos servers." && sleep 5;
+	mmo_create_mongod_shard_servers "$(echo '--fork --logRotate reopen --logappend')" && echo "OK started mongod shard servers";
 	echo "Sleeping for sixty seconds before attempting replicaset & shard configuration." && sleep 60;
 	mmo_configure_replicaset_rs0 && echo "OK configured replicaset rs0." && sleep 5;
 	mmo_configure_replicaset_rs1 && echo "OK configured replicaset rs1." && sleep 5;
@@ -356,9 +356,9 @@ function mmo_setup_cluster()
 	mmo_murder_cluster
 	echo "Preparing to restart MongoDB processes with auth enabled.";
 	mmo_generate_key_file && echo "OK created MongoDB keyfile.";
-	mmo_create_config_servers "$(echo '--auth --fork --keyFile keyfile.txt')" && echo "OK restarted config servers with auth enabled.";
-	mmo_create_mongos_servers "$(echo '--fork --keyFile keyfile.txt')" && echo "OK restarted mongos servers with auth enabled.";
-	mmo_create_mongod_shard_servers "$(echo '--auth --fork --keyFile keyfile.txt')" && echo "OK restarted mongod servers with auth enabled.";
+	mmo_create_config_servers "$(echo '--auth --fork --keyFile keyfile.txt --logRotate reopen --logappend')" && echo "OK restarted config servers with auth enabled.";
+	mmo_create_mongos_servers "$(echo '--fork --keyFile keyfile.txt --logRotate reopen --logappend')" && echo "OK restarted mongos servers with auth enabled.";
+	mmo_create_mongod_shard_servers "$(echo '--auth --fork --keyFile keyfile.txt --logRotate reopen --logappend')" && echo "OK restarted mongod servers with auth enabled.";
 	mmo_load_sample_dataset 0 && echo "Loaded collection into test.sample_restaurants";
 	mmo_check_processes;
 	set +u;

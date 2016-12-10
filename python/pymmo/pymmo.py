@@ -76,12 +76,15 @@ class MmoMongoCluster:
         Initiates a connection to the MongoDB instance.
         :return:
         """
-        client = MongoClient(hostname, port)
-        client[authentication_db].authenticate(username, password)
-        if self.mmo_is_mongod(client) == False:
-            raise Exception("MongoDB connection is not a mongod process")
+        if self.mmo_is_mongo_up(hostname, port):
+            client = MongoClient(hostname, port)
+            client[authentication_db].authenticate(username, password)
+            if self.mmo_is_mongod(client) == False:
+                raise Exception("MongoDB connection is not a mongod process")
+            else:
+                return client
         else:
-            return client
+            raise Exception("mongod process is not up")
 
     def mmo_connect_mongos(self, hostname, port, username, password, authentication_db):
         """
@@ -314,10 +317,16 @@ class MmoMongoCluster:
         for doc in self.mmo_shard_servers(mmo_connection):
             hostname, port, shard = doc["hostname"], doc["port"], doc["shard"]
             auth_dic = self.mmo_get_auth_details_from_connection(mmo_connection)
-            c = self.mmo_connect_mongod(hostname, port, auth_dic["username"], auth_dic["password"], auth_dic["authentication_database"])
-            if self.mmo_replica_state(c)["name"] == "PRIMARY" and (replicaset == "all" or replicaset == shard):
-                command_output = c["admin"].command(command)
-                cluster_command_output.append({ "hostname": hostname, "port": port, "shard": shard, "command_output": command_output })
+            try:
+                c = self.mmo_connect_mongod(hostname, port, auth_dic["username"], auth_dic["password"], auth_dic["authentication_database"])
+                if self.mmo_replica_state(c)["name"] == "PRIMARY" and (replicaset == "all" or replicaset == shard):
+                    command_output = c["admin"].command(command)
+                    cluster_command_output.append({ "hostname": hostname, "port": port, "shard": shard, "command_output": command_output })
+            except Exception as excep:
+                if excep.message == "mongod process is not up":
+                    cluster_command_output.append({ "hostname": hostname, "port": port, "shard": shard, "command_output": { "Error": "mongod process is not up" } })
+                else:
+                    raise excep
         return cluster_command_output
 
     def mmo_execute_on_secondaries(self, mmo_connection, command, replicaset="all"): # TODO add execution database?
@@ -466,25 +475,37 @@ class MmoMongoCluster:
         o = self.mmo_replication_status(mmo_connection)
         o = o + self.mmo_configsrv_replication_status(mmo_connection)
         for replicaset in o:
-            for member in replicaset["command_output"]["members"]:
-                if member["stateStr"] == "PRIMARY":
-                    primary_info[replicaset["command_output"]["set"]] = member["optimeDate"]
+            if "Error" not in replicaset["command_output"].keys():
+                for member in replicaset["command_output"]["members"]:
+                    if member["stateStr"] == "PRIMARY":
+                        primary_info[replicaset["command_output"]["set"]] = member["optimeDate"]
 
-                replication_summary.append( { "replicaset": replicaset["command_output"]["set"],
-                                              "hostname": member["name"],
-                                              "state": member["stateStr"],
-                                              "uptime": member["uptime"],
-                                              "configVersion": member["configVersion"],
-                                              "optimeDate": member["optimeDate"] } )
-        for doc in replication_summary:
-            if doc["state"] == "PRIMARY":
-                doc["slaveDelay"] = "NA" # not relevant here
-            else: # calculate the slave lag from the PRIMARY optimeDate
-                if hasattr((doc["optimeDate"] - primary_info[doc["replicaset"]]), "total_seconds"): # Does not exist in python 2.6
-                    doc["slaveDelay"] = (doc["optimeDate"] - primary_info[doc["replicaset"]]).total_seconds()
-                else: # for python 2.6 that does not have total_seconds attribute
-                      # Will only be correct for delays of up to 24 hours
-                    doc["slaveDelay"] = (primary_info[doc["replicaset"]] - doc["optimeDate"]).seconds # Primary needs ot be first in this case
+                    replication_summary.append( { "replicaset": replicaset["command_output"]["set"],
+                                                  "hostname": member["name"],
+                                                  "state": member["stateStr"],
+                                                  "uptime": member["uptime"],
+                                                  "configVersion": member["configVersion"],
+                                                  "optimeDate": member["optimeDate"] } )
+                for doc in replication_summary:
+                    if doc["state"] == "PRIMARY":
+                        doc["slaveDelay"] = "NA" # not relevant here
+                    else: # calculate the slave lag from the PRIMARY optimeDate
+                        if doc["replicaset"] in primary_info.keys(): # is there a primary in the replset?
+                            if hasattr((doc["optimeDate"] - primary_info[doc["replicaset"]]), "total_seconds"): # Does not exist in python 2.6
+                                doc["slaveDelay"] = (doc["optimeDate"] - primary_info[doc["replicaset"]]).total_seconds()
+                            else: # for python 2.6 that does not have total_seconds attribute
+                                  # Will only be correct for delays of up to 24 hours
+                                doc["slaveDelay"] = (primary_info[doc["replicaset"]] - doc["optimeDate"]).seconds # Primary needs ot be first in this case
+                        else:
+                            doc["slaveDelay"] = "UNK" # We cannot know what the delay is if there is no primary
+            else:
+                    # We cannot know the state of much of the replicaset
+                    replication_summary.append({"replicaset": replicaset["shard"],
+                                                "hostname": "UNK",
+                                                "state": "UNK",
+                                                "uptime": "UNK",
+                                                "configVersion": "UNK",
+                                                "optimeDate": "UNK"})
         return replication_summary
 
     def mmo_cluster_serverStatus(self, mmo_connection, inc_mongos):

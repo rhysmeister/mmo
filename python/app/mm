@@ -72,7 +72,10 @@ def print_replication_summary(replication_summary):
                                        "uptime",
                                        "slaveDelay"])
     for host in replication_summary:
-        print_colour_data_row(bgcolours.OKGREEN, format_string, [ host["hostname"],
+        colour = bgcolours.OKGREEN
+        if host["hostname"] == "UNK":
+            colour = bgcolours.FAIL
+        print_colour_data_row(colour, format_string, [ host["hostname"],
                                                                   host["replicaset"],
                                                                   host["state"],
                                                                   host["configVersion"],

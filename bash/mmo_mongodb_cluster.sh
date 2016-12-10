@@ -262,7 +262,7 @@ function mmo_shutdown_server()
 {
 	PORT=$1;
 	mongo --port ${PORT} admin<<EOF
-	db.shutdownServer();
+	db.shutdownServer({force: true});
 EOF
 }
 

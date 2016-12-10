@@ -323,7 +323,9 @@ function mmo_setup_cluster()
 {
 	mmo_create_directories && echo "OK created directories";
 	mmo_create_config_servers "$(echo '--fork')" && echo "OK started configuration servers. Sleeping for 30 seconds." && sleep 30;
-	mmo_configure_replicaset_cfgsrv && echo "OK configured cfgsrv replica set";
+	if [ "$RS_CONFIG" -eq 1 ]; then
+		mmo_configure_replicaset_cfgsrv && echo "OK configured cfgsrv replica set";
+	fi;
 	mmo_create_mongos_servers "$(echo '--fork')" && echo "OK started mongos servers." && sleep 5;
 	mmo_create_mongod_shard_servers "$(echo '--fork')" && echo "OK started mongod shard servers";
 	echo "Sleeping for sixty seconds before attempting replicaset & shard configuration." && sleep 60;

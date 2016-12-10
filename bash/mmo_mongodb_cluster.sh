@@ -261,7 +261,7 @@ function mmo_start_with_existing_data()
 function mmo_shutdown_server()
 {
 	PORT=$1;
-	mongo --port ${PORT} admin<<EOF
+	mongo --username "admin" --password "admin" --port ${PORT} admin<<EOF
 	db.shutdownServer({force: true});
 EOF
 }
@@ -317,6 +317,27 @@ function mmo_load_sample_dataset()
 	if [ ${DELETE_FILE_AFTER_USE} -eq "1" ]; then
 		rm /tmp/primer-dataset.json;
 	fi;
+}
+
+function mmo_kill_replset()
+{
+		rs="$1";
+		if [ "$rs" == "rs0" ]; then
+			mmo_shutdown_server 30001;
+			mmo_shutdown_server 30002;
+			mmo_shutdown_server 30003;		
+		elif [ "$rs" == "rs1" ]; then
+			mmo_shutdown_server 30004;
+			mmo_shutdown_server 30005;
+			mmo_shutdown_server 30006;		
+		elif [ "$rs" == "rs2" ]; then
+			mmo_shutdown_server 30007;
+			mmo_shutdown_server 30008;
+			mmo_shutdown_server 30009;		
+		else
+			echo "Invalid replset name";
+			return 1;
+		fi;
 }
 
 function mmo_setup_cluster()

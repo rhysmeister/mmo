@@ -355,7 +355,7 @@ class MmoMongoCluster:
                         replsets_completed.append(shard)
             except Exception as excep:
                 if excep.message == "mongod process is not up":
-                    cluster_command_output.append({"hostname": hostname, "port": port, "shard": shard, "command_output": {"Error": "No SECONDARY available to read from in this set"}})
+                    cluster_command_output.append({"hostname": hostname, "port": port, "shard": shard, "command_output": {"Error": "This mongod process is not available"}})
                 else:
                     raise excep
         return cluster_command_output
@@ -506,11 +506,14 @@ class MmoMongoCluster:
                         doc["slaveDelay"] = "NA" # not relevant here
                     else: # calculate the slave lag from the PRIMARY optimeDate
                         if doc["replicaset"] in primary_info.keys(): # is there a primary in the replset?
-                            if hasattr((doc["optimeDate"] - primary_info[doc["replicaset"]]), "total_seconds"): # Does not exist in python 2.6
-                                doc["slaveDelay"] = (doc["optimeDate"] - primary_info[doc["replicaset"]]).total_seconds()
-                            else: # for python 2.6 that does not have total_seconds attribute
-                                  # Will only be correct for delays of up to 24 hours
-                                doc["slaveDelay"] = (primary_info[doc["replicaset"]] - doc["optimeDate"]).seconds # Primary needs ot be first in this case
+                            try:
+                                if hasattr((doc["optimeDate"] - primary_info[doc["replicaset"]]), "total_seconds"): # Does not exist in python 2.6
+                                    doc["slaveDelay"] = (doc["optimeDate"] - primary_info[doc["replicaset"]]).total_seconds()
+                                else: # for python 2.6 that does not have total_seconds attribute
+                                      # Will only be correct for delays of up to 24 hours
+                                    doc["slaveDelay"] = (primary_info[doc["replicaset"]] - doc["optimeDate"]).seconds # Primary needs ot be first in this case
+                            except:
+                                doc["slaveDelay"] = "ERR"
                         else:
                             doc["slaveDelay"] = "UNK" # We cannot know what the delay is if there is no primary
             else:

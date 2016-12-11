@@ -340,6 +340,46 @@ function mmo_kill_replset()
 		fi;
 }
 
+# Randomly kills the number of specified mongod processes
+# in the replset. Usage mmo_kill_random_replset <replset> <number>
+function mmo_kill_random_replset()
+{
+		rs="$1";
+		NUMBER="$2";
+		if [ "$rs" == "rs0" ]; then
+			a[0]=30001;
+			a[1]=30002;
+			a[2]=30003;
+		elif [ "$rs" == "rs1" ]; then
+			a[0]=30004;
+			a[1]=30005;
+			a[2]=30006;
+		elif [ "$rs" == "rs2" ]; then
+			a[0]=30007;
+			a[1]=30008;
+			a[2]=30009;
+		else
+			echo "Invalid replset name: Mustbe rs0, rs1 or rs2.";
+			return 1;
+		fi;			
+		if [ "$NUMBER" -eq 1 ]; then
+			PORT=${a[$RANDOM % 2]};
+			mmo_shutdown_server "$PORT";
+		elif [ "$NUMBER" -eq 2 ]; then
+			PORT1=${a[$RANDOM % 2]};
+			PORT2="$PORT1";
+			while [ "$PORT2" -ne "$PORT1" ] 
+			do
+				PORT2=${a[$RANDOM % 2]};
+			done
+			mmo_shutdown_server "$PORT1";
+			mmo_shutdown_server "$PORT2";
+		else
+			echo "Invalid NUMBER value passed. Must be 1 or 2";
+			return 1;
+		fi;
+}
+
 function mmo_setup_cluster()
 {
 	mmo_create_directories && echo "OK created directories";

@@ -359,7 +359,7 @@ function mmo_kill_random_replset()
 			a[1]=30008;
 			a[2]=30009;
 		else
-			echo "Invalid replset name: Mustbe rs0, rs1 or rs2.";
+			echo "Invalid replset name: Must be rs0, rs1 or rs2.";
 			return 1;
 		fi;			
 		if [ "$NUMBER" -eq 1 ]; then
@@ -380,6 +380,37 @@ function mmo_kill_random_replset()
 		fi;
 }
 
+# Tests if hosts are up in the set and attempts to start them if note
+function mmo_raise_repl_set_from_the_dead()
+{
+	tmp=$(pwd);
+	rs="$1";
+	mmo_change_to_datadir
+	if [ "$rs" == "rs0" ]; then
+		a[0]=30001;
+		a[1]=30002;
+		a[2]=30003;
+		SHARD="shard0";
+	elif [ "$rs" == "rs1" ]; then
+		a[0]=30004;
+		a[1]=30005;
+		a[2]=30006;
+		SHARD="shard1";
+	elif [ "$rs" == "rs2" ]; then
+		a[0]=30007;
+		a[1]=30008;
+		a[2]=30009;
+		SHARD="shard2";
+	else
+		echo "Invalid replset name: Must be rs0, rs1 or rs2.";
+		return 1;
+	fi;
+	for PORT in "${a[@]}"; do
+		$(ps aux | grep mongod | grep "$PORT" ) || mongod --smallfiles --nojournal --storageEngine wiredTiger --wiredTigerEngineConfigString="cache_size=200M" --dbpath "./${SHARD}_${PORT}"  --port "$PORT" --replSet "$rs" --logpath "${SHARD}_${PORT}.log" --auth --fork --keyFile keyfile.txt --logRotate reopen --logappend;
+	done
+	cd "$tmp";
+}
+	
 function mmo_setup_cluster()
 {
 	mmo_create_directories && echo "OK created directories";

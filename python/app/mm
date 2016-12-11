@@ -73,8 +73,10 @@ def print_replication_summary(replication_summary):
                                        "slaveDelay"])
     for host in replication_summary:
         colour = bgcolours.OKGREEN
-        if host["hostname"] == "UNK":
+        if host["state"] in ["UNKNOWN" , "DOWN", "(not reachable/healthy)", "UNK"]:
             colour = bgcolours.FAIL
+        elif host["state"] in ["STARTUP", "STARTUP2", "RECOVERING", "ROLLBACK", "REMOVED"]:
+            colour = bgcolours.WARNING
         print_colour_data_row(colour, format_string, [ host["hostname"],
                                                                   host["replicaset"],
                                                                   host["state"],

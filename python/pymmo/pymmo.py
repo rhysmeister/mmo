@@ -517,7 +517,6 @@ class MmoMongoCluster:
                         else:
                             doc["slaveDelay"] = "UNK" # We cannot know what the delay is if there is no primary
             else:
-                    print replicaset
                     # We cannot know the state of much of the replicaset
                     replication_summary.append({"replicaset": replicaset["shard"],
                                               "hostname": "UNK",

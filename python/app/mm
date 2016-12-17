@@ -42,12 +42,57 @@ def display_cluster_state(mmo, c):
     mongos_servers = mmo.mmo_mongos_servers(c)
     mongod_shard_servers = mmo.mmo_shard_servers(c)
     shards = mmo.mmo_shards()
-    print_list_of_hosts("MongoDB Config Servers", config_servers, bgcolours.OKGREEN)
-    print_list_of_hosts("MongoDB mongos servers", mongos_servers, bgcolours.OKGREEN)
-    print_list_of_hosts("MongoDB mongod shard servers", mongod_shard_servers, bgcolours.OKGREEN)
+    replicaset_options = mmo.mmo_replicaset_conf(c)
+    print_list_of_hosts("MongoDB Config Servers", config_servers, bgcolours.OKGREEN, None)
+    print_list_of_hosts("MongoDB mongos servers", mongos_servers, bgcolours.OKGREEN, None)
+    print_list_of_hosts("MongoDB mongod shard servers", mongod_shard_servers, bgcolours.OKGREEN, replicaset_options)
+    CURSOR_UP_ONE = '\x1b[1A' # Horrible hack to fix formatting issue with newline
+    ERASE_LINE = '\x1b[2K'
+    print(CURSOR_UP_ONE + ERASE_LINE + CURSOR_UP_ONE)
     print(bgcolours.BOLD + "MongoDB shards" + bgcolours.ENDC)
-    for shard in shards:
-        print_colour_data_row(bgcolours.OKGREEN, "{0}   ", [shard])
+    #for shard in shards:
+        #print_colour_data_row(bgcolours.OKGREEN, "{0}   ", [shard])
+
+    #for shard in replicaset_options:
+    header_lookup = [ {"rs": "command_output.config._id"},
+                      {"v": "command_output.config.version"},
+                      {"pv": "command_output.config.protocolVersion"},
+                      {"chaining": "command_output.config.settings.chainingAllowed"},
+                      {"hb interval (ms)": "command_output.config.settings.heartbeatIntervalMillis"},
+                      {"hb t/o (s)": "command_output.config.settings.heartbeatTimeoutSecs"},
+                      {"election t/o (ms)": "command_output.config.settings.electionTimeoutMillis"},
+                      {"catchUp t/o (ms)": "command_output.config.settings.catchUpTimeoutMillis"},
+                        #getLastErrorModes: < document >,
+                        #getLastErrorDefaults: < document >,
+                      { "replicaSetId": "command_output.config.settings.replicaSetId"}]
+
+    headers = ["rs",
+               "v",
+               "pv",
+               "chaining",
+               "hb interval (ms)",
+               "hb t/o (s)",
+               "election t/o (ms)",
+               "catchUp t/o (ms)",
+               "replicaSetId"
+               ]
+    format_string = create_format_string(headers,
+                                         header_lookup,
+                                         replicaset_options)
+    print_bold_header(format_string, headers)
+    for replicaset in replicaset_options:
+        print_colour_data_row(bgcolours.OKGREEN,
+                              format_string,
+                              [replicaset["command_output"]["config"]["_id"],
+                               replicaset["command_output"]["config"]["version"],
+                               replicaset["command_output"]["config"]["protocolVersion"],
+                               replicaset["command_output"]["config"]["settings"]["chainingAllowed"],
+                               replicaset["command_output"]["config"]["settings"]["heartbeatIntervalMillis"],
+                               replicaset["command_output"]["config"]["settings"]["heartbeatTimeoutSecs"],
+                               replicaset["command_output"]["config"]["settings"]["electionTimeoutMillis"],
+                               replicaset["command_output"]["config"]["settings"].get("catchUpTimeoutMillis", "NA"),
+                               replicaset["command_output"]["config"]["settings"].get("replicaSetId", "NA")])
+
 
 def print_replication_summary(replication_summary):
     header_lookup = [ {"hostname": "hostname"},
@@ -100,7 +145,7 @@ def print_colour_data_row(colour, format_string, string_data):
     """
     sys.stdout.write(colour + format_string.format(*string_data) + bgcolours.ENDC + "\n")
 
-def print_list_of_hosts(title, host_list, colour):
+def print_list_of_hosts(title, host_list, colour, replicaset_options):
     """
     Prints the title followed by the hosts in the list.
     :param title:
@@ -109,16 +154,43 @@ def print_list_of_hosts(title, host_list, colour):
     """
     sys.stdout.write(bgcolours.BOLD + title + bgcolours.ENDC + "\n")
     print_count = 0
+    attribute_list = []
     for host in host_list:
         if mmo.mmo_is_mongo_up(host["hostname"], host["port"]):
             colour = bgcolours.OKGREEN
         else:
             colour = bgcolours.FAIL
-        if print_count % 3 == 0 and print_count > 0:  # max 3 hosts per line
+        if title == "MongoDB mongod shard servers":
+            for shard in replicaset_options:
+                for member in shard["command_output"]["config"]["members"]:
+                    if member["host"] == host["hostname"] + ":" + str(host["port"]):
+                        attribute_list = []
+                        attribute_list.append(member["_id"])
+                        if member["arbiterOnly"]:
+                            attribute_list.append("arbiterOnly=true")
+                        if member["buildIndexes"]:
+                            attribute_list.append("buildIndexes=true")
+                        else:
+                            attribute_list.append("buildIndexes=false")
+                        if member["hidden"]:
+                            attribute_list.append("hidden=true")
+                        attribute_list.append("priority=" +  str(member["priority"]))
+                        if len(member["tags"]) > 0:
+                            attribute_list.append(str(member["tags"]))
+                        if member["slaveDelay"] > 0:
+                            attribute_list.append("slaveDelay=" + str(member["slaveDelay"]))
+                        attribute_list.append("votes=" + str(member["votes"]))
+                        rs = shard["command_output"]["config"]["_id"]
+                        if member["host"] == host["hostname"] + ":" + str(host["port"]):
+                            sys.stdout.write(colour + "{0}:{1} - {2} - {3}".format(host["hostname"], host["port"], rs, attribute_list) + bgcolours.ENDC)
+                            sys.stdout.write("\n")  # One shard server per line
+        if print_count % 3 == 0 and print_count > 0 and title != "MongoDB mongod shard servers":  # max 3 hosts per line
             sys.stdout.write("\n")
-        sys.stdout.write(colour + "{0}:{1}      ".format(host["hostname"], host["port"]) + bgcolours.ENDC)
+        if title != "MongoDB mongod shard servers":
+            sys.stdout.write(colour + "{0}:{1} ".format(host["hostname"], host["port"]) + bgcolours.ENDC)
+
         print_count+=1
-    print("")
+    sys.stdout.write("\n")
 
 
 """

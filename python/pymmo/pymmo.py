@@ -517,14 +517,18 @@ class MmoMongoCluster:
                         else:
                             doc["slaveDelay"] = "UNK" # We cannot know what the delay is if there is no primary
             else:
-                    # We cannot know the state of much of the replicaset
+                    # We cannot know the state of much of the replicaset at this point
                     replication_summary.append({"replicaset": replicaset["shard"],
                                               "hostname": "UNK",
                                                 "state": "UNK",
                                                 "uptime": "UNK",
                                                 "configVersion": "UNK",
                                                 "optimeDate": "UNK"})
-        return replication_summary
+        deduped_replication_summary = []
+        for d in replication_summary:
+            if d not in deduped_replication_summary:
+                deduped_replication_summary.append(d)
+        return deduped_replication_summary
 
     def mmo_cluster_serverStatus(self, mmo_connection, inc_mongos):
         """

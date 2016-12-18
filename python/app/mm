@@ -80,18 +80,27 @@ def display_cluster_state(mmo, c):
                                          header_lookup,
                                          replicaset_options)
     print_bold_header(format_string, headers)
+    replicasets_done = []
     for replicaset in replicaset_options:
-        print_colour_data_row(bgcolours.OKGREEN,
-                              format_string,
-                              [replicaset["command_output"]["config"]["_id"],
-                               replicaset["command_output"]["config"]["version"],
-                               replicaset["command_output"]["config"]["protocolVersion"],
-                               replicaset["command_output"]["config"]["settings"]["chainingAllowed"],
-                               replicaset["command_output"]["config"]["settings"]["heartbeatIntervalMillis"],
-                               replicaset["command_output"]["config"]["settings"]["heartbeatTimeoutSecs"],
-                               replicaset["command_output"]["config"]["settings"]["electionTimeoutMillis"],
-                               replicaset["command_output"]["config"]["settings"].get("catchUpTimeoutMillis", "NA"),
-                               replicaset["command_output"]["config"]["settings"].get("replicaSetId", "NA")])
+        if "config" in replicaset["command_output"].keys():
+            print_colour_data_row(bgcolours.OKGREEN,
+                                  format_string,
+                                  [replicaset["command_output"]["config"]["_id"],
+                                   replicaset["command_output"]["config"]["version"],
+                                   replicaset["command_output"]["config"]["protocolVersion"],
+                                   replicaset["command_output"]["config"]["settings"]["chainingAllowed"],
+                                   replicaset["command_output"]["config"]["settings"]["heartbeatIntervalMillis"],
+                                   replicaset["command_output"]["config"]["settings"]["heartbeatTimeoutSecs"],
+                                   replicaset["command_output"]["config"]["settings"]["electionTimeoutMillis"],
+                                   replicaset["command_output"]["config"]["settings"].get("catchUpTimeoutMillis", "NA"),
+                                   replicaset["command_output"]["config"]["settings"].get("replicaSetId", "NA")])
+        else:
+            if replicaset["shard"] not in replicasets_done:
+                print_colour_data_row(bgcolours.FAIL,
+                                      "{0} {1}",
+                                      [replicaset["shard"],
+                                      "Entire replicaset may be down"])
+                replicasets_done.append(replicaset["shard"])
 
 
 def print_replication_summary(replication_summary):
@@ -155,40 +164,48 @@ def print_list_of_hosts(title, host_list, colour, replicaset_options):
     sys.stdout.write(bgcolours.BOLD + title + bgcolours.ENDC + "\n")
     print_count = 0
     attribute_list = []
-    for host in host_list:
+    hosts_done = []
+    for host in host_list: # This change has been badly structured! TODO - Redesign this completely. The replset up/down features have not been implemenetd welll
         if mmo.mmo_is_mongo_up(host["hostname"], host["port"]):
             colour = bgcolours.OKGREEN
         else:
             colour = bgcolours.FAIL
         if title == "MongoDB mongod shard servers":
             for shard in replicaset_options:
-                for member in shard["command_output"]["config"]["members"]:
-                    if member["host"] == host["hostname"] + ":" + str(host["port"]):
-                        attribute_list = []
-                        attribute_list.append(member["_id"])
-                        if member["arbiterOnly"]:
-                            attribute_list.append("arbiterOnly=true")
-                        if member["buildIndexes"]:
-                            attribute_list.append("buildIndexes=true")
-                        else:
-                            attribute_list.append("buildIndexes=false")
-                        if member["hidden"]:
-                            attribute_list.append("hidden=true")
-                        attribute_list.append("priority=" +  str(member["priority"]))
-                        if len(member["tags"]) > 0:
-                            attribute_list.append(str(member["tags"]))
-                        if member["slaveDelay"] > 0:
-                            attribute_list.append("slaveDelay=" + str(member["slaveDelay"]))
-                        attribute_list.append("votes=" + str(member["votes"]))
-                        rs = shard["command_output"]["config"]["_id"]
-                        #if member["host"] == host["hostname"] + ":" + str(host["port"]):
-                        sys.stdout.write(colour + "{0}:{1} - {2} - {3}".format(host["hostname"], host["port"], rs, attribute_list) + bgcolours.ENDC)
-                        sys.stdout.write("\n")  # One shard server per line
+                if "config" in shard["command_output"].keys():
+                    for member in shard["command_output"]["config"]["members"]:
+                        if member["host"] not in hosts_done:
+                            if member["host"] == host["hostname"] + ":" + str(host["port"]):
+                                attribute_list = []
+                                attribute_list.append(member["_id"])
+                                if member["arbiterOnly"]:
+                                    attribute_list.append("arbiterOnly=true")
+                                if member["buildIndexes"]:
+                                    attribute_list.append("buildIndexes=true")
+                                else:
+                                    attribute_list.append("buildIndexes=false")
+                                if member["hidden"]:
+                                    attribute_list.append("hidden=true")
+                                attribute_list.append("priority=" +  str(member["priority"]))
+                                if len(member["tags"]) > 0:
+                                    attribute_list.append(str(member["tags"]))
+                                if member["slaveDelay"] > 0:
+                                    attribute_list.append("slaveDelay=" + str(member["slaveDelay"]))
+                                attribute_list.append("votes=" + str(member["votes"]))
+                                rs = shard["command_output"]["config"]["_id"]
+                                #if member["host"] == host["hostname"] + ":" + str(host["port"]):
+                                sys.stdout.write(colour + "{0}:{1} - {2} - {3}".format(host["hostname"], host["port"], rs, attribute_list) + bgcolours.ENDC)
+                                sys.stdout.write("\n")  # One shard server per line
+                                hosts_done.append(host["hostname"] + ":" + str(host["port"]))
+                else:
+                    if host["hostname"] + ":" + str(shard["port"]) not in hosts_done:
+                        sys.stdout.write(colour + "{0}:{1} - {2} - {3}".format(host["hostname"], shard["port"], shard["shard"], []) + bgcolours.ENDC)
+                        sys.stdout.write("\n")
+                        hosts_done.append(host["hostname"] + ":" + str(shard["port"]))
         if print_count % 3 == 0 and print_count > 0 and title != "MongoDB mongod shard servers":  # max 3 hosts per line
             sys.stdout.write("\n")
         if title != "MongoDB mongod shard servers":
             sys.stdout.write(colour + "{0}:{1} ".format(host["hostname"], host["port"]) + bgcolours.ENDC)
-
         print_count+=1
     sys.stdout.write("\n")
 

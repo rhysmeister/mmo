@@ -380,6 +380,102 @@ function mmo_kill_random_replset()
 		fi;
 }
 
+# Ensures all nodes in a repl set are votes = 1, priority = 1
+function mmo_reset_votes_priority_for_replset
+{
+	rs="$1";
+	if [ "$rs" == "rs0" ]; then # TODO - Refactor this into a function. Used in a few places
+		a[0]=30001;
+		a[1]=30002;
+		a[2]=30003;
+	elif [ "$rs" == "rs1" ]; then
+		a[0]=30004;
+		a[1]=30005;
+		a[2]=30006;
+	elif [ "$rs" == "rs2" ]; then
+		a[0]=30007;
+		a[1]=30008;
+		a[2]=30009;
+	else
+		echo "Invalid replset name: Must be rs0, rs1 or rs2.";
+		return 1;
+	fi;
+	for PORT in "${a[@]}"
+	do
+		if mmo_is_master ${PORT}; then
+			echo "The MongoDB instance on $PORT is PRIMARY. Attempting rs.conf()";
+			mongo admin --port $PORT -u admin -p admin <<EOF
+cnf=rs.conf();
+cnf.members[0].votes = 1;
+cnf.members[0].priority = 1;
+cnf.members[1].votes = 1;
+cnf.members[1].priority = 1;
+cnf.members[2].votes = 1;
+cnf.members[2].priority = 1;
+rs.reconfig(cnf);		
+EOF
+			if [ "$?" -eq 0 ]; then
+				echo "Successfully reconfigured the replicaset";
+			else
+				echo "Something went wrong.";
+			fi;
+			break;
+		else
+			echo "The MongoDB instance on $PORT is not PRIMARY. Skipping.";
+		fi;
+	done
+}
+
+# Set members[1] to votes = 0, priority = 0
+function mmo_remove_vote_priority_from_member_1
+{
+	rs="$1";
+	if [ "$rs" == "rs0" ]; then # TODO - Refactor this into a function. Used in a few places
+		a[0]=30001;
+		a[1]=30002;
+		a[2]=30003;
+	elif [ "$rs" == "rs1" ]; then
+		a[0]=30004;
+		a[1]=30005;
+		a[2]=30006;
+	elif [ "$rs" == "rs2" ]; then
+		a[0]=30007;
+		a[1]=30008;
+		a[2]=30009;
+	else
+		echo "Invalid replset name: Must be rs0, rs1 or rs2.";
+		return 1;
+	fi;
+	for PORT in "${a[@]}"
+	do
+		if mmo_is_master ${PORT}; then
+			echo "The MongoDB instance on $PORT is PRIMARY. Attempting rs.conf()";
+			mongo admin --port $PORT -u admin -p admin <<EOF
+cnf=rs.conf();
+cnf.members[1].votes = 0;
+cnf.members[1].priority = 0;
+rs.reconfig(cnf);		
+EOF
+			if [ "$?" -eq 0 ]; then
+				echo "Successfully reconfigured the replicaset";
+			else
+				echo "Something went wrong.";
+			fi;
+			break;
+		else
+			echo "The MongoDB instance on $PORT is not PRIMARY. Skipping.";
+		fi;
+	done
+}
+
+# Is this MongoDB instance a master?
+function mmo_is_master()
+{
+	PORT="$1";
+	mongo admin -u admin -p admin --port ${PORT} --eval "db.isMaster()" | grep '"ismaster" : true';
+	return $?;
+}
+
 # Tests if hosts are up in the set and attempts to start them if not
 function mmo_raise_repl_set_from_the_dead()
 {

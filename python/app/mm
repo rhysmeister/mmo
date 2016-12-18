@@ -181,9 +181,9 @@ def print_list_of_hosts(title, host_list, colour, replicaset_options):
                             attribute_list.append("slaveDelay=" + str(member["slaveDelay"]))
                         attribute_list.append("votes=" + str(member["votes"]))
                         rs = shard["command_output"]["config"]["_id"]
-                        if member["host"] == host["hostname"] + ":" + str(host["port"]):
-                            sys.stdout.write(colour + "{0}:{1} - {2} - {3}".format(host["hostname"], host["port"], rs, attribute_list) + bgcolours.ENDC)
-                            sys.stdout.write("\n")  # One shard server per line
+                        #if member["host"] == host["hostname"] + ":" + str(host["port"]):
+                        sys.stdout.write(colour + "{0}:{1} - {2} - {3}".format(host["hostname"], host["port"], rs, attribute_list) + bgcolours.ENDC)
+                        sys.stdout.write("\n")  # One shard server per line
         if print_count % 3 == 0 and print_count > 0 and title != "MongoDB mongod shard servers":  # max 3 hosts per line
             sys.stdout.write("\n")
         if title != "MongoDB mongod shard servers":

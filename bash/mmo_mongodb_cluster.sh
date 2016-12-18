@@ -380,7 +380,7 @@ function mmo_kill_random_replset()
 		fi;
 }
 
-# Tests if hosts are up in the set and attempts to start them if note
+# Tests if hosts are up in the set and attempts to start them if not
 function mmo_raise_repl_set_from_the_dead()
 {
 	tmp=$(pwd);

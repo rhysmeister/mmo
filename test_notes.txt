@@ -127,3 +127,5 @@ db.settings.remove( { "_id": "balancer" } );
 ./mm --balancing_state state # should return true
 
 22... TODO - Various tests for the --summary and --repl screen for handling down hosts
+
+Ditto --schema_summary

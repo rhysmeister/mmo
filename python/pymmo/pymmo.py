@@ -709,6 +709,26 @@ class MmoMongoCluster:
         command = { "dbstats" : 1 }
         return self.mmo_execute_on_mongos(mmo_connection, command, database)
 
+    def mmo_schema_sumary(self, mmo_connection, schema, limit=200):
+        if "." not in schema:
+            raise Exception("schema must be supplied in the format <database>.<collection>")
+        else:
+            database, collection = schema.split(".")
+            mongos_server = self.mmo_mongos_servers(mmo_connection)[0]
+            hostname, port = mongos_server["hostname"], mongos_server["port"]
+            auth_dic = self.mmo_get_auth_details_from_connection(mmo_connection)
+            c = self.mmo_connect_mongos(hostname,
+                                        port,
+                                        auth_dic["username"],
+                                        auth_dic["password"],
+                                        auth_dic["authentication_database"])
+            query_output = c[database][collection].find({}).limit(limit)
+            my_schema = {}
+            for document in query_output:
+                my_schema.update(document)
+            return my_schema
+
+
     def mmo_replicaset_conf(self, mmo_connection):
 	"""
 	Get the output of rs.conf()

@@ -1219,6 +1219,22 @@ def print_database_stats(mmo, c, database):
                                                                     round(dbstats["raw"][shard]["indexSize"] / MEGABYTE, 2),
                                                                     dbstats["raw"][shard].get("fileSize", "NA")])
 
+def print_schema_summary(mmo, c, collection, limit):
+    schema = mmo.mmo_schema_sumary(c, collection, limit)
+    key_count = len(schema.keys())
+    #pp = pprint.PrettyPrinter(indent=4)
+    print_bold_header("{:<100}", ["Schema summary for " + collection + " based on a sample of " + str(limit) + " documents"])
+    print "There are " + str(key_count) + " keys in this dictionary."
+    print ""
+    print_bold_header("{:<100}", ["Data types"])
+    print ""
+    for item in sorted(schema.keys()):
+        print "{:<20} {:<20}".format(item, type(schema[item]))
+    print ""
+    print_bold_header("{:<100}", ["Sample Document"])
+    print ""
+    pprint(schema)
+
 def print_show_collections(mm, c, database):
     o = mm.mmo_execute_on_mongos(c, "listCollections", database)
     format_string = "{0:<30}"
@@ -1429,6 +1445,9 @@ parser.add_argument("--balancing_state", type=str, choices=["enable", "disable",
 parser.add_argument("--verbose_display", action="store_true", help="Used in various functions display data that is usually supressed")
 parser.add_argument("--stacktrace", action="store_true", default=False, help="By default we don't display the Python stacktace. Use this flag to enable.")
 
+parser.add_argument("--schema_summary", type=str, help="Collection to produce a summary schema for. Must be supplied in the format <database>.<collection>")
+parser.add_argument("--schema_summary_limit", type=int, default=200, help="Set the number of documents that --schema_summary will sample.")
+
 args = parser.parse_args()
 
 ###################################################
@@ -1635,6 +1654,8 @@ if c:
             print_collection_stats(mmo, c, args.collection_stats)
         if args.database_stats is not None:
             print_database_stats(mmo, c, args.database_stats)
+        if args.schema_summary is not None:
+            print_schema_summary(mmo, c, args.schema_summary, args.schema_summary_limit)
         if args.repeat > 0:
             time.sleep(args.interval)
             os.system('cls' if os.name == 'nt' else 'clear')

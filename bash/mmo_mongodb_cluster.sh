@@ -319,6 +319,42 @@ function mmo_load_sample_dataset()
 	fi;
 }
 
+function mmo_create_indexes_on_test_restaurants()
+{
+	PORT=$1;
+	echo "Creating indexes on test.restaurants";
+	mongo --port ${PORT} test --authenticationDatabase admin --username admin --password admin --quiet<<EOF
+	db.restaurants.createIndex({"address.zipcode": 1, "cuisine": 1});
+	db.restaurants.createIndex({"address.zipcode": 1, "name": 1});
+	db.restaurants.createIndex({"borough": 1, "cuisine": 1});
+	db.restaurants.createIndex({"name": 1, "borough": 1, "address.zipcode": 1});
+	db.restaurants.createIndex({"cuisine": 1, "address.coord": "2dsphere", });
+	db.restaurants.createIndex({"name": 1, "address.coord": "2dsphere"});
+	db.restaurants.createIndex({"restaurant_id": 1}, {"unique": true});
+EOF
+	s="$?";
+	if [ "$s" -eq "0" ]; then
+		echo "Finished creating indexes on test.restaurants";
+	else
+		echo "ERROR: Something went wrong when creating indexes on test.restaurants. Exit code was $s";
+	fi;
+}
+
+function mmo_drop_all_indexes_on_test_restaurants()
+{
+	PORT=$1;
+	echo "Dropping all indexes on test.restaurants";
+	mongo --port ${PORT} test --authenticationDatabase admin --username admin --password admin --quiet<<EOF
+	db.restaurants.dropIndexes();
+EOF
+	s="$?";
+	if [ "$s" -eq "0" ]; then
+		echo "Finished dropping indexes on test.restaurants";
+	else
+		echo "ERROR: Something went wrong when dropping indexes on test.restaurants. Exit code was $s";
+	fi;	
+}
+
 function mmo_kill_replset()
 {
 		rs="$1";
@@ -548,6 +584,7 @@ function mmo_setup_cluster()
 	mmo_create_mongos_servers "$(echo '--fork --keyFile keyfile.txt --logRotate reopen --logappend')" && echo "OK restarted mongos servers with auth enabled.";
 	mmo_create_mongod_shard_servers "$(echo '--auth --fork --keyFile keyfile.txt --logRotate reopen --logappend')" && echo "OK restarted mongod servers with auth enabled.";
 	mmo_load_sample_dataset 0 && echo "Loaded collection into test.sample_restaurants";
+	mmo_create_indexes_on_test_restaurants 27017;
 	mmo_check_processes;
 	set +u;
 }

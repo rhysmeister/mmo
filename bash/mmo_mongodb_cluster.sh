@@ -331,6 +331,7 @@ function mmo_create_indexes_on_test_restaurants()
 	db.restaurants.createIndex({"cuisine": 1, "address.coord": "2dsphere", });
 	db.restaurants.createIndex({"name": 1, "address.coord": "2dsphere"});
 	db.restaurants.createIndex({"restaurant_id": 1}, {"unique": true});
+	db.restaurants.createIndex({"name": "text", "cuisine": "text", "borough": "text", "address.street": "text"});
 EOF
 	s="$?";
 	if [ "$s" -eq "0" ]; then

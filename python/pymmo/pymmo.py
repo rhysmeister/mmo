@@ -567,10 +567,14 @@ class MmoMongoCluster:
         # The dbHash command only functions on mongod shard servers or config servers
         return self.mmo_execute_on_cluster_on_each_db(mmo_connection, "dbHash", False)
 
-    def mmo_execute_on_cluster_on_each_db(self, mmo_connection, command, inc_mongos):
+    def mmo_execute_on_cluster_on_each_db(self, mmo_connection, command, inc_mongos, all_collections):
         command_output = []
         for db in mmo_connection.database_names():
-                command_output.append(self.mmo_execute_on_cluster(mmo_connection, command, inc_mongos, db))
+                if all_collections:
+                    for collection in mmo_connection[db].collection_names():
+                        command_output(self.mmo_execute_on_cluster(mmo_connection, command, inc_mongos, db))
+                else:
+                    command_output.append(self.mmo_execute_on_cluster(mmo_connection, command, inc_mongos, db))
         return command_output
 
     def mmo_step_down(self, mmo_connection, replicaset, stepDownSecs=60, catchUpSecs=50):
@@ -733,5 +737,14 @@ class MmoMongoCluster:
 	"""
 	Get the output of rs.conf()
 	"""
-	command = { "replSetGetConfig" : 1 }
+	command = {"replSetGetConfig" : 1}
 	return self.mmo_execute_on_primaries(mmo_connection, command)
+
+    def mmo_plan_cache(self, mmo_connection, database, collection):
+        """
+        Return the contents of the plane cache
+        :param mmo_connection:
+        :return:
+        """
+        command = {"planCacheListQueryShapes": collection}
+        return self.mmo_execute_on_cluster(mmo_connection, command, False, database)

@@ -1241,6 +1241,80 @@ def print_show_collections(mm, c, database):
     for collection in o["cursor"]["firstBatch"]:
         print_colour_data_row(bgcolours.OKGREEN, format_string, [collection["name"]])
 
+def print_plan_cache_summary(mmo, c, database, collection):
+    """
+
+    :param mmo:
+    :param database:
+    :param collection:
+    :return:
+    """
+    plan_cache_summary = mmo.mmo_plan_cache(c, database, collection)
+    summarized_data = []
+    for doc in plan_cache_summary:
+        summarized_data.append({"hostname": doc["hostname"],
+                                "port": doc["port"],
+                                "shard": doc["shard"],
+                                "plan_count": len(doc["command_output"]["shapes"])})
+
+    headers = ["hostname",
+               "port",
+               "shard",
+               "db",
+               "plan_count"]
+    header_lookup = [ {"hostname": "hostname"},
+                      {"port": "port"},
+                      {"shard": "shard"},
+                      {"plan_count": "plan_count"}]
+    format_string = create_format_string(headers, header_lookup, summarized_data)
+    print_bold_header("{:<100}", ["Plan Cache Count for {0}.{1}".format(database, collection)])
+    print_bold_header(format_string, headers)
+    for doc in summarized_data:
+        print_colour_data_row(bgcolours.OKGREEN,
+                              format_string,
+                              [doc["hostname"],
+                              doc["port"],
+                              doc["shard"],
+                              doc["plan_count"]])
+
+def print_plan_cache_shapes(mmo, c, database, collection):
+    plan_cache_summary = mmo.mmo_plan_cache(c, database, collection)
+    summarized_data = []
+    for doc in plan_cache_summary:
+        for shape in doc["command_output"]["shapes"]:
+            summarized_data.append({"hostname": doc["hostname"],
+                                    "port": doc["port"],
+                                    "shard": doc["shard"],
+                                    "query": shape["query"],
+                                    "sort": shape["sort"],
+                                    "projection": shape["projection"]})
+    headers = ["hostname",
+               "port",
+               "shard",
+               "query",
+               "sort",
+               "projection"]
+
+
+    header_lookup = [{"hostname": "hostname"},
+                     {"port": "port"},
+                     {"shard": "shard"},
+                     {"query": "query"},
+                     {"sort": "sort"},
+                     {"projection": "projection"}]
+    format_string = create_format_string(headers, header_lookup, summarized_data)
+    print_bold_header("{:<100}", ["Plan Cache Query Shapes for {0}.{1}".format(database, collection)])
+    print_bold_header(format_string, headers)
+    for doc in summarized_data:
+        print_colour_data_row(bgcolours.OKGREEN,
+                              format_string,
+                              [doc["hostname"],
+                               doc["port"],
+                               doc["shard"],
+                               doc["query"],
+                               doc["sort"],
+                               doc["projection"]])
+
 def length_of_longest_element(list, key):
     """
     FInd the length of the longest element in a list of dictionaries for the given key
@@ -1447,6 +1521,9 @@ parser.add_argument("--stacktrace", action="store_true", default=False, help="By
 
 parser.add_argument("--schema_summary", type=str, help="Collection to produce a summary schema for. Must be supplied in the format <database>.<collection>")
 parser.add_argument("--schema_summary_limit", type=int, default=200, help="Set the number of documents that --schema_summary will sample.")
+
+parser.add_argument("--plan_cache", type=str, help="Displays a count of the cached plans for the specified collection. Must be supplied in the format <database>.<collection>")
+parser.add_argument("--plan_cache_shapes", type=str, help="Displays the shapes from the plan cache for the specified collection. Must be supplied in the format <database>.<collection>")
 
 args = parser.parse_args()
 
@@ -1656,6 +1733,12 @@ if c:
             print_database_stats(mmo, c, args.database_stats)
         if args.schema_summary is not None:
             print_schema_summary(mmo, c, args.schema_summary, args.schema_summary_limit)
+        if args.plan_cache is not None:
+            database, collection = args.plan_cache.split(".")
+            print_plan_cache_summary(mmo, c, database, collection)
+        if args.plan_cache_shapes is not None:
+            database, collection = args.plan_cache_shapes.split(".")
+            print_plan_cache_shapes(mmo, c, database, collection)
         if args.repeat > 0:
             time.sleep(args.interval)
             os.system('cls' if os.name == 'nt' else 'clear')

@@ -1,7 +1,6 @@
 from pymongo import MongoClient
 from pymongo import ReturnDocument
-import re, socket
-
+import re, socket, json
 class MmoMongoCluster:
 
     hostname = None
@@ -747,4 +746,19 @@ class MmoMongoCluster:
         :return:
         """
         command = {"planCacheListQueryShapes": collection}
+        return self.mmo_execute_on_cluster(mmo_connection, command, False, database)
+
+
+    def mmo_plan_cache_query(self, mmo_connection, database, collection, query, sort, projection):
+        """
+        Return the contents of the plane cache
+        :param mmo_connection:
+        :return:
+        """
+        command = { "planCacheListPlans": collection,
+                    "query": json.loads(query.replace("'", "\"")),
+                    "projection": json.loads(projection.replace("'", "\"")),
+                    }
+        # "sort": json.loads(sort.replace("'", "\""))
+        print "sort ommitted from now as it re-orders the dict. OrderDict is not accepted by MongoDB"
         return self.mmo_execute_on_cluster(mmo_connection, command, False, database)

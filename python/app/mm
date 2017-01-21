@@ -1315,6 +1315,68 @@ def print_plan_cache_shapes(mmo, c, database, collection):
                                doc["sort"],
                                doc["projection"]])
 
+def print_plan_cache_query_stats(mmo, c, database, collection, query, sort={}, projection={}):
+    query_data = mmo.mmo_plan_cache_query(c, database, collection, query, sort, projection)
+    plans = []
+    for doc in query_data:
+        for plan in doc["command_output"]["plans"]:
+            plans.append({ "hostname": doc["hostname"],
+                           "port": doc["port"],
+                           "shard": doc["shard"],
+                           "db": database,
+                           "collection": collection,
+                           "score": plan["reason"]["score"],
+                           "nReturned": plan["reason"]["stats"]["nReturned"],
+                           "docsExamined": plan["reason"]["stats"]["docsExamined"],
+                           "stage": plan["reason"]["stats"]["inputStage"]["stage"],
+                           "indexName": plan["reason"]["stats"]["inputStage"]["indexName"],
+                           "keysExamined": plan["reason"]["stats"]["inputStage"]["keysExamined"]})
+    headers = ["hostname",
+               "port",
+               "shard",
+               "db",
+               "collection",
+               "score",
+               "nReturned",
+               "docsExamined",
+               "stage",
+               "indexName",
+               "keysExamined"]
+
+    header_lookup = [
+                        {"hostname": "hostname"},
+                         {"port": "port"},
+                          {"shard": "shard"},
+                           {"db": "db"},
+                            {"collection": "collection"},
+                             {"score": "score"},
+                              {"nReturned": "nReturned"},
+                               {"docsExamined": "docsExamined"},
+                                {"stage": "stage"},
+                                 {"indexName": "indexName"},
+                                  {"keysExamined": "keysExamined"}
+                ]
+
+    format_string = create_format_string(headers, header_lookup, plans)
+
+    print_bold_header("{:<100}", ["There are {0} cached plans for this query shape".format(len(plans))])
+    print_bold_header("{:<100}", [query])
+    print_bold_header(format_string, headers)
+    for doc in plans:
+        print_colour_data_row(bgcolours.OKGREEN,
+                              format_string,
+                              [doc["hostname"],
+                               doc["port"],
+                               doc["shard"],
+                               doc["db"],
+                               doc["collection"],
+                               doc["score"],
+                               doc["nReturned"],
+                               doc["docsExamined"],
+                               doc["stage"],
+                               doc["indexName"],
+                               doc["keysExamined"]])
+
 def length_of_longest_element(list, key):
     """
     FInd the length of the longest element in a list of dictionaries for the given key
@@ -1524,6 +1586,9 @@ parser.add_argument("--schema_summary_limit", type=int, default=200, help="Set t
 
 parser.add_argument("--plan_cache", type=str, help="Displays a count of the cached plans for the specified collection. Must be supplied in the format <database>.<collection>")
 parser.add_argument("--plan_cache_shapes", type=str, help="Displays the shapes from the plan cache for the specified collection. Must be supplied in the format <database>.<collection>")
+parser.add_argument("--plan_cache_query", type=str, help="Use with the --collection flag")
+parser.add_argument("--plan_cache_sort", type=str, default="{}")
+parser.add_argument("--plan_cache_projection", type=str, default="{}")
 
 args = parser.parse_args()
 
@@ -1739,6 +1804,15 @@ if c:
         if args.plan_cache_shapes is not None:
             database, collection = args.plan_cache_shapes.split(".")
             print_plan_cache_shapes(mmo, c, database, collection)
+        if args.plan_cache_query is not None:
+            database, collection = args.collection.split(".")
+            print_plan_cache_query_stats(mmo,
+                                         c,
+                                         database,
+                                         collection,
+                                         args.plan_cache_query,
+                                         args.plan_cache_sort,
+                                         args.plan_cache_projection)
         if args.repeat > 0:
             time.sleep(args.interval)
             os.system('cls' if os.name == 'nt' else 'clear')

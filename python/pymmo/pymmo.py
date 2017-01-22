@@ -762,3 +762,22 @@ class MmoMongoCluster:
         # "sort": json.loads(sort.replace("'", "\""))
         print "sort ommitted from now as it re-orders the dict. OrderDict is not accepted by MongoDB"
         return self.mmo_execute_on_cluster(mmo_connection, command, False, database)
+
+    def mmo_plan_cache_clear(self, mmo_connection, database, collection, query, sort, projection):
+        """
+        Clear a query from the plan cache
+        :param mmo_connection:
+        :param database:
+        :param collection:
+        :param query:
+        :param sort:
+        :param projection:
+        :return:
+        """
+        command = {
+            "planCacheClear": collection,
+            "query": json.loads(query.replace("'", "\"")) if type(query) != dict else query,
+            "projection": json.loads(projection.replace("'", "\"")) if type(projection) != dict else projection,
+        }
+        print command
+        self.mmo_execute_on_cluster(mmo_connection, command, False, database)

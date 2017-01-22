@@ -1600,6 +1600,7 @@ parser.add_argument("--plan_cache_query", type=str, help="Use with the --collect
 parser.add_argument("--plan_cache_sort", type=str, default="{}")
 parser.add_argument("--plan_cache_projection", type=str, default="{}")
 parser.add_argument("--plan_cache_query_id", type=int, help="Display the stats for the query with the supplied id as provided in /tmp/mmo_temp_query.txt or --plan_cache_shapes")
+parser.add_argument("--plan_cache_clear_query_id", type=int, help="Clear the specified query from the Plan Cache.")
 
 args = parser.parse_args()
 
@@ -1839,6 +1840,20 @@ if c:
                                                  q["projection"])
             if not found:
                 print "The query with id {0} was not found".format(args.plan_cache_query_id)
+        if args.plan_cache_clear_query_id:
+            queries = open_query_plan_cache_file()
+            found = False
+            for q in queries:
+                if q["#"] == args.plan_cache_clear_query_id:
+                    found = True
+                    mmo.mmo_plan_cache_clear(c,
+                                             q["db"],
+                                             q["collection"],
+                                             q["query"],
+                                             q["sort"],
+                                             q["projection"])
+            if not found:
+                print "The query with id {0} was not found".format(args.plan_cache_clear_query_id)
         if args.repeat > 0:
             time.sleep(args.interval)
             os.system('cls' if os.name == 'nt' else 'clear')

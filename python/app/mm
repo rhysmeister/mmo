@@ -24,6 +24,7 @@ from pprint import pprint
 from bgcolours import bgcolours
 
 execfile(os.path.dirname(os.path.abspath(inspect.stack()[0][1]))  + "/../pymmo/pymmo.py")
+execfile(os.path.dirname(os.path.abspath(inspect.stack()[0][1]))  + "/CSVWriter.py")
 
 # Let's insist on this
 assert sys.version_info[0] == (2)
@@ -1280,23 +1281,30 @@ def print_plan_cache_summary(mmo, c, database, collection):
 def print_plan_cache_shapes(mmo, c, database, collection):
     plan_cache_summary = mmo.mmo_plan_cache(c, database, collection)
     summarized_data = []
+    shape_id = 1
     for doc in plan_cache_summary:
         for shape in doc["command_output"]["shapes"]:
-            summarized_data.append({"hostname": doc["hostname"],
+            summarized_data.append({"#": shape_id,
+                                    "hostname": doc["hostname"],
                                     "port": doc["port"],
                                     "shard": doc["shard"],
                                     "query": shape["query"],
                                     "sort": shape["sort"],
-                                    "projection": shape["projection"]})
-    headers = ["hostname",
+                                    "projection": shape["projection"],
+                                    "db": database,
+                                    "collection": collection})
+            shape_id += 1
+
+    headers = ["#",
+               "hostname",
                "port",
                "shard",
                "query",
                "sort",
                "projection"]
 
-
-    header_lookup = [{"hostname": "hostname"},
+    header_lookup = [{"#": "#"},
+                     {"hostname": "hostname"},
                      {"port": "port"},
                      {"shard": "shard"},
                      {"query": "query"},
@@ -1308,12 +1316,14 @@ def print_plan_cache_shapes(mmo, c, database, collection):
     for doc in summarized_data:
         print_colour_data_row(bgcolours.OKGREEN,
                               format_string,
-                              [doc["hostname"],
+                              [doc["#"],
+                               doc["hostname"],
                                doc["port"],
                                doc["shard"],
                                doc["query"],
                                doc["sort"],
                                doc["projection"]])
+    write_query_plan_file(summarized_data)
 
 def print_plan_cache_query_stats(mmo, c, database, collection, query, sort={}, projection={}):
     query_data = mmo.mmo_plan_cache_query(c, database, collection, query, sort, projection)
@@ -1589,6 +1599,7 @@ parser.add_argument("--plan_cache_shapes", type=str, help="Displays the shapes f
 parser.add_argument("--plan_cache_query", type=str, help="Use with the --collection flag")
 parser.add_argument("--plan_cache_sort", type=str, default="{}")
 parser.add_argument("--plan_cache_projection", type=str, default="{}")
+parser.add_argument("--plan_cache_query_id", type=int, help="Display the stats for the query with the supplied id as provided in /tmp/mmo_temp_query.txt or --plan_cache_shapes")
 
 args = parser.parse_args()
 
@@ -1813,6 +1824,21 @@ if c:
                                          args.plan_cache_query,
                                          args.plan_cache_sort,
                                          args.plan_cache_projection)
+        if args.plan_cache_query_id is not None:
+            queries = open_query_plan_cache_file()
+            found = False
+            for q in queries:
+                if q["#"] == args.plan_cache_query_id:
+                    found = True
+                    print_plan_cache_query_stats(mmo,
+                                                 c,
+                                                 q["db"],
+                                                 q["collection"],
+                                                 q["query"],
+                                                 q["sort"],
+                                                 q["projection"])
+            if not found:
+                print "The query with id {0} was not found".format(args.plan_cache_query_id)
         if args.repeat > 0:
             time.sleep(args.interval)
             os.system('cls' if os.name == 'nt' else 'clear')

@@ -756,8 +756,8 @@ class MmoMongoCluster:
         :return:
         """
         command = { "planCacheListPlans": collection,
-                    "query": json.loads(query.replace("'", "\"")),
-                    "projection": json.loads(projection.replace("'", "\"")),
+                    "query": json.loads(query.replace("'", "\"")) if type(query) != dict else query,
+                    "projection": json.loads(projection.replace("'", "\"")) if type(projection) != dict else projection,
                     }
         # "sort": json.loads(sort.replace("'", "\""))
         print "sort ommitted from now as it re-orders the dict. OrderDict is not accepted by MongoDB"

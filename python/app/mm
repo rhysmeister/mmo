@@ -1261,7 +1261,6 @@ def print_plan_cache_summary(mmo, c, database, collection):
     headers = ["hostname",
                "port",
                "shard",
-               "db",
                "plan_count"]
     header_lookup = [ {"hostname": "hostname"},
                       {"port": "port"},

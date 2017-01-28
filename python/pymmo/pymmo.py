@@ -1,6 +1,8 @@
 from pymongo import MongoClient
 from pymongo import ReturnDocument
+from bson import SON
 import re, socket, json
+
 class MmoMongoCluster:
 
     hostname = None
@@ -755,12 +757,12 @@ class MmoMongoCluster:
         :param mmo_connection:
         :return:
         """
-        command = { "planCacheListPlans": collection,
-                    "query": json.loads(query.replace("'", "\"")) if type(query) != dict else query,
-                    "projection": json.loads(projection.replace("'", "\"")) if type(projection) != dict else projection,
-                    }
-        # "sort": json.loads(sort.replace("'", "\""))
-        print "sort ommitted from now as it re-orders the dict. OrderDict is not accepted by MongoDB"
+        command = SON([
+                            ("planCacheListPlans", collection),
+                            ("query", json.loads(query.replace("'", "\"")) if type(query) != dict else query),
+                            ("projection", json.loads(projection.replace("'", "\"")) if type(projection) != dict else projection),
+                            ("sort", json.loads(sort.replace("'", "\"")) if type(sort) != dict else sort)
+                    ])
         return self.mmo_execute_on_cluster(mmo_connection, command, False, database)
 
     def mmo_plan_cache_clear(self, mmo_connection, database, collection, query, sort, projection):
@@ -774,10 +776,10 @@ class MmoMongoCluster:
         :param projection:
         :return:
         """
-        command = {
-            "planCacheClear": collection,
-            "query": json.loads(query.replace("'", "\"")) if type(query) != dict else query,
-            "projection": json.loads(projection.replace("'", "\"")) if type(projection) != dict else projection,
-        }
-        print command
+        command = SON([
+                                ("planCacheClear", collection),
+                                ("query", json.loads(query.replace("'", "\"")) if type(query) != dict else query),
+                                ("projection", json.loads(projection.replace("'", "\"")) if type(projection) != dict else projection),
+                                ("sort", json.loads(sort.replace("'", "\"")) if type(sort) != dict else sort)
+        ])
         self.mmo_execute_on_cluster(mmo_connection, command, False, database)

@@ -1517,6 +1517,36 @@ def print_host_info_help():
                                                                 "document  depends on the operating system.")
     print "{0:<30} {1:<100}".format("help", "Show this help message")
 
+def print_chunks(mmo, c):
+    """
+    Print output from the result of the following query
+    db.chunks.aggregate({"$group": { "_id": { "ns": "$ns", "shard": "$shard" }, "count": { "$sum": 1} }});
+    :param mmo: A mmo Object
+    :param c: A MongoDB Connection
+    :return:
+    """
+    chunk_data = mmo.mmo_chunks(c)
+    results = []
+    # Sort out the data into a format later function will understand
+    if len(chunk_data) > 0:
+        for doc in chunk_data:
+            results.append({"namespace": doc["_id"]["ns"], "shard": doc["_id"]["shard"], "count": doc["count"]})
+
+        headers = ["namespace", "shard", "count"]
+        header_lookup = [{"namespace": "namespace"},
+                         {"shard": "shard"},
+                         {"count": "count"}]
+        format_string = create_format_string(headers, header_lookup, results)
+        print_bold_header(format_string, headers)
+        for doc in results:
+            print_colour_data_row(bgcolours.OKGREEN,
+                                  format_string,
+                                  [doc["namespace"],
+                                   doc["shard"],
+                                   doc["count"]])
+    else:
+        print_bold_header("{0:<100}", ["No information on chunks found"])
+
 """
 MAIN SECTION STARTS HERE
 """
@@ -1600,6 +1630,8 @@ parser.add_argument("--plan_cache_sort", type=str, default="{}")
 parser.add_argument("--plan_cache_projection", type=str, default="{}")
 parser.add_argument("--plan_cache_query_id", type=int, help="Display the stats for the query with the supplied id as provided in /tmp/mmo_temp_query.txt or --plan_cache_shapes")
 parser.add_argument("--plan_cache_clear_query_id", type=int, help="Clear the specified query from the Plan Cache.")
+
+parser.add_argument("--chunks", action="store_true", default=False, help="Display a count of the chunks broken by namespace and shard.")
 
 args = parser.parse_args()
 
@@ -1853,6 +1885,8 @@ if c:
                                              q["projection"])
             if not found:
                 print "The query with id {0} was not found".format(args.plan_cache_clear_query_id)
+        if args.chunks:
+            print_chunks(mmo, c)
         if args.repeat > 0:
             time.sleep(args.interval)
             os.system('cls' if os.name == 'nt' else 'clear')

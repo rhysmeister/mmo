@@ -782,4 +782,11 @@ class MmoMongoCluster:
                                 ("projection", json.loads(projection.replace("'", "\"")) if type(projection) != dict else projection),
                                 ("sort", json.loads(sort.replace("'", "\"")) if type(sort) != dict else sort)
         ])
-        self.mmo_execute_on_cluster(mmo_connection, command, False, database)
+        return self.mmo_execute_on_cluster(mmo_connection, command, False, database)
+
+    def mmo_chunks(self, mmo_connection):
+        command = {
+                        "aggregate": "chunks",
+                        "pipeline": [ { "$group": { "_id" : { "ns" : "test.sample_messages", "shard" : "rs0" }, "count" : { "$sum": 1 } } } ],
+                    }
+        return self.mmo_execute_on_mongos(mmo_connection, command, "config")["result"]

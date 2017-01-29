@@ -1226,14 +1226,36 @@ def print_schema_summary(mmo, c, collection, limit):
     #pp = pprint.PrettyPrinter(indent=4)
     print_bold_header("{:<100}", ["Schema summary for " + collection + " based on a sample of " + str(limit) + " documents"])
     print "There are " + str(key_count) + " keys in this dictionary."
-    print ""
+    #print ""
     print_bold_header("{:<100}", ["Data types"])
-    print ""
+    #print ""
     for item in sorted(schema.keys()):
         print "{:<20} {:<20}".format(item, type(schema[item]))
-    print ""
+        if type(schema[item]) == dict:
+            for sub_item in sorted(schema[item].keys()):
+                print "  - {:<20} {:<20}".format(sub_item, type(sub_item))
+                if type(sub_item) == dict:
+                    for sub_sub_item in sub_item.keys():
+                        print "    - {:<20} {:<20}".format(sub_sub_item, type(sub_sub_item))
+                if type(sub_item) == list:
+                    data_types = set()
+                    for list_item in schema[item]:
+                        data_types.add(type(list_item))
+                    data_types = " ".join(['%-2s' % (i,) for i in data_types])
+                    print "  - List data types: " + data_types
+        if type(schema[item]) == list:
+            data_types = set()
+            for list_item in schema[item]:
+                data_types.add(type(list_item))
+            data_types = " ".join(['%-2s' % (i,) for i in data_types])
+            print "  - List data types: " + data_types
+            if type(schema[item][0]) == dict:
+                for i in schema[item][0].keys():
+                    print "    - {:<20} {:<20}".format(i, type(i))
+
+    #print ""
     print_bold_header("{:<100}", ["Sample Document"])
-    print ""
+    #print ""
     pprint(schema)
 
 def print_show_collections(mm, c, database):

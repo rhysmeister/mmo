@@ -307,10 +307,37 @@ class TestPyMmoMethods(unittest.TestCase):
         self.assertTrue("test" in str(o))
 
     def test_mmo_replicaset_conf(self):
-	m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
+        m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
         c = m.mmo_connect()
-	o = m.mmo_replicaset_conf(c)
-	self.assertTrue("members" in str(o))
+        o = m.mmo_replicaset_conf(c)
+        self.assertTrue("members" in str(o))
+
+    def test_mmo_plan_cache(self):
+        m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
+        c = m.mmo_connect()
+        o = m.mmo_plan_cache(c, "test", "restuarants")
+        self.assertTrue(type(o) == list)
+
+    def test_mmo_plan_cache_query(self):
+        m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
+        c = m.mmo_connect()
+        o = m.mmo_plan_cache_query(c, "test", "restuarants", {}, {}, {})
+        self.assertTrue(type(o) == list)
+
+    def test_mmo_plan_cache_clear(self):
+        m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
+        c = m.mmo_connect()
+        o = m.mmo_plan_cache_clear(c, "test", "restuarants", {}, {}, {})
+        self.assertTrue(type(o) == list)
+
+    def test_mmo_chunks(self):
+        m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
+        c = m.mmo_connect()
+        o = m.mmo_chunks(c)
+        self.assertTrue(len(o) > 0)
+        self.assertTrue(type(o[0]) == dict)
+        self.assertTrue("shard" in str(o))
+        self.assertTrue("count" in str(o))
 
 def _set_MongoDB_Cluster_Up():
     """

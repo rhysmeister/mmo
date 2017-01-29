@@ -128,7 +128,15 @@ db.settings.remove( { "_id": "balancer" } );
 
 22... TODO - Various tests for the --summary and --repl screen for handling down hosts
 
-Ditto --schema_summary
-Ditto --plan_cache methods
 
+23. Schema summary
+
+ ./mm --schema_summary test.restaurants
+
+
+24. --plan_cache methods
+
+25. --chunks
+
+./mm --chunks
 

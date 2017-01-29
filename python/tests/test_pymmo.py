@@ -14,7 +14,7 @@ class TestPyMmoMethods(unittest.TestCase):
     def test_mmo_connect(self):
         m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
         c = m.mmo_connect()
-        self.assertEqual("MongoClient('localhost', 27017)", str(c))
+        self.assertTrue("MongoClient(host=['localhost:27017']" in str(c))
 
     def test_mmo_mongos_servers(self):
         m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
@@ -205,7 +205,7 @@ class TestPyMmoMethods(unittest.TestCase):
     def test_mmo_execute_on_cluster_on_each_db(self):
         m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
         c = m.mmo_connect()
-        o = m.mmo_execute_on_cluster_on_each_db(c, "dbHash", False)
+        o = m.mmo_execute_on_cluster_on_each_db(c, "dbHash", False, False)
         self.assertEquals(3, len(o))
         self.assertTrue("collections" in str(o))
         self.assertTrue("md5" in str(o))

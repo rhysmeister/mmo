@@ -127,7 +127,7 @@ class MmoMongoCluster:
 
     def mmo_shard_servers(self, mmo_connection):
         """
-        Returns a list of dictionaries containing the hostname and port of the MongoDB cluster's mongos servers.
+        Returns a list of dictionaries containing the hostname and port of the MongoDB cluster's mongod servers.
         :param mmo_connection:
         :return:
         """
@@ -387,6 +387,23 @@ class MmoMongoCluster:
             return replica_states[mmo_connection["admin"].command("replSetGetStatus")["myState"]]
         else:
             raise Exception("Not a mongod process")
+
+    def mmo_replset_has_primary(self, mmo_connection, rs):
+        """
+        Returns true if a replicaset has a PRIMARY
+        :param mmo_connection:
+        :param rs:
+        :return:
+        """
+        rs_status = self.mmo_execute_on_secondaries(mmo_connection, { "replSetGetStatus": 1 }, replicaset=rs, first_available_only=True)
+        has_primary = False
+
+
+        for member in rs_status[0]["command_output"]["members"]:
+            if member["stateStr"] == "PRIMARY":
+                has_primary = True
+                break
+        return has_primary
 
     def mmo_shards(self):
         """
@@ -671,7 +688,6 @@ class MmoMongoCluster:
         for doc in self.mmo_shard_servers(mmo_connection):
             hostname, port, shard = doc["hostname"], doc["port"], doc["shard"]
             auth_dic = self.mmo_get_auth_details_from_connection(mmo_connection)
-            print auth_dic
             c = self.mmo_connect_mongod(hostname,
                                         port,
                                         auth_dic["username"],

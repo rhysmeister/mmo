@@ -1767,7 +1767,7 @@ if c:
                 if str(exception) == "connection closed":
                     timeout=60
                     sleep_time=0
-                    while len(mmo.mmo_replication_status_summary(c)) < shard_server_count and sleep_time < timeout:
+                    while (mmo.mmo_replset_has_primary(c, args.step_down) == False and sleep_time < timeout):
                         time.sleep(10) # Wait to allow the election to happen
                     else:
                         if len(mmo.mmo_replication_status_summary(c)) == shard_server_count:
@@ -1778,7 +1778,7 @@ if c:
                                 if doc['replicaset'] == args.step_down and doc['state'] == 'PRIMARY':
                                     new_primary = doc
                             print "PRIMARY changed from {0:<0} to {1:<1}".format(old_primary['hostname'],
-                                                                               new_primary['hostname'])
+                                                                                 new_primary['hostname'])
                         else:
                             # Timeout has happened or something is wrong
                             print "There has been a problem or a timeout. Perhaps try the command again."

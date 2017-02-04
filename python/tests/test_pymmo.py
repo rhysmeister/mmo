@@ -339,6 +339,13 @@ class TestPyMmoMethods(unittest.TestCase):
         self.assertTrue("shard" in str(o))
         self.assertTrue("count" in str(o))
 
+    def test_mmo_replset_has_primary(self):
+        m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
+        c = m.mmo_connect()
+        self.assertTrue(m.mmo_replset_has_primary(c, "rs0"))
+        self.assertTrue(m.mmo_replset_has_primary(c, "rs1"))
+        self.assertTrue(m.mmo_replset_has_primary(c, "rs2"))
+
 def _set_MongoDB_Cluster_Up():
     """
     Run stuff we need to setup the MongoDB Cluster correctly so tests pass. We want a consistent state of the cluster here.
@@ -374,7 +381,8 @@ def _set_MongoDB_Cluster_Up():
         else:
             raise exception
     time.sleep(60) # Sleep for a bit to allow elections to complete
-    print("Executed setup in %s seconds" % (time.time() - start_time))
+    s = round(time.time() - start_time, 2)
+    print("Executed setup in %s seconds" % s)
 
 _set_MongoDB_Cluster_Up()
 

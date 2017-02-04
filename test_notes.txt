@@ -33,6 +33,7 @@
 5. db_hashes
 
 ./mm --db_hashes
+./mm --db_hashes --verbose_display
 
 6. databases
 
@@ -54,13 +55,13 @@
 
 10. profiling test (with --slowms)
 
-./mm --profiling -1
-./mm --profiling 0
-./mm --profiling 1
-./mm --profiling 2
-./mm --profiling 2 --slowms 10
-./mm --profiling 2 --slowms 100
-./mm --profiling 0
+./mm --profiling -1 --database test
+./mm --profiling 0 --database test
+./mm --profiling 1 --database test
+./mm --profiling 2 --database test
+./mm --profiling 2 --slowms 10 --database test
+./mm --profiling 2 --slowms 100 --database test
+./mm --profiling 0 --database tests
 
 11. --sharding test
 
@@ -126,15 +127,40 @@ db.settings.remove( { "_id": "balancer" } );
 ./mm --balancing_state enable
 ./mm --balancing_state state # should return true
 
-22... TODO - Various tests for the --summary and --repl screen for handling down hosts
+22. Tests host down handling...
 
+cd /Users/rhys1/Documents/github_projects/mmo/bash
+. mmo_mongodb_cluster.sh
+cd /Users/rhys1/Documents/github_projects/mmo/python/app/
+./mm --repl
+./mm --summary
+mmo_kill_random_replset rs0 1
+./mm --repl
+./mm --summary
+mmo_raise_repl_set_from_the_dead rs0
+./mm --repl
+./mm --summary
+mmo_kill_replset rs2
+./mm --repl
+./mm --summary
+mmo_raise_repl_set_from_the_dead rs2
+./mm --repl
+./mm --summary
 
 23. Schema summary
 
- ./mm --schema_summary test.restaurants
-
+./mm --schema_summary test.restaurants
+./mm --schema_summary test.restaurants --schema_summary_limit 10
+./mm --schema_summary test.restaurants --schema_summary_limit 1000
 
 24. --plan_cache methods
+
+./mm --plan_cache test.restaurants
+mongo admin -u admin -p
+mongo> use test
+mongo> db.restaurants.find({ "name": {"$gt": "Rhys"}, "restaurant_id": "12345", "address.zipcode": {"$gt":"3172"}});
+mongo> exit
+TODO
 
 25. --chunks
 

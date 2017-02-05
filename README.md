@@ -6,20 +6,32 @@ NAME
 SYNOPSYS
 
         mm [-h] [--summary] [--repl]
-                  [--server_status {instance,asserts,flushing,journaling,extra_info,connections,global_lock,network,opcounters,opcounters_repl,security,storage_engine,memory,show_all}]
-                  [--host_info {system,os,extra,help}] [--db_hashes] [--databases]
-                  [--inc_mongos] [--step_down STEP_DOWN]
-                  [--step_down_nominate_host STEP_DOWN_NOMINATE_HOST]
-                  [--step_down_nominate_port STEP_DOWN_NOMINATE_PORT]
-                  [--replset_freeze REPLSET_FREEZE] [--profiling {-1,0,1,2}]
-                  [--slowms SLOWMS] [--sharding] [-H MONGO_HOSTNAME] [-P MONGO_PORT]
-                  [-u MONGO_USERNAME] [-p MONGO_PASSWORD] [-D MONGO_AUTH_DB]
-                  [-e EXECUTION_DATABASE] [-r REPEAT] [-i INTERVAL] [-c CONNECTION]
-                  [-d] [--validate_indexes VALIDATE_INDEXES]
-                  [--collection_stats COLLECTION_STATS]
-                  [--database_stats DATABASE_STATS]
-                  [--command COMMAND] [--balancing {enable,disable}]
-                  [--collection COLLECTION] [--verbose_display] [--stacktrace]
+          [--server_status {instance,asserts,flushing,journaling,extra_info,connections,global_lock,network,opcounters,opcounters_repl,security,storage_engine,memory}]
+          [--host_info {system,os,extra,help}] [--db_hashes] [--databases]
+          [--inc_mongos] [--step_down STEP_DOWN]
+          [--step_down_nominate_host STEP_DOWN_NOMINATE_HOST]
+          [--step_down_nominate_port STEP_DOWN_NOMINATE_PORT]
+          [--replset_freeze REPLSET_FREEZE] [--profiling {-1,0,1,2}]
+          [--slowms SLOWMS] [--database DATABASE] [--sharding]
+          [--mongo_hostname MONGO_HOSTNAME] [--mongo_port MONGO_PORT]
+          [--mongo_username MONGO_USERNAME] [--mongo_password MONGO_PASSWORD]
+          [--mongo_auth_db MONGO_AUTH_DB]
+          [--execution_database EXECUTION_DATABASE] [--repeat REPEAT]
+          [--interval INTERVAL] [--connection CONNECTION] [--debug]
+          [--validate_indexes VALIDATE_INDEXES]
+          [--collection_stats COLLECTION_STATS]
+          [--database_stats DATABASE_STATS]
+          [--show_collections SHOW_COLLECTIONS] [--command COMMAND]
+          [--balancing {enable,disable}] [--collection COLLECTION]
+          [--balancing_state {enable,disable,state}] [--verbose_display]
+          [--stacktrace] [--schema_summary SCHEMA_SUMMARY]
+          [--schema_summary_limit SCHEMA_SUMMARY_LIMIT]
+          [--plan_cache PLAN_CACHE] [--plan_cache_shapes PLAN_CACHE_SHAPES]
+          [--plan_cache_query PLAN_CACHE_QUERY]
+          [--plan_cache_sort PLAN_CACHE_SORT]
+          [--plan_cache_projection PLAN_CACHE_PROJECTION]
+          [--plan_cache_query_id PLAN_CACHE_QUERY_ID]
+          [--plan_cache_clear_query_id PLAN_CACHE_CLEAR_QUERY_ID] [--chunks]
 
 DESCRIPTION
 
@@ -69,10 +81,10 @@ CONNECTION OPTIONS
 
 OPTIONS
 
-        -h, --help            show this help message and exit
+          -h, --help            show this help message and exit
           --summary             Show a summary of the MongoDB Cluster Topology
           --repl                Show a summary of the replicaset state
-          --server_status {instance,asserts,flushing,journaling,extra_info,connections,global_lock,network,opcounters,opcounters_repl,security,storage_engine,memory,show_all}
+          --server_status {instance,asserts,flushing,journaling,extra_info,connections,global_lock,network,opcounters,opcounters_repl,security,storage_engine,memory}
                                 Show a summary of the appropriate section from the
                                 serverStatus document from all mongod processes.
           --host_info {system,os,extra,help}
@@ -93,7 +105,7 @@ OPTIONS
                                 Used in combination with step_down_nominate_host to
                                 select a PRIMARY
           --replset_freeze REPLSET_FREEZE
-                                Number of seconds to use with the replSetFreeze
+                                Number of seconds to- use with the replSetFreeze
                                 command
           --profiling {-1,0,1,2}
                                 Display or modify the profiling level of a MongoDB
@@ -101,27 +113,31 @@ OPTIONS
           --slowms SLOWMS       Optionally for use with --profiling switch. The
                                 threshold in milliseconds at which the database
                                 profiler considers a query slow.
+          --database DATABASE   The database to perform the action on. The wildcard
+                                character '*' can be used to specify all databases.
+                                Enclose in single quotes to prevent the shell
+                                expanding it.
           --sharding            List sharding details
-          -H MONGO_HOSTNAME, --mongo_hostname MONGO_HOSTNAME
+          --mongo_hostname MONGO_HOSTNAME, -H MONGO_HOSTNAME
                                 Hostname for the MongoDB mongos process to connect to
-          -P MONGO_PORT, --mongo_port MONGO_PORT
+          --mongo_port MONGO_PORT, -P MONGO_PORT
                                 Port for the MongoDB mongos process to connect to
-          -u MONGO_USERNAME, --mongo_username MONGO_USERNAME
+          --mongo_username MONGO_USERNAME, -u MONGO_USERNAME
                                 MongoDB username
-          -p MONGO_PASSWORD, --mongo_password MONGO_PASSWORD
+          --mongo_password MONGO_PASSWORD, -p MONGO_PASSWORD
                                 MongoDB password
-          -D MONGO_AUTH_DB, --mongo_auth_db MONGO_AUTH_DB
+          --mongo_auth_db MONGO_AUTH_DB, -D MONGO_AUTH_DB
                                 MongoDB authentication database
-          -e EXECUTION_DATABASE, --execution_database EXECUTION_DATABASE
+          --execution_database EXECUTION_DATABASE, -e EXECUTION_DATABASE
                                 Used by some command to specify the execution
                                 database.
-          -r REPEAT, --repeat REPEAT
+          --repeat REPEAT, -r REPEAT
                                 Repeat the action N number of times
-          -i INTERVAL, --interval INTERVAL
+          --interval INTERVAL, -i INTERVAL
                                 Number of seconds between each repeat
-          -c CONNECTION, --connection CONNECTION
+          --connection CONNECTION, -c CONNECTION
                                 Name of MongoDB connection to use as set in config.cnf
-          -d, --debug           Output debug information
+          --debug, -d           Output debug information
           --validate_indexes VALIDATE_INDEXES
                                 Collection to validate indexes across all shard
                                 servers. This should be provided in the form
@@ -133,19 +149,49 @@ OPTIONS
           --database_stats DATABASE_STATS
                                 Show a summary of the data from the db.stats()
                                 command.
+          --show_collections SHOW_COLLECTIONS
+                                List the collections in the given database.
           --command COMMAND     Run a custom command against your MongoDB Cluster.
                                 Should be provided in document format, i.e. '{
-                                command: <value> }'
+                                "command": <value> }'
           --balancing {enable,disable}
-                                Enable or disable balancing. Must be supplied with
+                                Enable or disabled balancing. Must be supplied with
                                 the --collection argument
           --collection COLLECTION
                                 Collection to perform action on. Must be supplied in
                                 the format <database>.<collection>
-          --verbose_display     Used in various functions to display data that is usually
+          --balancing_state {enable,disable,state}
+                                Globally manage the balancer state
+          --verbose_display     Used in various functions display data that is usually
                                 supressed
           --stacktrace          By default we don't display the Python stacktace. Use
                                 this flag to enable.
+          --schema_summary SCHEMA_SUMMARY
+                                Collection to produce a summary schema for. Must be
+                                supplied in the format <database>.<collection>
+          --schema_summary_limit SCHEMA_SUMMARY_LIMIT
+                                Set the number of documents that --schema_summary will
+                                sample.
+          --plan_cache PLAN_CACHE
+                                Displays a count of the cached plans for the specified
+                                collection. Must be supplied in the format
+                                <database>.<collection>
+          --plan_cache_shapes PLAN_CACHE_SHAPES
+                                Displays the shapes from the plan cache for the
+                                specified collection. Must be supplied in the format
+                                <database>.<collection>
+          --plan_cache_query PLAN_CACHE_QUERY
+                                Use with the --collection flag
+          --plan_cache_sort PLAN_CACHE_SORT
+          --plan_cache_projection PLAN_CACHE_PROJECTION
+          --plan_cache_query_id PLAN_CACHE_QUERY_ID
+                                Display the stats for the query with the supplied id
+                                as provided in /tmp/mmo_temp_query.txt or
+                                --plan_cache_shapes
+          --plan_cache_clear_query_id PLAN_CACHE_CLEAR_QUERY_ID
+                                Clear the specified query from the Plan Cache.
+          --chunks              Display a count of the chunks broken by namespace and
+                                shard.
 
 EXAMPLES
 

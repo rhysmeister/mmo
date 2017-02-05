@@ -1071,6 +1071,10 @@ def sharding_status(mmo, c):
     print_bold_header("{0:<10} {1:<10}", headers)
     for db in sharded_databases:
         print_colour_data_row(bgcolours.OKGREEN, "{0:<10} {1:<10}", [db["_id"], db["primary"]])
+    print_bold_header("{0:<100}",["Sharded colllections"])
+    print_bold_header("{0:<30} {1:<100}", ["collection", "shard key"])
+    for collection in mmo.mmo_sharded_collection_details(c):
+        print_colour_data_row(bgcolours.OKGREEN, "{0:<30} {1:<100}", [collection["_id"], str(collection["key"])])
 
 def profile_and_display(mmo, c, profile, slowms, database):
     """

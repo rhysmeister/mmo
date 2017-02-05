@@ -831,3 +831,6 @@ class MmoMongoCluster:
                         "pipeline": [ { "$group": { "_id" : { "ns": "$ns", "shard": "$shard" }, "count" : { "$sum": 1 } } } ],
                     }
         return self.mmo_execute_on_mongos(mmo_connection, command, "config")["result"]
+
+    def mmo_sharded_collection_details(self, mmo_connection):
+        return self.mmo_execute_query_on_mongos(mmo_connection, {}, "config", "collections", False)

@@ -95,13 +95,14 @@ def display_cluster_state(mmo, c):
                                    replicaset["command_output"]["config"]["settings"]["electionTimeoutMillis"],
                                    replicaset["command_output"]["config"]["settings"].get("catchUpTimeoutMillis", "NA"),
                                    replicaset["command_output"]["config"]["settings"].get("replicaSetId", "NA")])
-        else:
-            if replicaset["shard"] not in replicasets_done:
-                print_colour_data_row(bgcolours.FAIL,
-                                      "{0} {1}",
-                                      [replicaset["shard"],
-                                      "Entire replicaset may be down"])
-                replicasets_done.append(replicaset["shard"])
+            replicasets_done.append(replicaset["shard"])
+    for replicaset in mmo.mmo_shards():
+        if replicaset not in replicasets_done:
+            print_colour_data_row(bgcolours.FAIL,
+                                          "{0} {1}",
+                                          [replicaset,
+                                        "Entire replicaset may be down"])
+
 
 
 def print_replication_summary(replication_summary):

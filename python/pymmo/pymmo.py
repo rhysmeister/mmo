@@ -507,6 +507,9 @@ class MmoMongoCluster:
         primary_info = {}
         o = self.mmo_replication_status(mmo_connection)
         o = o + self.mmo_configsrv_replication_status(mmo_connection)
+        replset_hosts_up_down = {}
+        for shard in self.shards:
+            replset_hosts_up_down[shard] = 0
         for replicaset in o:
             if "Error" not in replicaset["command_output"].keys():
                 for member in replicaset["command_output"]["members"]:
@@ -535,13 +538,35 @@ class MmoMongoCluster:
                         else:
                             doc["slaveDelay"] = "UNK" # We cannot know what the delay is if there is no primary
             else:
+                replset_hosts_up_down[replicaset["shard"]] += 1
+
+            #else: Probably redundant code now. Removed ot fix https://github.com/rhysmeister/mmo/issues/34
                     # We cannot know the state of much of the replicaset at this point
-                    replication_summary.append({"replicaset": replicaset["shard"],
-                                              "hostname": "UNK",
+            #        replication_summary.append({"replicaset": replicaset["shard"],
+            #                                  "hostname": "UNK",
+            #                                    "state": "UNK",
+            #                                    "uptime": "UNK",
+            #                                    "configVersion": "UNK",
+            #                                    "optimeDate": "UNK"})
+
+
+        shard_server_count = {}
+        # how many servers in each shard
+        for shard in self.shards:
+            shard_server_count[shard] = 0
+        for s in self.shard_servers:
+            shard_server_count[s['shard']] += 1
+        # are all the hosts of any shard down?
+        for shard in self.shards:
+            if replset_hosts_up_down[shard] > 0:
+                if replset_hosts_up_down[shard] == shard_server_count[shard]:
+                    replication_summary.append({"replicaset": shard,
+                                                "hostname": "UNK",
                                                 "state": "UNK",
                                                 "uptime": "UNK",
                                                 "configVersion": "UNK",
-                                                "optimeDate": "UNK"})
+                                                "optimeDate": "UNK",
+                                                "slaveDelay": "UNK"})
         deduped_replication_summary = []
         for d in replication_summary:
             if d not in deduped_replication_summary:

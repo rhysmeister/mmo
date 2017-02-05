@@ -828,6 +828,6 @@ class MmoMongoCluster:
     def mmo_chunks(self, mmo_connection):
         command = {
                         "aggregate": "chunks",
-                        "pipeline": [ { "$group": { "_id" : { "ns" : "test.sample_messages", "shard" : "rs0" }, "count" : { "$sum": 1 } } } ],
+                        "pipeline": [ { "$group": { "_id" : { "ns": "$ns", "shard": "$shard" }, "count" : { "$sum": 1 } } } ],
                     }
         return self.mmo_execute_on_mongos(mmo_connection, command, "config")["result"]

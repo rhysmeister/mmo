@@ -1279,77 +1279,87 @@ def print_plan_cache_summary(mmo, c, database, collection):
     """
     plan_cache_summary = mmo.mmo_plan_cache(c, database, collection)
     summarized_data = []
-    for doc in plan_cache_summary:
-        summarized_data.append({"hostname": doc["hostname"],
-                                "port": doc["port"],
-                                "shard": doc["shard"],
-                                "plan_count": len(doc["command_output"]["shapes"])})
+    if len(plan_cache_summary) > 0:
+        for doc in plan_cache_summary:
+            summarized_data.append({"hostname": doc["hostname"],
+                                    "port": doc["port"],
+                                    "shard": doc["shard"],
+                                    "plan_count": len(doc["command_output"]["shapes"])})
 
-    headers = ["hostname",
-               "port",
-               "shard",
-               "plan_count"]
-    header_lookup = [ {"hostname": "hostname"},
-                      {"port": "port"},
-                      {"shard": "shard"},
-                      {"plan_count": "plan_count"}]
-    format_string = create_format_string(headers, header_lookup, summarized_data)
-    print_bold_header("{:<100}", ["Plan Cache Count for {0}.{1}".format(database, collection)])
-    print_bold_header(format_string, headers)
-    for doc in summarized_data:
-        print_colour_data_row(bgcolours.OKGREEN,
-                              format_string,
-                              [doc["hostname"],
-                              doc["port"],
-                              doc["shard"],
-                              doc["plan_count"]])
+        headers = ["hostname",
+                   "port",
+                   "shard",
+                   "plan_count"]
+        header_lookup = [ {"hostname": "hostname"},
+                          {"port": "port"},
+                          {"shard": "shard"},
+                          {"plan_count": "plan_count"}]
+        format_string = create_format_string(headers, header_lookup, summarized_data)
+        print_bold_header("{:<100}", ["Plan Cache Count for {0}.{1}".format(database, collection)])
+        print_bold_header(format_string, headers)
+        for doc in summarized_data:
+            print_colour_data_row(bgcolours.OKGREEN,
+                                  format_string,
+                                  [doc["hostname"],
+                                  doc["port"],
+                                  doc["shard"],
+                                  doc["plan_count"]])
+    else:
+        print "No plans found for this collection."
 
 def print_plan_cache_shapes(mmo, c, database, collection):
     plan_cache_summary = mmo.mmo_plan_cache(c, database, collection)
     summarized_data = []
     shape_id = 1
-    for doc in plan_cache_summary:
-        for shape in doc["command_output"]["shapes"]:
-            summarized_data.append({"#": shape_id,
-                                    "hostname": doc["hostname"],
-                                    "port": doc["port"],
-                                    "shard": doc["shard"],
-                                    "query": shape["query"],
-                                    "sort": shape["sort"],
-                                    "projection": shape["projection"],
-                                    "db": database,
-                                    "collection": collection})
-            shape_id += 1
+    if len(plan_cache_summary) > 0:
+        for doc in plan_cache_summary:
+            for shape in doc["command_output"]["shapes"]:
+                print "I am here"
+                summarized_data.append({"#": shape_id,
+                                        "hostname": doc["hostname"],
+                                        "port": doc["port"],
+                                        "shard": doc["shard"],
+                                        "query": shape["query"],
+                                        "sort": shape["sort"],
+                                        "projection": shape["projection"],
+                                        "db": database,
+                                        "collection": collection})
+                shape_id += 1
 
-    headers = ["#",
-               "hostname",
-               "port",
-               "shard",
-               "query",
-               "sort",
-               "projection"]
+        headers = ["#",
+                   "hostname",
+                   "port",
+                   "shard",
+                   "query",
+                   "sort",
+                   "projection"]
 
-    header_lookup = [{"#": "#"},
-                     {"hostname": "hostname"},
-                     {"port": "port"},
-                     {"shard": "shard"},
-                     {"query": "query"},
-                     {"sort": "sort"},
-                     {"projection": "projection"}]
-    format_string = create_format_string(headers, header_lookup, summarized_data)
-    print_bold_header("{:<100}", ["Plan Cache Query Shapes for {0}.{1}".format(database, collection)])
-    print_bold_header(format_string, headers)
-    for doc in summarized_data:
-        print_colour_data_row(bgcolours.OKGREEN,
-                              format_string,
-                              [doc["#"],
-                               doc["hostname"],
-                               doc["port"],
-                               doc["shard"],
-                               doc["query"],
-                               doc["sort"],
-                               doc["projection"]])
-    write_query_plan_file(summarized_data)
+        header_lookup = [{"#": "#"},
+                         {"hostname": "hostname"},
+                         {"port": "port"},
+                         {"shard": "shard"},
+                         {"query": "query"},
+                         {"sort": "sort"},
+                         {"projection": "projection"}]
+        if shape_id >= 2:
+            format_string = create_format_string(headers, header_lookup, summarized_data)
+            print_bold_header("{:<100}", ["Plan Cache Query Shapes for {0}.{1}".format(database, collection)])
+            print_bold_header(format_string, headers)
+            for doc in summarized_data:
+                print_colour_data_row(bgcolours.OKGREEN,
+                                      format_string,
+                                      [doc["#"],
+                                       doc["hostname"],
+                                       doc["port"],
+                                       doc["shard"],
+                                       doc["query"],
+                                       doc["sort"],
+                                       doc["projection"]])
+            write_query_plan_file(summarized_data)
+        else:
+            print "No plans found for this collection."
+    else:
+        print "No plans found for this collection."
 
 def print_plan_cache_query_stats(mmo, c, database, collection, query, sort={}, projection={}):
     query_data = mmo.mmo_plan_cache_query(c, database, collection, query, sort, projection)

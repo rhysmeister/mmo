@@ -18,7 +18,7 @@ import time
 import ConfigParser
 import hashlib
 import ast
-import collections
+import json
 from pprint import pprint
 
 from bgcolours import bgcolours
@@ -1406,7 +1406,7 @@ def print_plan_cache_query_stats(mmo, c, database, collection, query, sort={}, p
     format_string = create_format_string(headers, header_lookup, plans)
 
     print_bold_header("{:<100}", ["There are {0} cached plans for this query shape".format(len(plans))])
-    print_bold_header("{:<100}", [query])
+    print json.dumps(query, sort_keys=True, indent=4, separators=(',', ': '))
     print_bold_header(format_string, headers)
     for doc in plans:
         print_colour_data_row(bgcolours.OKGREEN,

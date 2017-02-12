@@ -513,6 +513,14 @@ function mmo_is_master()
 	return $?;
 }
 
+# Run some queries to get something in the plan cache
+function mmo_run_query()
+{
+	PORT="$1";
+	mongo test --authenticationDatabase admin -u admin -p admin --port ${PORT} --eval  'db.restaurants.find({"$and":[{"address.zipcode":"123456"},{"borough":"Brooklyn"},{"cusine":"Hamburgers"},{"name":"Wendy''s"}]})';
+	return $?;
+}
+
 # Tests if hosts are up in the set and attempts to start them if not
 function mmo_raise_repl_set_from_the_dead()
 {

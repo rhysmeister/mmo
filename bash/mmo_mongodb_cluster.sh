@@ -255,6 +255,7 @@ function mmo_start_with_existing_data()
     mmo_create_mongos_servers "$(echo '--fork --keyFile keyfile.txt')" && echo "OK restarted mongos servers with auth enabled.";
     mmo_create_mongod_shard_servers "$(echo '--auth --fork --keyFile keyfile.txt')" && echo "OK restarted mongod servers with auth enabled.";
 	mmo_check_processes;
+	mmo_run_query 27107;
 }
 
 # safely shutdown a mongod or mongos process
@@ -595,5 +596,6 @@ function mmo_setup_cluster()
 	mmo_load_sample_dataset 0 && echo "Loaded collection into test.sample_restaurants";
 	mmo_create_indexes_on_test_restaurants 27017;
 	mmo_check_processes;
+	mmo_run_query 27107;
 	set +u;
 }

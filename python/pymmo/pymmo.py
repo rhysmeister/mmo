@@ -122,6 +122,8 @@ class MmoMongoCluster:
         c = mmo_connection["admin"].command("getCmdLineOpts")["parsed"]["sharding"]["configDB"]
         for item in c.split(","):
             hostname, port = item.split(":")
+            if "/" in hostname: # cfg Replset server
+                hostname = hostname.partition("/")[2]
             config_servers.append( { "hostname": hostname, "port": int(port) } )
         return config_servers
 

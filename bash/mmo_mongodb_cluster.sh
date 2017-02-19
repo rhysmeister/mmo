@@ -261,7 +261,7 @@ function mmo_start_with_existing_data()
     mmo_create_mongos_servers "$(echo '--fork --keyFile keyfile.txt')" && echo "OK restarted mongos servers with auth enabled.";
     mmo_create_mongod_shard_servers "$(echo '--auth --fork --keyFile keyfile.txt')" && echo "OK restarted mongod servers with auth enabled.";
 	mmo_check_processes;
-	mmo_run_query 27107;
+	mmo_run_query 27017;
 }
 
 # safely shutdown a mongod or mongos process

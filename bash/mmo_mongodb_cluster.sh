@@ -182,7 +182,6 @@ function mmo_configure_sharding()
 	sh.addShard( "rs1/$(hostname):30004" );
 	sh.enableSharding("test");
 	sh.shardCollection("test.sample_messages", { "t_u": 1 } );
-	sh.shardCollection("test.restaurants", { "zip_code": 1 } );
 EOF
 	if [ ${THIRD_SHARD} -eq 1 ]; then
 		mongo <<EOF
@@ -559,6 +558,14 @@ function mmo_raise_repl_set_from_the_dead()
 	done
 	cd "$tmp";
 }
+
+# Run some queries to get something in the plan cache
+function mmo_shard_restaurants()
+{
+	PORT27017;
+	mongo test --authenticationDatabase admin -u admin -p admin --port ${PORT} --eval  'sh.shardCollection("test.restaurants", { "zip_code": 1 } );';
+	return $?;
+}
 	
 function mmo_setup_cluster()
 {
@@ -602,6 +609,7 @@ function mmo_setup_cluster()
 	mmo_create_mongod_shard_servers "$(echo '--auth --fork --keyFile keyfile.txt --logRotate reopen --logappend')" && echo "OK restarted mongod servers with auth enabled.";
 	mmo_load_sample_dataset 0 && echo "Loaded collection into test.sample_restaurants";
 	mmo_create_indexes_on_test_restaurants 27017;
+	mmo_shard_restaurants && "Sharded test.restaurants_collection";
 	mmo_check_processes;
 	mmo_run_query 27017;
 	set +u;

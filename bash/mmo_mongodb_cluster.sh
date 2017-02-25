@@ -337,7 +337,7 @@ function mmo_create_indexes_on_test_restaurants()
 	db.restaurants.createIndex({"name": 1, "borough": 1, "address.zipcode": 1});
 	db.restaurants.createIndex({"cuisine": 1, "address.coord": "2dsphere", });
 	db.restaurants.createIndex({"name": 1, "address.coord": "2dsphere"});
-	db.restaurants.createIndex({"restaurant_id": 1}, {"unique": true});
+	db.restaurants.createIndex({"restaurant_id": 1});
 	db.restaurants.createIndex({"name": "text", "cuisine": "text", "borough": "text", "address.street": "text"});
 EOF
 	s="$?";
@@ -559,11 +559,11 @@ function mmo_raise_repl_set_from_the_dead()
 	cd "$tmp";
 }
 
-# Run some queries to get something in the plan cache
+# shard test.restaurants collection
 function mmo_shard_restaurants()
 {
 	PORT27017;
-	mongo test --authenticationDatabase admin -u admin -p admin --port ${PORT} --eval  'sh.shardCollection("test.restaurants", { "zip_code": 1 } );';
+	mongo test --authenticationDatabase admin -u admin -p admin --port ${PORT} --eval  'sh.shardCollection("test.restaurants", { "restaurant_id": 1 } );';
 	return $?;
 }
 	

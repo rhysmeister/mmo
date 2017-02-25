@@ -182,6 +182,7 @@ function mmo_configure_sharding()
 	sh.addShard( "rs1/$(hostname):30004" );
 	sh.enableSharding("test");
 	sh.shardCollection("test.sample_messages", { "t_u": 1 } );
+	sh.shardCollection("test.restaurants", { "zip_code": 1 } );
 EOF
 	if [ ${THIRD_SHARD} -eq 1 ]; then
 		mongo <<EOF
@@ -574,7 +575,7 @@ function mmo_setup_cluster()
 	mmo_configure_replicaset_rs0 && echo "OK configured replicaset rs0." && sleep 5;
 	mmo_configure_replicaset_rs1 && echo "OK configured replicaset rs1." && sleep 5;
 	mmo_configure_replicaset_rs2 && echo "OK configured replicaset rs2." && sleep 5;
-	mmo_configure_sharding && echo "OK configured Sharding and sharded test.sample_messages by t_u.";
+	mmo_configure_sharding && echo "OK configured Sharding and sharded collections in test database.";
 	mmo_create_admin_user "$C_PORT" && echo "OK created cluster admin user (but auth is not enabled yet).";
 	mmo_create_admin_user 30001 && echo "OK created admin user on rs0 (but auth is not enabled yet).";
 	mmo_create_admin_user 30004 && echo "OK created admin user on rs1 (but auth is not enabled yet).";

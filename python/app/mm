@@ -20,6 +20,7 @@ import hashlib
 import ast
 import json
 from pprint import pprint
+import pickle
 
 from bgcolours import bgcolours
 
@@ -139,12 +140,31 @@ def print_replication_summary(replication_summary):
                                                                   host["configVersion"],
                                                                   host["uptime"],
                                                                   host["slaveDelay"]])
-        #sys.stdout.write(bgcolours.OKGREEN + format_string.format(host["hostname"],
-        #                                                          host["replicaset"],
-        #                                                          host["state"],
-        #                                                          host["configVersion"],
-        #                                                          host["uptime"],
-        #                                                          host["slaveDelay"]) + bgcolours.ENDC)
+    if os.path.exists("/tmp/replication_summary.p"):
+        os.rename("/tmp/replication_summary.p","/tmp/replication_summary.previous")
+    pickle.dump(replication_summary, open( "/tmp/replication_summary.p", "wb"))
+    if os.path.exists("/tmp/replication_summary.previous"):
+        current_state = pickle.load( open( "/tmp/replication_summary.p", "rb"))
+        previous_state = pickle.load( open( "/tmp/replication_summary.previous", "rb"))
+
+        state_changes_list = []
+        for host in current_state:
+            for h in previous_state:
+                if host["hostname"] == h["hostname"]:
+                    if host["state"] != h["state"]:
+                        state_changes_list.append(host["hostname"] + " " + h["state"] + " -> " + host["state"])
+                    break
+        if len(state_changes_list) > 0:
+            change = "change"
+            has = "has"
+            if len(state_changes_list) > 1:
+                change = "changes"
+                has = "have"
+            print "There {0} been {1} {2} in the cluster state since the last check".format(has, len(state_changes_list), change)
+            for change in state_changes_list:
+                print change
+        else:
+            print "There have been no state changes in the cluster since the last check"
 
 def print_colour_data_row(colour, format_string, string_data):
     """

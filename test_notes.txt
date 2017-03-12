@@ -166,3 +166,12 @@ TODO
 
 ./mm --chunks
 
+26. Test --repl screen state change detection
+
+./mm --step_down rs0
+./mm --step_down rs1
+./mm --step_down rs2
+
+Wait one min
+
+./mm --repl

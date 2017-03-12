@@ -124,9 +124,14 @@ function mmo_create_mongod_shard_servers()
 function mmo_configure_replicaset_rs0()
 {
 	mongo --port 30001 <<EOF
+	var done = false;
 	rs.initiate();
 	while(rs.status()['myState'] != 1) {
-		print("State is not yet PRIMARY. Waiting...");
+		if (!done) {
+			print("State is not yet PRIMARY. Waiting...");
+			done = true
+		}
+		sleep(10000);
 	}	
 	rs.add("$(hostname):30002");
 	rs.add("$(hostname):30003");
@@ -138,9 +143,14 @@ EOF
 function mmo_configure_replicaset_rs1()
 {
 	mongo --port 30004 <<EOF
+	var done = false;
 	rs.initiate();
 	while(rs.status()['myState'] != 1) {
-		print("State is not yet PRIMARY. Waiting...");
+		if (!done) {
+			print("State is not yet PRIMARY. Waiting...");
+			done = true
+		}
+		sleep(10000);
 	}	
 	rs.add("$(hostname):30005");
 	rs.add("$(hostname):30006");
@@ -150,9 +160,14 @@ EOF
 function mmo_configure_replicaset_rs2()
 {
 	mongo --port 30007 <<EOF
+	var done = false;
 	rs.initiate();
 	while(rs.status()['myState'] != 1) {
-		print("State is not yet PRIMARY. Waiting...");
+		if (!done) {
+			print("State is not yet PRIMARY. Waiting...");
+			done = true
+		}
+		sleep(10000);
 	}	
 	rs.add("$(hostname):30008");
 	rs.add("$(hostname):30009");

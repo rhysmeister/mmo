@@ -148,11 +148,14 @@ def print_replication_summary(replication_summary):
         previous_state = pickle.load( open( "/tmp/replication_summary.previous", "rb"))
 
         state_changes_list = []
+        uptime_reset_list = []
         for host in current_state:
             for h in previous_state:
                 if host["hostname"] == h["hostname"]:
                     if host["state"] != h["state"]:
                         state_changes_list.append(host["hostname"] + " " + h["state"] + " -> " + host["state"])
+                    if host["uptime"] < h["uptime"]:
+                        uptime_reset_list.append(host["hostname"] + " " + h["uptime"] + " -> " + host["uptime"])
                     break
         if len(state_changes_list) > 0:
             change = "change"
@@ -165,6 +168,15 @@ def print_replication_summary(replication_summary):
                 print change
         else:
             print "There have been no state changes in the cluster since the last check"
+        if len(uptime_reset_list) > 0:
+            host = "host"
+            _is = "is"
+            if len(uptime_reset_list) > 1:
+                host = "hosts"
+                _is = "are"
+            print "The following {0} have an uptime that {1} less than previously logged:".format(host, _is)
+            for host in uptime_reset_list:
+                print host
 
 def print_colour_data_row(colour, format_string, string_data):
     """

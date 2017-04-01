@@ -24,6 +24,8 @@ import pickle
 
 from bgcolours import bgcolours
 
+from datetime import datetime, timedelta
+
 execfile(os.path.dirname(os.path.abspath(inspect.stack()[0][1]))  + "/../pymmo/pymmo.py")
 execfile(os.path.dirname(os.path.abspath(inspect.stack()[0][1]))  + "/CSVWriter.py")
 
@@ -32,6 +34,25 @@ assert sys.version_info[0] == (2)
 assert sys.version_info[1] >= (6)
 
 MEGABYTE=1048576.0 # Needs to be a float or python floors the result
+
+# Stolen from http://stackoverflow.com/questions/4048651/python-function-to-convert-seconds-into-minutes-hours-and-days
+def nice_time_display(seconds, granularity=2):
+    intervals = (
+        ('w', 604800),  # 60 * 60 * 24 * 7
+        ('d', 86400),  # 60 * 60 * 24
+        ('h', 3600),  # 60 * 60
+        ('m', 60),
+        ('s', 1),
+    )
+    result = []
+    for name, count in intervals:
+        value = seconds // count
+        if value:
+            seconds -= value * count
+            if value == 1:
+                name = name.rstrip('s')
+            result.append("{} {}".format(value, name))
+    return ', '.join(result[:granularity])
 
 def display_cluster_state(mmo, c):
     """
@@ -111,23 +132,23 @@ def print_replication_summary(replication_summary):
                       {"rs": "replicaset"},
                       { "state": "state" },
                       { "cfgV": "configVersion"},
-                      {"uptime": "uptime" },
-                      { "slaveDelay": "slaveDelay" } ]
+                      { "slaveDelay": "slaveDelay" },
+                      {"uptime": "uptime"} ]
 
     format_string = create_format_string([ "hostname",
                                        "rs",
                                        "state",
                                        "cfgV",
-                                       "uptime",
-                                       "slaveDelay"], header_lookup, replication_summary)
+                                       "slaveDelay",
+                                        "uptime"], header_lookup, replication_summary)
     max_hostname_length = length_of_longest_element(replication_summary, "hostname") + 2
     #format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<10} {:<10} {:<10}"
     print_bold_header(format_string, [ "hostname",
                                        "rs",
                                        "state",
                                        "cfgV",
-                                       "uptime",
-                                       "slaveDelay"])
+                                       "slaveDelay",
+                                       "uptime"])
     for host in replication_summary:
         colour = bgcolours.OKGREEN
         if host["state"] in ["UNKNOWN" , "DOWN", "(not reachable/healthy)", "UNK"]:
@@ -138,8 +159,8 @@ def print_replication_summary(replication_summary):
                                                                   host["replicaset"],
                                                                   host["state"],
                                                                   host["configVersion"],
-                                                                  host["uptime"],
-                                                                  host["slaveDelay"]])
+                                                                  host["slaveDelay"],
+                                                                  nice_time_display(host["uptime"])])
     if os.path.exists("/tmp/replication_summary.p"):
         os.rename("/tmp/replication_summary.p","/tmp/replication_summary.previous")
     pickle.dump(replication_summary, open( "/tmp/replication_summary.p", "wb"))

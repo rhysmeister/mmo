@@ -152,10 +152,13 @@ def print_replication_summary(replication_summary):
                                        "cfgV",
                                        "slaveDelay",
                                        "uptime"])
+    replicasets_down = []
     for host in replication_summary:
         colour = bgcolours.OKGREEN
         if host["state"] in ["UNKNOWN" , "DOWN", "(not reachable/healthy)", "UNK"]:
             colour = bgcolours.FAIL
+            if host["state"] == "UNK": # Entire replicaset is down
+                replicasets_down.append(host["replicaset"])
         elif host["state"] in ["STARTUP", "STARTUP2", "RECOVERING", "ROLLBACK", "REMOVED"]:
             colour = bgcolours.WARNING
         print_colour_data_row(colour, format_string, [ host["hostname"],
@@ -191,7 +194,10 @@ def print_replication_summary(replication_summary):
             for change in state_changes_list:
                 print change
         else:
-            print "There have been no state changes in the cluster since the last check"
+            if len(replicasets_down) == 0:
+                print "There have been no state changes in the cluster since the last check"
+            else:
+                print "The following replicasets are entirely down: " + " ".join(replicasets_down)
         if len(uptime_reset_list) > 0:
             host = "host"
             have = "has"

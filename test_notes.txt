@@ -175,3 +175,24 @@ TODO
 Wait one min
 
 ./mm --repl
+
+27. Test handling of repl screen when entire replicasets are down...
+
+./mm --replset --stacktrace
+mmo_kill_replset rs0
+./mm --replset --stacktrace
+
+mmo_kill_replset rs1
+./mm --replset --stacktrace
+
+mmo_kill_replset rs2
+./mm --replset --stacktrace
+
+mmo_raise_repl_set_from_the_dead rs0
+./mm --replset --stacktrace
+
+mmo_raise_repl_set_from_the_dead rs1
+./mm --replset --stacktrace
+
+mmo_raise_repl_set_from_the_dead rs2
+./mm --replset --stacktrace

@@ -179,7 +179,7 @@ def print_replication_summary(replication_summary):
                     if host["state"] != h["state"]:
                         state_changes_list.append(host["hostname"] + " " + h["state"] + " -> " + host["state"])
                     if host["uptime"] < h["uptime"]:
-                        uptime_reset_list.append(host["hostname"] + " " + h["uptime"] + " -> " + host["uptime"])
+                        uptime_reset_list.append(host["hostname"] + " " + str(h["uptime"]) + " -> " + str(host["uptime"]))
                     break
         if len(state_changes_list) > 0:
             change = "change"
@@ -194,11 +194,13 @@ def print_replication_summary(replication_summary):
             print "There have been no state changes in the cluster since the last check"
         if len(uptime_reset_list) > 0:
             host = "host"
+            have = "has"
             _is = "is"
             if len(uptime_reset_list) > 1:
                 host = "hosts"
+                have = "have"
                 _is = "are"
-            print "The following {0} have an uptime that {1} less than previously logged:".format(host, _is)
+            print "The following {0} {1} an uptime that {2} less than previously logged:".format(host, have, _is)
             for host in uptime_reset_list:
                 print host
 

@@ -1855,11 +1855,15 @@ if c:
                             # Election has happened and all shard servers are back
                             rs = mmo.mmo_replication_status_summary(c)
                             print_replication_summary(rs)
+                            new_primary = None
                             for doc in rs:
                                 if doc['replicaset'] == args.step_down and doc['state'] == 'PRIMARY':
                                     new_primary = doc
-                            print "PRIMARY changed from {0:<0} to {1:<1}".format(old_primary['hostname'],
-                                                                                 new_primary['hostname'])
+                            if new_primary is not None and old_primary != new_primary:
+                                print "PRIMARY changed from {0:<0} to {1:<1}".format(old_primary['hostname'],
+                                                                                     new_primary['hostname'])
+                            else:
+                                print "A new PRIMARY has not yet been elected. Try mm --repl again in a few moments."
                         else:
                             # Timeout has happened or something is wrong
                             print "There has been a problem or a timeout. Perhaps try the command again."

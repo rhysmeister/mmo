@@ -622,14 +622,19 @@ class MmoMongoCluster:
                     command_output.append(self.mmo_execute_on_cluster(mmo_connection, command, inc_mongos, db))
         return command_output
 
-    def mmo_step_down(self, mmo_connection, replicaset, stepDownSecs=60, catchUpSecs=50):
+    def mmo_step_down(self, mmo_connection, replicaset, stepDownSecs=60, catchUpSecs=50, force=False):
         """
         Execute the stepDown command against the PRIMARY for the given shard
         :param mmo_connection:
         :param shard:
         :return:
         """
-        stepDownCmd = {'replSetStepDown': stepDownSecs, 'secondaryCatchUpPeriodSecs': catchUpSecs}
+        if force:
+            stepDownCmd = SON([('replSetStepDown', stepDownSecs),
+                               ('secondaryCatchUpPeriodSecs', catchUpSecs),
+                               ("force", True)])
+        else:
+            stepDownCmd = {'replSetStepDown': stepDownSecs, 'secondaryCatchUpPeriodSecs': catchUpSecs}
         return self.mmo_execute_on_primaries(mmo_connection, stepDownCmd, replicaset)
 
     def mmo_change_profiling_level(self, mmo_connection, profile, slowms=None, database=None):

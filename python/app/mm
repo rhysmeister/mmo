@@ -1105,9 +1105,9 @@ def display_db_hash_info_for_cluster(mmo, c, verbose_display=False):
                                                                              "0",
                                                                              entry["command_output"]["md5"]])
 
-def step_down_primary(mmo, c, replicaset):
+def step_down_primary(mmo, c, replicaset, force):
     if replicaset in mmo.mmo_shards():
-        sd = mmo.mmo_step_down(c, replicaset)
+        sd = mmo.mmo_step_down(c, replicaset, 60, 50, force)
     else:
         raise Exception("Not a valid replicaset name.")
 
@@ -1684,6 +1684,7 @@ parser.add_argument('--step_down', type=str, default="", help="Step down the pri
 parser.add_argument('--step_down_nominate_host', type=str, required=False, help="Used in combination with step_down_nominate_port to select a PRIMARY")
 parser.add_argument('--step_down_nominate_port', type=int, required=False, help="Used in combination with step_down_nominate_host to select a PRIMARY")
 parser.add_argument('--replset_freeze', type=int, required=False, default=30, help="Number of seconds to- use with the replSetFreeze command")
+parser.add_argument('--force', action='store_true', default=False, help="Force the node to step down.")
 
 profiling_choices=[-1, 0, 1, 2]
 
@@ -1842,7 +1843,7 @@ if c:
                                                       args.step_down, # replicaset name
                                                       args.replset_freeze)
             try:
-                step_down_primary(mmo, c, args.step_down)
+                step_down_primary(mmo, c, args.step_down, c.force)
             except Exception as exception:
                 if str(exception) == "connection closed":
                     timeout=60

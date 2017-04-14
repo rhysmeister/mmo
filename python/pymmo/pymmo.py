@@ -463,42 +463,42 @@ class MmoMongoCluster:
           'hostname': u'rhysmacbook.local:30001',
           'optimeDate': datetime.datetime(2016, 3, 27, 15, 4, 26),
           'replicaset': u'rs0',
-          'slaveDelay': 0.0,
+          'lag': 0.0,
           'state': u'SECONDARY',
           'uptime': 8212},
          {'configVersion': 3,
           'hostname': u'rhysmacbook.local:30002',
           'optimeDate': datetime.datetime(2016, 3, 27, 15, 4, 26),
           'replicaset': u'rs0',
-          'slaveDelay': 0.0,
+          'lag': 0.0,
           'state': u'SECONDARY',
           'uptime': 8212},
          {'configVersion': 3,
           'hostname': u'rhysmacbook.local:30003',
           'optimeDate': datetime.datetime(2016, 3, 27, 15, 4, 26),
           'replicaset': u'rs0',
-          'slaveDelay': 'NA',
+          'lag': 'NA',
           'state': u'PRIMARY',
           'uptime': 181773},
          {'configVersion': 3,
           'hostname': u'rhysmacbook.local:30004',
           'optimeDate': datetime.datetime(2016, 3, 27, 15, 4, 26),
           'replicaset': u'rs1',
-          'slaveDelay': 0.0,
+          'lag': 0.0,
           'state': u'SECONDARY',
           'uptime': 8205},
          {'configVersion': 3,
           'hostname': u'rhysmacbook.local:30005',
           'optimeDate': datetime.datetime(2016, 3, 27, 15, 4, 26),
           'replicaset': u'rs1',
-          'slaveDelay': 'NA',
+          'lag': 'NA',
           'state': u'PRIMARY',
           'uptime': 181773},
          {'configVersion': 3,
           'hostname': u'rhysmacbook.local:30006',
           'optimeDate': datetime.datetime(2016, 3, 27, 15, 4, 26),
           'replicaset': u'rs1',
-          'slaveDelay': 0.0,
+          'lag': 0.0,
           'state': u'SECONDARY',
           'uptime': 3878}]
 
@@ -526,19 +526,19 @@ class MmoMongoCluster:
                                                   "optimeDate": member["optimeDate"] } )
                 for doc in replication_summary:
                     if doc["state"] == "PRIMARY":
-                        doc["slaveDelay"] = "NA" # not relevant here
+                        doc["lag"] = "NA" # not relevant here
                     else: # calculate the slave lag from the PRIMARY optimeDate
                         if doc["replicaset"] in primary_info.keys(): # is there a primary in the replset?
                             try:
                                 if hasattr((doc["optimeDate"] - primary_info[doc["replicaset"]]), "total_seconds"): # Does not exist in python 2.6
-                                    doc["slaveDelay"] = (doc["optimeDate"] - primary_info[doc["replicaset"]]).total_seconds()
+                                    doc["lag"] = abs((doc["optimeDate"] - primary_info[doc["replicaset"]]).total_seconds())
                                 else: # for python 2.6 that does not have total_seconds attribute
                                       # Will only be correct for delays of up to 24 hours
-                                    doc["slaveDelay"] = (primary_info[doc["replicaset"]] - doc["optimeDate"]).seconds # Primary needs ot be first in this case
+                                    doc["lag"] = abs((primary_info[doc["replicaset"]] - doc["optimeDate"]).seconds) # Primary needs ot be first in this case
                             except:
-                                doc["slaveDelay"] = "ERR"
+                                doc["lag"] = "ERR"
                         else:
-                            doc["slaveDelay"] = "UNK" # We cannot know what the delay is if there is no primary
+                            doc["lag"] = "UNK" # We cannot know what the delay is if there is no primary
             else:
                 replset_hosts_up_down[replicaset["shard"]] += 1
 
@@ -568,7 +568,7 @@ class MmoMongoCluster:
                                                 "uptime": "UNK",
                                                 "configVersion": "UNK",
                                                 "optimeDate": "UNK",
-                                                "slaveDelay": "UNK"})
+                                                "lag": "UNK"})
         deduped_replication_summary = []
         for d in replication_summary:
             if d not in deduped_replication_summary:

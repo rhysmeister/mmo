@@ -196,3 +196,7 @@ mmo_raise_repl_set_from_the_dead rs1
 
 mmo_raise_repl_set_from_the_dead rs2
 ./mm --replset --stacktrace
+
+28. Test --shell feature
+
+./mm --shell --database admin

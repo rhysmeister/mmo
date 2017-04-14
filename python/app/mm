@@ -23,8 +23,7 @@ from pprint import pprint
 import pickle
 
 from bgcolours import bgcolours
-
-from datetime import datetime, timedelta
+from subprocess import call, PIPE
 
 execfile(os.path.dirname(os.path.abspath(inspect.stack()[0][1]))  + "/../pymmo/pymmo.py")
 execfile(os.path.dirname(os.path.abspath(inspect.stack()[0][1]))  + "/CSVWriter.py")
@@ -1648,6 +1647,37 @@ def print_chunks(mmo, c):
     else:
         print_bold_header("{0:<100}", ["No information on chunks found"])
 
+def launch_mongo_shell(hostname, port, username, password, authentication_db, db):
+    """
+
+    :param hostname:
+    :param port:
+    :param username:
+    :param password:
+    :param authentication_db:
+    :param db:
+    :return:
+    """
+    mongo_cmd = "mongo"
+    if call("type " + mongo_cmd, shell=True, stdout=PIPE, stderr=PIPE) == 0:
+        cmd=[]
+        cmd.append(mongo_cmd)
+        cmd.append("--authenticationDatabase")
+        cmd.append(authentication_db)
+        cmd.append("--username")
+        cmd.append(username)
+        cmd.append("--password")
+        cmd.append(password)
+        cmd.append("--host")
+        cmd.append(hostname)
+        cmd.append("--port")
+        cmd.append(str(port))
+        if db is not None: # a db may not be provided
+            cmd.append(db)
+        call(cmd)
+    else:
+        print "Failed. {0} was not found in your PATH.".format(mongo_cmd)
+
 """
 MAIN SECTION STARTS HERE
 """
@@ -1735,6 +1765,8 @@ parser.add_argument("--plan_cache_clear_query_id", type=int, help="Clear the spe
 parser.add_argument("--plan_cache_purge_data", action="store_true", default=False, help="Delete the plan cache file in /tmp/mmo_temp_query.txt. You probably don't want to leave this data lying about.")
 
 parser.add_argument("--chunks", action="store_true", default=False, help="Display a count of the chunks broken by namespace and shard.")
+
+parser.add_argument("--shell", action="store_true", default=False, help="Launch a mongo shell")
 
 args = parser.parse_args()
 
@@ -1999,6 +2031,13 @@ if c:
                 print "File does not exist: /tmp/mmo_temp_query.txt"
         if args.chunks:
             print_chunks(mmo, c)
+        if args.shell:
+            launch_mongo_shell(args.mongo_hostname,
+                               args.mongo_port,
+                               args.mongo_username,
+                               args.mongo_password,
+                               args.mongo_auth_db,
+                               args.database)
         if args.repeat > 0:
             time.sleep(args.interval)
             os.system('cls' if os.name == 'nt' else 'clear')

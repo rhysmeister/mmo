@@ -135,14 +135,14 @@ def print_replication_summary(replication_summary):
                       {"rs": "replicaset"},
                       { "state": "state" },
                       { "cfgV": "configVersion"},
-                      { "slaveDelay": "slaveDelay" },
+                      { "lag": "lag" },
                       {"uptime": "uptime"} ]
 
     format_string = create_format_string([ "hostname",
                                        "rs",
                                        "state",
                                        "cfgV",
-                                       "slaveDelay",
+                                       "lag",
                                         "uptime"], header_lookup, replication_summary)
     max_hostname_length = length_of_longest_element(replication_summary, "hostname") + 2
     #format_string = "{:<" + str(max_hostname_length) + "} {:<10} {:<10} {:<10} {:<10} {:<10}"
@@ -150,7 +150,7 @@ def print_replication_summary(replication_summary):
                                        "rs",
                                        "state",
                                        "cfgV",
-                                       "slaveDelay",
+                                       "lag",
                                        "uptime"])
     replicasets_down = []
     for host in replication_summary:
@@ -165,7 +165,7 @@ def print_replication_summary(replication_summary):
                                                                   host["replicaset"],
                                                                   host["state"],
                                                                   host["configVersion"],
-                                                                  host["slaveDelay"],
+                                                                  host["lag"],
                                                                   nice_time_display(host["uptime"])])
     if os.path.exists("/tmp/replication_summary.p"):
         os.rename("/tmp/replication_summary.p","/tmp/replication_summary.previous")
@@ -255,8 +255,8 @@ def print_list_of_hosts(title, host_list, colour, replicaset_options):
                                 attribute_list.append("priority=" +  str(member["priority"]))
                                 if len(member["tags"]) > 0:
                                     attribute_list.append(str(member["tags"]))
-                                if member["slaveDelay"] > 0:
-                                    attribute_list.append("slaveDelay=" + str(member["slaveDelay"]))
+                                if member["lag"] > 0:
+                                    attribute_list.append("lag=" + str(member["lag"]))
                                 attribute_list.append("votes=" + str(member["votes"]))
                                 rs = shard["command_output"]["config"]["_id"]
                                 #if member["host"] == host["hostname"] + ":" + str(host["port"]):

@@ -75,7 +75,7 @@
 
 13. Collection stats
 
-./mm --collection_stats test.rhys
+./mm --collection_stats test.restaurants
 
 14. Database stats
 
@@ -168,6 +168,7 @@ TODO
 
 26. Test --repl screen state change detection
 
+./mm --repl
 ./mm --step_down rs0
 ./mm --step_down rs1
 ./mm --step_down rs2
@@ -178,24 +179,24 @@ Wait one min
 
 27. Test handling of repl screen when entire replicasets are down...
 
-./mm --replset --stacktrace
+./mm --repl --stacktrace
 mmo_kill_replset rs0
-./mm --replset --stacktrace
+./mm --repl --stacktrace
 
 mmo_kill_replset rs1
-./mm --replset --stacktrace
+./mm --repl --stacktrace
 
 mmo_kill_replset rs2
-./mm --replset --stacktrace
+./mm --repl --stacktrace
 
 mmo_raise_repl_set_from_the_dead rs0
-./mm --replset --stacktrace
+./mm --repl --stacktrace
 
 mmo_raise_repl_set_from_the_dead rs1
-./mm --replset --stacktrace
+./mm --repl --stacktrace
 
 mmo_raise_repl_set_from_the_dead rs2
-./mm --replset --stacktrace
+./mm --repl --stacktrace
 
 28. Test --shell feature
 

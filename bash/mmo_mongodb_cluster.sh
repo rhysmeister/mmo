@@ -569,7 +569,7 @@ function mmo_raise_repl_set_from_the_dead()
 		return 1;
 	fi;
 	for PORT in "${a[@]}"; do
-		$(ps aux | grep mongod | grep "$PORT" ) || mongod --smallfiles --nojournal --storageEngine wiredTiger --wiredTigerEngineConfigString="cache_size=200M" --dbpath "./${SHARD}_${PORT}"  --port "$PORT" --replSet "$rs" --logpath "${SHARD}_${PORT}.log" --auth --fork --keyFile keyfile.txt --logRotate reopen --logappend;
+		$(ps aux | grep mongod | grep "$PORT" ) || mongod --shardsvr --smallfiles --nojournal --storageEngine wiredTiger --wiredTigerEngineConfigString="cache_size=200M" --dbpath "./${SHARD}_${PORT}"  --port "$PORT" --replSet "$rs" --logpath "${SHARD}_${PORT}.log" --auth --fork --keyFile keyfile.txt --logRotate reopen --logappend;
 	done
 	cd "$tmp";
 }

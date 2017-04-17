@@ -680,7 +680,14 @@ class MmoMongoCluster:
         auth_dic = self.mmo_get_auth_details_from_connection(mmo_connection)
         c = self.mmo_connect_mongod(hostname, port, auth_dic["username"], auth_dic["password"], auth_dic["authentication_database"])
         if self.mmo_is_mongod(c):
-            command_output = c["admin"].command({ "replSetFreeze": seconds })
+            try:
+                command_output = c["admin"].command({ "replSetFreeze": seconds })
+            except Exception as excep:
+                if excep.message == "cannot freeze node when primary or running for election. state: Primary":
+                    command_output = { "msg": excep.message}
+                    pass
+                else:
+                    raise excep
         else:
             raise Exception("MongoDB connection is not a mongod process")
         return { "hostname": hostname, "port": port, "command_output": command_output }

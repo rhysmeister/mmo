@@ -326,7 +326,7 @@ class MmoMongoCluster:
                     command_output = c["admin"].command(command)
                     cluster_command_output.append({ "hostname": hostname, "port": port, "shard": shard, "command_output": command_output })
             except Exception as excep:
-                if excep.message == "mongod process is not up":
+                if str(excep) == "mongod process is not up":
                     cluster_command_output.append({ "hostname": hostname, "port": port, "shard": shard, "command_output": { "Error": "mongod process is not up" } })
                 else:
                     raise excep
@@ -357,7 +357,7 @@ class MmoMongoCluster:
                     if first_available_only:
                         replsets_completed.append(shard)
             except Exception as excep:
-                if excep.message == "mongod process is not up":
+                if str(excep) == "mongod process is not up":
                     cluster_command_output.append({"hostname": hostname, "port": port, "shard": shard, "command_output": {"Error": "This mongod process is not available"}})
                 else:
                     raise excep
@@ -683,8 +683,8 @@ class MmoMongoCluster:
             try:
                 command_output = c["admin"].command({ "replSetFreeze": seconds })
             except Exception as excep:
-                if excep.message == "cannot freeze node when primary or running for election. state: Primary":
-                    command_output = { "msg": excep.message}
+                if str(excep) == "cannot freeze node when primary or running for election. state: Primary":
+                    command_output = { "msg": str(excep)}
                     pass
                 else:
                     raise excep

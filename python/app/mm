@@ -1358,7 +1358,7 @@ def print_plan_cache_summary(mmo, c, database, collection):
                           {"shard": "shard"},
                           {"plan_count": "plan_count"}]
         format_string = create_format_string(headers, header_lookup, summarized_data)
-        print_bold_header("{:<100}", ["Plan Cache Count for {0}.{1}".format(database, collection)])
+        print_bold_header("{0:<100}", ["Plan Cache Count for {0}.{1}".format(database, collection)])
         print_bold_header(format_string, headers)
         for doc in summarized_data:
             print_colour_data_row(bgcolours.OKGREEN,
@@ -1406,7 +1406,7 @@ def print_plan_cache_shapes(mmo, c, database, collection):
                          {"projection": "projection"}]
         if shape_id >= 2:
             format_string = create_format_string(headers, header_lookup, summarized_data)
-            print_bold_header("{:<100}", ["Plan Cache Query Shapes for {0}.{1}".format(database, collection)])
+            print_bold_header("{0:<100}", ["Plan Cache Query Shapes for {0}.{1}".format(database, collection)])
             print_bold_header(format_string, headers)
             for doc in summarized_data:
                 print_colour_data_row(bgcolours.OKGREEN,
@@ -1468,7 +1468,7 @@ def print_plan_cache_query_stats(mmo, c, database, collection, query, sort={}, p
 
     format_string = create_format_string(headers, header_lookup, plans)
 
-    print_bold_header("{:<100}", ["There are {0} cached plans for this query shape".format(len(plans))])
+    print_bold_header("{0:<100}", ["There are {0} cached plans for this query shape".format(len(plans))])
     print bgcolours.BOLD + json.dumps(query, sort_keys=True, indent=4, separators=(',', ': ')) + bgcolours.ENDC
     print_bold_header(format_string, headers)
     for doc in plans:

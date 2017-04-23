@@ -1292,19 +1292,19 @@ def print_schema_summary(mmo, c, collection, limit):
     schema = mmo.mmo_schema_sumary(c, collection, limit)
     key_count = len(schema.keys())
     #pp = pprint.PrettyPrinter(indent=4)
-    print_bold_header("{:<100}", ["Schema summary for " + collection + " based on a sample of " + str(limit) + " documents"])
+    print_bold_header("{0:<100}", ["Schema summary for " + collection + " based on a sample of " + str(limit) + " documents"])
     print "There are " + str(key_count) + " keys in this dictionary."
     #print ""
-    print_bold_header("{:<100}", ["Data types"])
+    print_bold_header("{0:<100}", ["Data types"])
     #print ""
     for item in sorted(schema.keys()):
-        print "{:<20} {:<20}".format(item, type(schema[item]))
+        print "{0:<20} {1:<20}".format(item, type(schema[item]))
         if type(schema[item]) == dict:
             for sub_item in sorted(schema[item].keys()):
-                print "  - {:<20} {:<20}".format(sub_item, type(sub_item))
+                print "  - {0:<20} {1:<20}".format(sub_item, type(sub_item))
                 if type(sub_item) == dict:
                     for sub_sub_item in sub_item.keys():
-                        print "    - {:<20} {:<20}".format(sub_sub_item, type(sub_sub_item))
+                        print "    - {0:<20} {1:<20}".format(sub_sub_item, type(sub_sub_item))
                 if type(sub_item) == list:
                     data_types = set()
                     for list_item in schema[item]:
@@ -1319,10 +1319,10 @@ def print_schema_summary(mmo, c, collection, limit):
             print "  - List data types: " + data_types
             if type(schema[item][0]) == dict:
                 for i in schema[item][0].keys():
-                    print "    - {:<20} {:<20}".format(i, type(i))
+                    print "    - {0:<20} {1:<20}".format(i, type(i))
 
     #print ""
-    print_bold_header("{:<100}", ["Sample Document"])
+    print_bold_header("{0:<100}", ["Sample Document"])
     #print ""
     pprint(schema)
 

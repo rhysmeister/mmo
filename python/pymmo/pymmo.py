@@ -172,7 +172,7 @@ class MmoMongoCluster:
         :param mmo_connection:
         :return:
         """
-        return True if "--configsvr" in mmo_connection["admin"].command("getCmdLineOpts")["argv"] else False
+        return True if "configsvr" in str(mmo_connection["admin"].command("getCmdLineOpts")["parsed"]) else False
 
     def mmo_is_cfg_rs(self, mmo_connection):
         """

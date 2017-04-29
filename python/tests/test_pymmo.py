@@ -79,7 +79,7 @@ class TestPyMmoMethods(unittest.TestCase):
     def test_mmo_mongo_version(self):
         m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
         c = m.mmo_connect()
-        self.assertEquals("3.2.3", m.mmo_mongo_version(c))
+        self.assertEquals("3.4.3", m.mmo_mongo_version(c))
 
     def test_mmo_execute_on_cluster(self):
         m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
@@ -145,6 +145,13 @@ class TestPyMmoMethods(unittest.TestCase):
         self.assertEquals(6, len(o))
         self.assertTrue("openssl" in str(o))
 
+    def test_mmo_execute_on_secondary_or_primary(self):
+        m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
+        c = m.mmo_connect()
+        o = m.mmo_execute_on_secondary_or_primary(c, "buildinfo")
+        self.assertEquals(6, len(o))
+        self.assertTrue("openssl" in str(o))
+
     def test_mmo_shards(self):
         m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
         c = m.mmo_connect()
@@ -163,7 +170,7 @@ class TestPyMmoMethods(unittest.TestCase):
         c = m.mmo_connect()
         o = m.mmo_replication_status_summary(c)
         self.assertEquals(12, len(o))
-        self.assertTrue("slaveDelay" in str(o))
+        self.assertTrue("lag" in str(o))
 
     def test_mmo_cluster_serverStatus(self):
         m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
@@ -356,33 +363,36 @@ def _set_MongoDB_Cluster_Up():
     hostname = socket.gethostname()
     m = MmoMongoCluster("localhost", 27017, "admin", "admin", "admin")
     c = m.mmo_connect()
-    m.mmo_repl_set_freeze_nominate_host(c, hostname, 30001, "rs0", 30)
-    try:
-        m.mmo_step_down(c, "rs0")
-    except Exception as exception:
-        if str(exception) == "connection closed":  # This is the expect behaviour
-            pass
-        else:
-            raise exception
-    m.mmo_repl_set_freeze_nominate_host(c, hostname, 30004, "rs1", 30)
-    try:
-        m.mmo_step_down(c, "rs1")
-    except Exception as exception:
-        if str(exception) == "connection closed":  # This is the expect behaviour
-            pass
-        else:
-            raise exception
-    m.mmo_repl_set_freeze_nominate_host(c, hostname, 30007, "rs2", 30)
-    try:
-        m.mmo_step_down(c, "rs2")
-    except Exception as exception:
-        if str(exception) == "connection closed":  # This is the expect behaviour
-            pass
-        else:
-            raise exception
-    time.sleep(60) # Sleep for a bit to allow elections to complete
-    s = round(time.time() - start_time, 2)
-    print("Executed setup in %s seconds" % s)
+
+    if False: # Should write soemthing to tets the setup first. Perhaps mmo_is_primary(host, port)
+
+        m.mmo_repl_set_freeze_nominate_host(c, hostname, 30001, "rs0", 0)
+        try:
+            m.mmo_step_down(c, "rs0")
+        except Exception as exception:
+            if str(exception) == "connection closed":  # This is the expect behaviour
+                pass
+            else:
+                raise exception
+        m.mmo_repl_set_freeze_nominate_host(c, hostname, 30004, "rs1", 0)
+        try:
+            m.mmo_step_down(c, "rs1")
+        except Exception as exception:
+            if str(exception) == "connection closed":  # This is the expect behaviour
+                pass
+            else:
+                raise exception
+        m.mmo_repl_set_freeze_nominate_host(c, hostname, 30007, "rs2", 0)
+        try:
+            m.mmo_step_down(c, "rs2")
+        except Exception as exception:
+            if str(exception) == "connection closed":  # This is the expect behaviour
+                pass
+            else:
+                raise exception
+        time.sleep(60) # Sleep for a bit to allow elections to complete
+        s = round(time.time() - start_time, 2)
+        print("Executed setup in %s seconds" % s)
 
 _set_MongoDB_Cluster_Up()
 

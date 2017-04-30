@@ -210,6 +210,6 @@ mmo_create_single_node_shard
 ./mm --repl
 # Can we handle single shard node downtime
 mmo_kill_replset rs3
-./mm --repl     # Not currently working
+./mm --repl     # Not currently working. Probably need custom code for the repl screen as it's getting messy
 ./mm --summary  # Works
 

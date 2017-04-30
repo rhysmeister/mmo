@@ -209,5 +209,7 @@ If there's not already one setup add one with...
 mmo_create_single_node_shard
 ./mm --repl
 # Can we handle single shard node downtime
-
+mmo_kill_replset rs3
+./mm --repl     # Not currently working
+./mm --summary  # Works
 

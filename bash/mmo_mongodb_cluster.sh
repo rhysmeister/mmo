@@ -589,6 +589,24 @@ function mmo_remove_member_from_shard()
 	REMOVE_MEMBER=$2;
 	mongo admin --authenticationDatabase admin -u admin -p admin --port ${PORT} --eval 'rs.remove("'$REMOVE_MEMBER'")'
 }
+
+function mmo_create_single_node_shard()
+{
+	cd;
+	cd ${MMO_SHARDED_CLUSTER_TEST_TEMP};
+	mkdir -p single_node_shard_30010;
+	mongod --shardsvr --smallfiles --nojournal --storageEngine wiredTiger --wiredTigerEngineConfigString="cache_size=200M" --dbpath ./single_node_shard_30010  --port 30010 --replSet "rs3" --logpath single_node_shard_30010.log ${ADDITIONAL_OPTIONS};
+	echo "Sleeping for 30 seconds." && sleep 30;
+	# Create admin user on shard
+	mmo_create_admin_user 30010;
+	mongo admin -u admin -p admin --port 30010 <<EOF
+	rs.initiate();
+EOF
+	# add shard via mongos
+	mongo admin -u admin -p admin --port 27018 <<EOF 
+	sh.addShard( "rs3/$(hostname):30010");
+EOF
+}
 	
 function mmo_setup_cluster()
 {

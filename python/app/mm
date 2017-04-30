@@ -51,8 +51,8 @@ def nice_time_display(seconds, granularity=2):
                 seconds -= value * count
                 if value == 1:
                     name = name.rstrip('s')
-                result.append("{0} {1}".format(value, name))
-        return ', '.join(result[:granularity])
+                result.append("{0}{1}".format(value, name))
+        return ','.join(result[:granularity])
     else:
         return ""
 

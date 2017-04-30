@@ -852,7 +852,7 @@ class MmoMongoCluster:
 
     def mmo_execute_on_secondary_or_primary(self, mmo_connection, command, replicaset="all", first_available_only=False):  # TODO add execution database?
         """
-        Execute on SECONDARY but go for PRIAMRY if fails
+        Execute on SECONDARY but go for PRIMARY if fails. Shoudl probably only use this in the --repl screen
         :param mmo_connection:
         :param command:
         :param replicaset: Optionally execute against a single replicaset or all
@@ -860,29 +860,45 @@ class MmoMongoCluster:
         :return: A list of dictionaries, containing hostname, port, shard and command_output, for each SECONDARY mongod in all shards
         """
         cluster_command_output = []
-        replsets_completed = []
-        for doc in self.mmo_shard_servers(mmo_connection):
+        replsets_completed = set()
+        all_replsets = set()
+        repl_hosts = self.mmo_shard_servers(mmo_connection)
+        for doc in repl_hosts:
             hostname, port, shard = doc["hostname"], doc["port"], doc["shard"]
+            all_replsets.add(shard)
             auth_dic = self.mmo_get_auth_details_from_connection(mmo_connection)
             try:
-
                 c = self.mmo_connect_mongod(hostname, port, auth_dic["username"], auth_dic["password"],
                                             auth_dic["authentication_database"])
                 if self.mmo_replica_state(c)["name"] == "SECONDARY" \
                         and (replicaset == "all" or replicaset == shard) \
                         and shard not in replsets_completed:
+                    secondary_found = True
                     command_output = c["admin"].command(command)
                     cluster_command_output.append(
                         {"hostname": hostname, "port": port, "shard": shard, "command_output": command_output})
-                    if first_available_only:
-                        replsets_completed.append(shard)
+                    #if first_available_only:
+                    replsets_completed.add(shard)
             except Exception as excep:
                 if str(excep) == "mongod process is not up":
                     cluster_command_output.append({"hostname": hostname, "port": port, "shard": shard,
                                                    "command_output": {"Error": "This mongod process is not available"}})
-                else:  # Special case for when a Shard consists of only 1 primary
-                    try:
-                        cluster_command_output = self.mmo_execute_on_primaries(mmo_connection, command, replicaset)
-                    except Exception as excep:
+                else:
+                        raise excep
+        # This is the case where there are no secondaries
+        for missing_shard in (all_replsets^replsets_completed):
+            for doc in repl_hosts:
+                hostname, port, shard = doc["hostname"], doc["port"], doc["shard"]
+                try:
+                    c = self.mmo_connect_mongod(hostname, port, auth_dic["username"], auth_dic["password"],
+                                                auth_dic["authentication_database"])
+                    if shard == missing_shard and self.mmo_replica_state(c)["name"] == "PRIMARY":
+                        command_output = c["admin"].command(command)
+                        cluster_command_output.append({"hostname": hostname, "port": port, "shard": shard, "command_output": command_output})
+                except Exception as excep:
+                    if str(excep) == "mongod process is not up":
+                        cluster_command_output.append({"hostname": hostname, "port": port, "shard": shard,
+                                                   "command_output": {"Error": "This mongod process is not available"}})
+                    else:
                         raise excep
         return cluster_command_output

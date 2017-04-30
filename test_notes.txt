@@ -201,3 +201,13 @@ mmo_raise_repl_set_from_the_dead rs2
 28. Test --shell feature
 
 ./mm --shell --database admin
+
+29. Test handling of single node shards
+
+If there's not already one setup add one with...
+
+mmo_create_single_node_shard
+./mm --repl
+# Can we handle single shard node downtime
+
+

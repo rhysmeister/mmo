@@ -577,9 +577,17 @@ function mmo_raise_repl_set_from_the_dead()
 # shard test.restaurants collection
 function mmo_shard_restaurants()
 {
-	PORT27017;
+	PORT=27017;
 	mongo test --authenticationDatabase admin -u admin -p admin --port ${PORT} --eval  'sh.shardCollection("test.restaurants", { "restaurant_id": 1 } );';
 	return $?;
+}
+
+# Remove the members from the replicaset. Should connect to the PRIMARY
+function mmo_remove_member_from_shard()
+{
+	PORT=$1;
+	REMOVE_MEMBER=$2;
+	mongo admin --authenticationDatabase admin -u admin -p admin --port ${PORT} --eval 'rs.remove("'$REMOVE_MEMBER'")'
 }
 	
 function mmo_setup_cluster()

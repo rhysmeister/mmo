@@ -392,7 +392,9 @@ function mmo_kill_replset()
 		elif [ "$rs" == "rs2" ]; then
 			mmo_shutdown_server 30007;
 			mmo_shutdown_server 30008;
-			mmo_shutdown_server 30009;		
+			mmo_shutdown_server 30009;
+		elif [ "$rs" == "rs3" ]; then
+			mmo_shutdown_server 30010;	
 		else
 			echo "Invalid replset name";
 			return 1;

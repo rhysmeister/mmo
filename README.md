@@ -5,13 +5,13 @@ NAME
 
 SYNOPSYS
 
-        mm [-h] [--summary] [--repl]
+     usage: mm [-h] [--summary] [--repl]
           [--server_status {instance,asserts,flushing,journaling,extra_info,connections,global_lock,network,opcounters,opcounters_repl,security,storage_engine,memory}]
           [--host_info {system,os,extra,help}] [--db_hashes] [--databases]
           [--inc_mongos] [--step_down STEP_DOWN]
           [--step_down_nominate_host STEP_DOWN_NOMINATE_HOST]
           [--step_down_nominate_port STEP_DOWN_NOMINATE_PORT]
-          [--replset_freeze REPLSET_FREEZE] [--profiling {-1,0,1,2}]
+          [--replset_freeze REPLSET_FREEZE] [--force] [--profiling {-1,0,1,2}]
           [--slowms SLOWMS] [--database DATABASE] [--sharding]
           [--mongo_hostname MONGO_HOSTNAME] [--mongo_port MONGO_PORT]
           [--mongo_username MONGO_USERNAME] [--mongo_password MONGO_PASSWORD]
@@ -31,7 +31,130 @@ SYNOPSYS
           [--plan_cache_sort PLAN_CACHE_SORT]
           [--plan_cache_projection PLAN_CACHE_PROJECTION]
           [--plan_cache_query_id PLAN_CACHE_QUERY_ID]
-          [--plan_cache_clear_query_id PLAN_CACHE_CLEAR_QUERY_ID] [--chunks]
+          [--plan_cache_clear_query_id PLAN_CACHE_CLEAR_QUERY_ID]
+          [--plan_cache_purge_data] [--chunks] [--shell]
+
+    MongoDB Manager
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      --summary             Show a summary of the MongoDB Cluster Topology
+      --repl                Show a summary of the replicaset state
+      --server_status {instance,asserts,flushing,journaling,extra_info,connections,global_lock,
+                           network,opcounters,opcounters_repl,security,storage_engine,memory}
+                            Show a summary of the appropriate section from the
+                            serverStatus document from all mongod processes.
+      --host_info {system,os,extra,help}
+                            Show a summary of the appropriate section from the
+                            hostInfo document from all mongod processes.
+      --db_hashes           Show the db hashes for each database on the cluster
+                            and perform some verification.
+      --databases           Show a summary fo the databases hosted by the MongoDB
+                            cluster
+      --inc_mongos          Optionally execute against the mongos servers. This
+                            will fail if the command is not supported by mongos.
+      --step_down STEP_DOWN
+                            Step down the primary from this replicaset
+      --step_down_nominate_host STEP_DOWN_NOMINATE_HOST
+                            Used in combination with step_down_nominate_port to
+                            select a PRIMARY
+      --step_down_nominate_port STEP_DOWN_NOMINATE_PORT
+                            Used in combination with step_down_nominate_host to
+                            select a PRIMARY
+      --replset_freeze REPLSET_FREEZE
+                            Number of seconds to- use with the replSetFreeze
+                            command
+      --force               Force the node to step down.
+      --profiling {-1,0,1,2}
+                            Display or modify the profiling level of a MongoDB
+                            Cluster
+      --slowms SLOWMS       Optionally for use with --profiling switch. The
+                            threshold in milliseconds at which the database
+                            profiler considers a query slow.
+      --database DATABASE   The database to perform the action on. The wildcard
+                            character '*' can be used to specify all databases.
+                            Enclose in single quotes to prevent the shell
+                            expanding it.
+      --sharding            List sharding details
+      --mongo_hostname MONGO_HOSTNAME, -H MONGO_HOSTNAME
+                            Hostname for the MongoDB mongos process to connect to
+      --mongo_port MONGO_PORT, -P MONGO_PORT
+                            Port for the MongoDB mongos process to connect to
+      --mongo_username MONGO_USERNAME, -u MONGO_USERNAME
+                            MongoDB username
+      --mongo_password MONGO_PASSWORD, -p MONGO_PASSWORD
+                            MongoDB password
+      --mongo_auth_db MONGO_AUTH_DB, -D MONGO_AUTH_DB
+                            MongoDB authentication database
+      --execution_database EXECUTION_DATABASE, -e EXECUTION_DATABASE
+                            Used by some command to specify the execution
+                            database.
+      --repeat REPEAT, -r REPEAT
+                            Repeat the action N number of times
+      --interval INTERVAL, -i INTERVAL
+                            Number of seconds between each repeat
+      --connection CONNECTION, -c CONNECTION
+                            Name of MongoDB connection to use as set in config.cnf
+      --debug, -d           Output debug information
+      --validate_indexes VALIDATE_INDEXES
+                            Collection to validate indexes across all shard
+                            servers. This should be provided in the form
+                            <database>.<collection>
+      --collection_stats COLLECTION_STATS
+                            Show a summary of the data from the
+                            db.collection.stats() command. Must be supplied in the
+                            format <database>.<collection>
+      --database_stats DATABASE_STATS
+                            Show a summary of the data from the db.stats()
+                            command.
+      --show_collections SHOW_COLLECTIONS
+                            List the collections in the given database.
+      --command COMMAND     Run a custom command against your MongoDB Cluster.
+                            Should be provided in document format,
+                                i.e. '{"command": <value> }'
+      --balancing {enable,disable}
+                            Enable or disabled balancing. Must be supplied with
+                            the --collection argument
+      --collection COLLECTION
+                            Collection to perform action on. Must be supplied in
+                            the format <database>.<collection>
+      --balancing_state {enable,disable,state}
+                            Globally manage the balancer state
+      --verbose_display     Used in various functions display data that is usually
+                            supressed
+      --stacktrace          By default we don't display the Python stacktace. Use
+                            this flag to enable.
+      --schema_summary SCHEMA_SUMMARY
+                            Collection to produce a summary schema for. Must be
+                            supplied in the format <database>.<collection>
+      --schema_summary_limit SCHEMA_SUMMARY_LIMIT
+                            Set the number of documents that --schema_summary will
+                            sample.
+      --plan_cache PLAN_CACHE
+                            Displays a count of the cached plans for the specified
+                            collection. Must be supplied in the format
+                            <database>.<collection>
+      --plan_cache_shapes PLAN_CACHE_SHAPES
+                            Displays the shapes from the plan cache for the
+                            specified collection. Must be supplied in the format
+                            <database>.<collection>
+      --plan_cache_query PLAN_CACHE_QUERY
+                            Use with the --collection flag
+      --plan_cache_sort PLAN_CACHE_SORT
+      --plan_cache_projection PLAN_CACHE_PROJECTION
+      --plan_cache_query_id PLAN_CACHE_QUERY_ID
+                            Display the stats for the query with the supplied id
+                            as provided in /tmp/mmo_temp_query.txt or
+                            --plan_cache_shapes
+      --plan_cache_clear_query_id PLAN_CACHE_CLEAR_QUERY_ID
+                            Clear the specified query from the Plan Cache.
+      --plan_cache_purge_data
+                            Delete the plan cache file in /tmp/mmo_temp_query.txt.
+                            You probably don't want to leave this data lying
+                            about.
+      --chunks              Display a count of the chunks broken by namespace and
+                            shard.
+      --shell               Launch a mongo shell
 
 DESCRIPTION
 
@@ -79,151 +202,88 @@ CONNECTION OPTIONS
 
     mm will ignore the connection if active is set to False.
 
-OPTIONS
-
-          -h, --help            show this help message and exit
-          --summary             Show a summary of the MongoDB Cluster Topology
-          --repl                Show a summary of the replicaset state
-          --server_status {instance,asserts,flushing,journaling,extra_info,connections,global_lock,network,opcounters,opcounters_repl,security,storage_engine,memory}
-                                Show a summary of the appropriate section from the
-                                serverStatus document from all mongod processes.
-          --host_info {system,os,extra,help}
-                                Show a summary of the appropriate section from the
-                                hostInfo document from all mongod processes.
-          --db_hashes           Show the db hashes for each database on the cluster
-                                and perform some verification.
-          --databases           Show a summary fo the databases hosted by the MongoDB
-                                cluster
-          --inc_mongos          Optionally execute against the mongos servers. This
-                                will fail if the command is not supported by mongos.
-          --step_down STEP_DOWN
-                                Step down the primary from this replicaset
-          --step_down_nominate_host STEP_DOWN_NOMINATE_HOST
-                                Used in combination with step_down_nominate_port to
-                                select a PRIMARY
-          --step_down_nominate_port STEP_DOWN_NOMINATE_PORT
-                                Used in combination with step_down_nominate_host to
-                                select a PRIMARY
-          --replset_freeze REPLSET_FREEZE
-                                Number of seconds to- use with the replSetFreeze
-                                command
-          --profiling {-1,0,1,2}
-                                Display or modify the profiling level of a MongoDB
-                                Cluster
-          --slowms SLOWMS       Optionally for use with --profiling switch. The
-                                threshold in milliseconds at which the database
-                                profiler considers a query slow.
-          --database DATABASE   The database to perform the action on. The wildcard
-                                character '*' can be used to specify all databases.
-                                Enclose in single quotes to prevent the shell
-                                expanding it.
-          --sharding            List sharding details
-          --mongo_hostname MONGO_HOSTNAME, -H MONGO_HOSTNAME
-                                Hostname for the MongoDB mongos process to connect to
-          --mongo_port MONGO_PORT, -P MONGO_PORT
-                                Port for the MongoDB mongos process to connect to
-          --mongo_username MONGO_USERNAME, -u MONGO_USERNAME
-                                MongoDB username
-          --mongo_password MONGO_PASSWORD, -p MONGO_PASSWORD
-                                MongoDB password
-          --mongo_auth_db MONGO_AUTH_DB, -D MONGO_AUTH_DB
-                                MongoDB authentication database
-          --execution_database EXECUTION_DATABASE, -e EXECUTION_DATABASE
-                                Used by some command to specify the execution
-                                database.
-          --repeat REPEAT, -r REPEAT
-                                Repeat the action N number of times
-          --interval INTERVAL, -i INTERVAL
-                                Number of seconds between each repeat
-          --connection CONNECTION, -c CONNECTION
-                                Name of MongoDB connection to use as set in config.cnf
-          --debug, -d           Output debug information
-          --validate_indexes VALIDATE_INDEXES
-                                Collection to validate indexes across all shard
-                                servers. This should be provided in the form
-                                <database>.<collection>
-          --collection_stats COLLECTION_STATS
-                                Show a summary of the data from the
-                                db.collection.stats() command. Must be supplied in the
-                                format <database>.<collection>
-          --database_stats DATABASE_STATS
-                                Show a summary of the data from the db.stats()
-                                command.
-          --show_collections SHOW_COLLECTIONS
-                                List the collections in the given database.
-          --command COMMAND     Run a custom command against your MongoDB Cluster.
-                                Should be provided in document format, i.e. '{
-                                "command": <value> }'
-          --balancing {enable,disable}
-                                Enable or disabled balancing. Must be supplied with
-                                the --collection argument
-          --collection COLLECTION
-                                Collection to perform action on. Must be supplied in
-                                the format <database>.<collection>
-          --balancing_state {enable,disable,state}
-                                Globally manage the balancer state
-          --verbose_display     Used in various functions display data that is usually
-                                supressed
-          --stacktrace          By default we don't display the Python stacktace. Use
-                                this flag to enable.
-          --schema_summary SCHEMA_SUMMARY
-                                Collection to produce a summary schema for. Must be
-                                supplied in the format <database>.<collection>
-          --schema_summary_limit SCHEMA_SUMMARY_LIMIT
-                                Set the number of documents that --schema_summary will
-                                sample.
-          --plan_cache PLAN_CACHE
-                                Displays a count of the cached plans for the specified
-                                collection. Must be supplied in the format
-                                <database>.<collection>
-          --plan_cache_shapes PLAN_CACHE_SHAPES
-                                Displays the shapes from the plan cache for the
-                                specified collection. Must be supplied in the format
-                                <database>.<collection>
-          --plan_cache_query PLAN_CACHE_QUERY
-                                Use with the --collection flag
-          --plan_cache_sort PLAN_CACHE_SORT
-          --plan_cache_projection PLAN_CACHE_PROJECTION
-          --plan_cache_query_id PLAN_CACHE_QUERY_ID
-                                Display the stats for the query with the supplied id
-                                as provided in /tmp/mmo_temp_query.txt or
-                                --plan_cache_shapes
-          --plan_cache_clear_query_id PLAN_CACHE_CLEAR_QUERY_ID
-                                Clear the specified query from the Plan Cache.
-          --chunks              Display a count of the chunks broken by namespace and
-                                shard.
-
 EXAMPLES
 
         Show a summary of the MongoDB topology.
 
+        Displays the following information about the Cluster;
+
+            - Config Servers
+            - mongos Servers
+            - Shard Servers and their configuration options.
+            - Global Shard configuration information.
+
+        This screen will also highlight available hosts in green and down hosts in red.
+        The screen will also detect when entire replicasets may be down with the following message;
+
+        "rs0 Entire replicaset may be down"
+
             ./mm --summary
 
             MongoDB Config Servers
-            rhysmacbook.local:27019      rhysmacbook.local:27020      rhysmacbook.local:27021
+            rhysmacbook.local:27019 rhysmacbook.local:27020 rhysmacbook.local:27021
             MongoDB mongos servers
-            rhysmacbook.local:27017      rhysmacbook.local:27018      rhysmacbook.local:27016
+            rhysmacbook.local:27017 rhysmacbook.local:27018 rhysmacbook.local:27016
             MongoDB mongod shard servers
-            rhysmacbook.local:30001      rhysmacbook.local:30002      rhysmacbook.local:30003
-            rhysmacbook.local:30004      rhysmacbook.local:30005      rhysmacbook.local:30006
-            rhysmacbook.local:30007      rhysmacbook.local:30008      rhysmacbook.local:30009
+            rhysmacbook.local:30001 - rs0 - [0, 'buildIndexes=true', 'priority=1.0', 'votes=1']
+            rhysmacbook.local:30002 - rs0 - [1, 'buildIndexes=true', 'priority=1.0', 'votes=1']
+            rhysmacbook.local:30003 - rs0 - [2, 'buildIndexes=true', 'priority=1.0', 'votes=1']
+            rhysmacbook.local:30004 - rs1 - [0, 'buildIndexes=true', 'priority=1.0', 'votes=1']
+            rhysmacbook.local:30005 - rs1 - [1, 'buildIndexes=true', 'priority=1.0', 'votes=1']
+            rhysmacbook.local:30006 - rs1 - [2, 'buildIndexes=true', 'priority=1.0', 'votes=1']
+            rhysmacbook.local:30007 - rs2 - [0, 'buildIndexes=true', 'priority=1.0', 'votes=1']
+            rhysmacbook.local:30008 - rs2 - [1, 'buildIndexes=true', 'priority=1.0', 'votes=1']
+            rhysmacbook.local:30009 - rs2 - [2, 'buildIndexes=true', 'priority=1.0', 'votes=1']
             MongoDB shards
-            rs0   rs1   rs2
+            rs   v  pv  chaining  hb interval (ms)  hb t/o (s)  election t/o (ms)  catchUp t/o (ms)  replicaSetId
+            rs0  3  1   1         2000              10          10000              2000              591714096c613edd0a28cf5f
+            rs1  3  1   1         2000              10          10000              2000              591714193a6cd8344c2de3af
+            rs2  3  1   1         2000              10          10000              2000              591714289a00739bc8ed40bd
 
         Show a summary of the replication state
 
+        The replication screen displays the state of all replicasets, including configuration replicasets available from
+        MongoDB 3.2, the state of each host, config version, uptime and any lag (seconds) in replication. Available hosts
+        are highlighted in green, unavailable hosts in red.
+
             ./mm --repl
 
-            hostname                  replicaset state      configV    uptime     slaveDelay
-            rhysmacbook.local:30001   rs0        PRIMARY    3          190        NA
-            rhysmacbook.local:30002   rs0        SECONDARY  3          184        0.0
-            rhysmacbook.local:30003   rs0        SECONDARY  3          184        0.0
-            rhysmacbook.local:30004   rs1        SECONDARY  3          188        0.0
-            rhysmacbook.local:30005   rs1        PRIMARY    3          189        NA
-            rhysmacbook.local:30006   rs1        SECONDARY  3          183        0.0
-            rhysmacbook.local:30007   rs2        PRIMARY    3          189        NA
-            rhysmacbook.local:30008   rs2        SECONDARY  3          183        0.0
-            rhysmacbook.local:30009   rs2        SECONDARY  3          183        0.0
+            hostname                 rs         state      cfgV  lag  uptime
+            rhysmacbook.local:30001  rs0        PRIMARY    3     NA   25s
+            rhysmacbook.local:30002  rs0        SECONDARY  3     0.0  28s
+            rhysmacbook.local:30003  rs0        SECONDARY  3     0.0  20s
+            rhysmacbook.local:30004  rs1        PRIMARY    3     NA   20m,12s
+            rhysmacbook.local:30005  rs1        SECONDARY  3     0.0  20m,15s
+            rhysmacbook.local:30006  rs1        SECONDARY  3     0.0  20m,7s
+            rhysmacbook.local:30007  rs2        PRIMARY    3     NA   20m,7s
+            rhysmacbook.local:30008  rs2        SECONDARY  3     0.0  20m,10s
+            rhysmacbook.local:30009  rs2        SECONDARY  3     0.0  20m,2s
+            rhysmacbook.local:27019  csReplSet  PRIMARY    1     NA   20m,50s
+            rhysmacbook.local:27020  csReplSet  SECONDARY  1     4.0  20m,44s
+            rhysmacbook.local:27021  csReplSet  SECONDARY  1     4.0  20m,44s
+            There have been no state changes in the cluster since the last check
+
+        The state of the MongoDB CLuster is recorded in two files; /tmp/replication_summary.p & /tmp/replication_summary.previous
+
+        These are use to identify and state changes in the cluster. Below shows an example of this.
+
+        hostname                 rs         state      cfgV  lag  uptime
+        rhysmacbook.local:30001  rs0        SECONDARY  3     0.0  5m,44s
+        rhysmacbook.local:30002  rs0        PRIMARY    3     NA   5m,38s
+        rhysmacbook.local:30003  rs0        SECONDARY  3     0.0  5m,38s
+        rhysmacbook.local:30004  rs1        PRIMARY    3     NA   25m,28s
+        rhysmacbook.local:30005  rs1        SECONDARY  3     0.0  25m,31s
+        rhysmacbook.local:30006  rs1        SECONDARY  3     0.0  25m,23s
+        rhysmacbook.local:30007  rs2        PRIMARY    3     NA   25m,23s
+        rhysmacbook.local:30008  rs2        SECONDARY  3     0.0  25m,26s
+        rhysmacbook.local:30009  rs2        SECONDARY  3     0.0  25m,18s
+        rhysmacbook.local:27019  csReplSet  PRIMARY    1     NA   26m,6s
+        rhysmacbook.local:27020  csReplSet  SECONDARY  1     2.0  26m
+        rhysmacbook.local:27021  csReplSet  SECONDARY  1     2.0  26m
+        There have been 2 changes in the cluster state since the last check
+        rhysmacbook.local:30001 PRIMARY -> SECONDARY
+        rhysmacbook.local:30002 SECONDARY -> PRIMARY
+        PRIMARY changed from rhysmacbook.local:30001 to rhysmacbook.local:30002
 
         Instruct the primary of the given replicaset to step down
 
@@ -231,21 +291,29 @@ EXAMPLES
 
             Output is the same as --repl flag with the addition of a line showing the PRIMARY transition.
 
-        Instruct the primary of the given replicaset to step down and nominate a secondary to take over the role. Note this is not guaranteed but should work in most circumstances. If your cluster has significant replication lag then this request may not be honoured.
+        Instruct the primary of the given replicaset to step down and nominate a secondary to take over the role.
+        Note this is not guaranteed but should work in most circumstances. If your cluster has significant replication
+        lag then this request may not be honoured.
 
             ./mm --step_down rs0 --step_down_nominate_host rhysmacbook.local --step_down_nominate_port 30001
 
-            hostname                  replicaset state      configV    uptime     slaveDelay
-            rhysmacbook.local:30001   rs0        PRIMARY    3          433        NA
-            rhysmacbook.local:30002   rs0        SECONDARY  3          427        0.0
-            rhysmacbook.local:30003   rs0        SECONDARY  3          427        0.0
-            rhysmacbook.local:30004   rs1        SECONDARY  3          431        0.0
-            rhysmacbook.local:30005   rs1        PRIMARY    3          432        NA
-            rhysmacbook.local:30006   rs1        SECONDARY  3          426        0.0
-            rhysmacbook.local:30007   rs2        PRIMARY    3          432        NA
-            rhysmacbook.local:30008   rs2        SECONDARY  3          426        0.0
-            rhysmacbook.local:30009   rs2        SECONDARY  3          426        0.0
-            PRIMARY changed from rhysmacbook.local:30003 to rhysmacbook.local:30001
+        hostname                 rs         state      cfgV  lag  uptime
+        rhysmacbook.local:30001  rs0        SECONDARY  3     UNK  12m,14s
+        rhysmacbook.local:30002  rs0        SECONDARY  3     UNK  12m,9s
+        rhysmacbook.local:30003  rs0        SECONDARY  3     UNK  12m,9s
+        rhysmacbook.local:30004  rs1        PRIMARY    3     NA   31m,58s
+        rhysmacbook.local:30005  rs1        SECONDARY  3     0.0  32m,2s
+        rhysmacbook.local:30006  rs1        SECONDARY  3     0.0  31m,53s
+        rhysmacbook.local:30007  rs2        PRIMARY    3     NA   31m,54s
+        rhysmacbook.local:30008  rs2        SECONDARY  3     0.0  31m,57s
+        rhysmacbook.local:30009  rs2        SECONDARY  3     0.0  31m,49s
+        rhysmacbook.local:27019  csReplSet  PRIMARY    1     NA   32m,36s
+        rhysmacbook.local:27020  csReplSet  SECONDARY  1     3.0  32m,30s
+        rhysmacbook.local:27021  csReplSet  SECONDARY  1     3.0  32m,30s
+        There has been 1 change in the cluster state since the last check
+        rhysmacbook.local:30001 SECONDARY -> PRIMARY
+        rhysmacbook.local:30002 PRIMARY -> SECONDARY
+        PRIMARY changed from rhysmacbook.local:30002 to rhysmacbook.local:30001
 
          View system info from your cluster
 
@@ -342,6 +410,83 @@ EXAMPLES
 
         ./mm --db_hashes --verbose_display
 
+        Display a summary of the schema for the specific collection. By default this is based on a sample of 200 documents.
+        The number of documents samples can be modified with the --schema_summary_limit flag.
+
+        ./mm --schema_summary test.restaurants
+
+        Schema summary for test.restaurants based on a sample of 200 documents
+        There are 7 keys in this dictionary.
+        Data types
+        _id                  <class 'bson.objectid.ObjectId'>
+        address              <type 'dict'>
+          - building             <type 'unicode'>
+          - coord                <type 'unicode'>
+          - street               <type 'unicode'>
+          - zipcode              <type 'unicode'>
+        borough              <type 'unicode'>
+        cuisine              <type 'unicode'>
+        grades               <type 'list'>
+          - List data types: <type 'dict'>
+            - date                 <type 'unicode'>
+            - grade                <type 'unicode'>
+            - score                <type 'unicode'>
+        name                 <type 'unicode'>
+        restaurant_id        <type 'unicode'>
+        Sample Document
+        {u'_id': ObjectId('5917166627bbe7a16a0e7d09'),
+         u'address': {u'building': u'49-20',
+                      u'coord': [-73.90725640000001, 40.7601082],
+                      u'street': u'30 Avenue',
+                      u'zipcode': u'11377'},
+         u'borough': u'Queens',
+         u'cuisine': u'American',
+         u'grades': [{u'date': datetime.datetime(2014, 2, 4, 0, 0),
+                      u'grade': u'A',
+                      u'score': 12},
+                     {u'date': datetime.datetime(2013, 1, 16, 0, 0),
+                      u'grade': u'A',
+                      u'score': 12},
+                     {u'date': datetime.datetime(2012, 1, 25, 0, 0),
+                      u'grade': u'A',
+                      u'score': 4},
+                     {u'date': datetime.datetime(2011, 10, 13, 0, 0),
+                      u'grade': u'A',
+                      u'score': 8},
+                     {u'date': datetime.datetime(2011, 5, 23, 0, 0),
+                      u'grade': u'A',
+                      u'score': 12}],
+         u'name': u"Pat'S Stationary",
+         u'restaurant_id': u'40370449'}
+
+       Display a summary of chunks and their distribution across the shards;
+
+       ./mm --chunks
+
+        namespace             shard  count
+        test.restaurants      rs0    1
+        test.sample_messages  rs0    1
+
+        Manage the balancer (globally)
+
+        ./mm --balancing_state state
+        true
+        ./mm --balancing_state disable
+        ./mm --balancing_state state
+        false
+        ./mm --balancing_state enable
+        ./mm --balancing_state state
+        true
+
+        Manage balancing on individual collections
+
+        ./mm --balancing disable --collection test.restaurants
+        Balancing for test.restaurants is disabled
+        ./mm --balancing enable --collection test.restaurants
+        Balancing for test.restaurants is enabled
+
 SEE ALSO
 
 BUGS
+
+    See https://github.com/rhysmeister/mmo/issues

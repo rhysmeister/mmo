@@ -333,13 +333,27 @@ class MmoMongoCluster:
         :param replicaset Optionally execute against a single replicaset or all
         :return: A list of dictionaries, containing hostname, port, shard and command_output, for each PRIMARY mongod in all shards
         """
+
+        auth_dic = self.mmo_get_auth_details_from_connection(mmo_connection)
+
         cluster_command_output = []
         if replicaset == self.config_server_repl_name: # Config server replset
-            raise Exception("Need to implement functionality here!")
+            for doc in self.mmo_config_servers(mmo_connection):
+                hostname, port = doc["hostname"], doc["port"]
+                try:
+                    c = self.mmo_connect_mongod(hostname, port, auth_dic["username"], auth_dic["password"],auth_dic["authentication_database"])
+                    if self.mmo_replica_state(c)["name"] == "PRIMARY":
+                        command_output = c["admin"].command(command)
+                        cluster_command_output.append({"hostname": hostname, "port": port, "shard": replicaset, "command_output": command_output})
+                except Exception as excep:
+                    if str(excep) == "mongod process is not up":
+                        cluster_command_output.append({"hostname": hostname, "port": port, "shard": replicaset, "command_output": {"Error": "mongod process is not up"}})
+                    else:
+                        raise excep
         else:
             for doc in self.mmo_shard_servers(mmo_connection):
                 hostname, port, shard = doc["hostname"], doc["port"], doc["shard"]
-                auth_dic = self.mmo_get_auth_details_from_connection(mmo_connection)
+
                 try:
                     c = self.mmo_connect_mongod(hostname, port, auth_dic["username"], auth_dic["password"], auth_dic["authentication_database"])
                     if self.mmo_replica_state(c)["name"] == "PRIMARY" and (replicaset == "all" or replicaset == shard):
@@ -363,24 +377,40 @@ class MmoMongoCluster:
         """
         cluster_command_output = []
         replsets_completed = []
-        for doc in self.mmo_shard_servers(mmo_connection):
-            hostname, port, shard = doc["hostname"], doc["port"], doc["shard"]
-            auth_dic = self.mmo_get_auth_details_from_connection(mmo_connection)
-            try:
 
-                c = self.mmo_connect_mongod(hostname, port, auth_dic["username"], auth_dic["password"], auth_dic["authentication_database"])
-                if self.mmo_replica_state(c)["name"] == "SECONDARY"  \
-                        and (replicaset == "all" or replicaset == shard)\
-                        and shard not in replsets_completed:
-                    command_output = c["admin"].command(command)
-                    cluster_command_output.append({ "hostname": hostname, "port": port, "shard": shard, "command_output": command_output })
-                    if first_available_only:
-                        replsets_completed.append(shard)
-            except Exception as excep:
-                if str(excep) == "mongod process is not up":
-                    cluster_command_output.append({"hostname": hostname, "port": port, "shard": shard, "command_output": {"Error": "This mongod process is not available"}})
-                else:
-                    raise excep
+        auth_dic = self.mmo_get_auth_details_from_connection(mmo_connection)
+
+        if replicaset == self.config_server_repl_name: # Config server replset
+            for doc in self.mmo_config_servers(mmo_connection):
+                hostname, port = doc["hostname"], doc["port"]
+                try:
+                    c = self.mmo_connect_mongod(hostname, port, auth_dic["username"], auth_dic["password"],auth_dic["authentication_database"])
+                    if self.mmo_replica_state(c)["name"] == "SECONDARY":
+                        command_output = c["admin"].command(command)
+                        cluster_command_output.append({"hostname": hostname, "port": port, "shard": replicaset, "command_output": command_output})
+                except Exception as excep:
+                    if str(excep) == "mongod process is not up":
+                        cluster_command_output.append({"hostname": hostname, "port": port, "shard": replicaset, "command_output": {"Error": "mongod process is not up"}})
+                    else:
+                        raise excep
+        else:
+            for doc in self.mmo_shard_servers(mmo_connection):
+                hostname, port, shard = doc["hostname"], doc["port"], doc["shard"]
+                try:
+
+                    c = self.mmo_connect_mongod(hostname, port, auth_dic["username"], auth_dic["password"], auth_dic["authentication_database"])
+                    if self.mmo_replica_state(c)["name"] == "SECONDARY"  \
+                            and (replicaset == "all" or replicaset == shard)\
+                            and shard not in replsets_completed:
+                        command_output = c["admin"].command(command)
+                        cluster_command_output.append({ "hostname": hostname, "port": port, "shard": shard, "command_output": command_output })
+                        if first_available_only:
+                            replsets_completed.append(shard)
+                except Exception as excep:
+                    if str(excep) == "mongod process is not up":
+                        cluster_command_output.append({"hostname": hostname, "port": port, "shard": shard, "command_output": {"Error": "This mongod process is not available"}})
+                    else:
+                        raise excep
         return cluster_command_output
 
 

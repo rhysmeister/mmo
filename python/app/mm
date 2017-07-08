@@ -1107,6 +1107,8 @@ def display_db_hash_info_for_cluster(mmo, c, verbose_display=False):
 def step_down_primary(mmo, c, replicaset, force):
     if replicaset in mmo.mmo_shards():
         sd = mmo.mmo_step_down(c, replicaset, 60, 50, force)
+    elif mmo.mmo_is_cfg_rs(c) and replicaset == mmo.config_server_repl_name:
+        sd = mmo.mmo_step_down(c, replicaset, 60, 50, force)
     else:
         raise Exception("Not a valid replicaset name.")
 

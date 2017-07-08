@@ -14,6 +14,7 @@ class MmoMongoCluster:
     config_servers = []
     shard_servers = []
     shards = []
+    config_server_repl_name = None
 
     def __init__(self, hostname, port, username, password, authentication_db):
         """
@@ -41,6 +42,8 @@ class MmoMongoCluster:
         for d in self.shard_servers:
             if d["shard"] not in self.shards:
                 self.shards.append(d["shard"])
+
+        self.config_server_repl_name = self.mmo_config_server_replset_name(c)
 
     def mmo_is_mongo_up(self, hostname, port=27017):
         """
@@ -126,6 +129,20 @@ class MmoMongoCluster:
                 hostname = hostname.partition("/")[2]
             config_servers.append( { "hostname": hostname, "port": int(port) } )
         return config_servers
+
+    def mmo_config_server_replset_name(self, mmo_connection):
+        """
+        Returns the replset name for a group of config server or null if it is not a replset
+        :param mmo_connection:
+        :return:
+        """
+        replset_name = None
+        c = mmo_connection["admin"].command("getCmdLineOpts")["parsed"]["sharding"]["configDB"]
+        for item in c.split(","):
+            if "/" in item:  # cfg Replset server
+                replset_name = item.partition("/")[1]
+                break
+        return replset_name
 
     def mmo_shard_servers(self, mmo_connection):
         """
@@ -317,19 +334,22 @@ class MmoMongoCluster:
         :return: A list of dictionaries, containing hostname, port, shard and command_output, for each PRIMARY mongod in all shards
         """
         cluster_command_output = []
-        for doc in self.mmo_shard_servers(mmo_connection):
-            hostname, port, shard = doc["hostname"], doc["port"], doc["shard"]
-            auth_dic = self.mmo_get_auth_details_from_connection(mmo_connection)
-            try:
-                c = self.mmo_connect_mongod(hostname, port, auth_dic["username"], auth_dic["password"], auth_dic["authentication_database"])
-                if self.mmo_replica_state(c)["name"] == "PRIMARY" and (replicaset == "all" or replicaset == shard):
-                    command_output = c["admin"].command(command)
-                    cluster_command_output.append({ "hostname": hostname, "port": port, "shard": shard, "command_output": command_output })
-            except Exception as excep:
-                if str(excep) == "mongod process is not up":
-                    cluster_command_output.append({ "hostname": hostname, "port": port, "shard": shard, "command_output": { "Error": "mongod process is not up" } })
-                else:
-                    raise excep
+        if replicaset == self.config_server_repl_name: # Config server replset
+            raise Exception("Need to implement functionality here!")
+        else:
+            for doc in self.mmo_shard_servers(mmo_connection):
+                hostname, port, shard = doc["hostname"], doc["port"], doc["shard"]
+                auth_dic = self.mmo_get_auth_details_from_connection(mmo_connection)
+                try:
+                    c = self.mmo_connect_mongod(hostname, port, auth_dic["username"], auth_dic["password"], auth_dic["authentication_database"])
+                    if self.mmo_replica_state(c)["name"] == "PRIMARY" and (replicaset == "all" or replicaset == shard):
+                        command_output = c["admin"].command(command)
+                        cluster_command_output.append({ "hostname": hostname, "port": port, "shard": shard, "command_output": command_output })
+                except Exception as excep:
+                    if str(excep) == "mongod process is not up":
+                        cluster_command_output.append({ "hostname": hostname, "port": port, "shard": shard, "command_output": { "Error": "mongod process is not up" } })
+                    else:
+                        raise excep
         return cluster_command_output
 
     def mmo_execute_on_secondaries(self, mmo_connection, command, replicaset="all", first_available_only=False): # TODO add execution database?

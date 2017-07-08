@@ -140,7 +140,7 @@ class MmoMongoCluster:
         c = mmo_connection["admin"].command("getCmdLineOpts")["parsed"]["sharding"]["configDB"]
         for item in c.split(","):
             if "/" in item:  # cfg Replset server
-                replset_name = item.partition("/")[1]
+                replset_name = item.partition("/")[0]
                 break
         return replset_name
 

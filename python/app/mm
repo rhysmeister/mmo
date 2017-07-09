@@ -3,12 +3,6 @@
 Author: Rhys Campbell
 Name: mm - "MongoDB Manager"
 Created: 2016/03/28
-Description: A demo app using the pymmo library.
-
-History:
-
-2016/03/28  RC      Initial version.
-
 """
 import inspect
 import os
@@ -588,7 +582,7 @@ def display_extra_info_for_cluster(mmo, c, inc_mongos):
                                                                  doc["command_output"]["extra_info"].get("heap_usage_bytes", "NA"),
                                                                  doc["command_output"]["extra_info"]["page_faults"]])
 
-def display_opcounters_for_cluster(mmo, c, inc_mongos, repl=False):
+def display_opcounters_for_cluster(mmo, c, inc_mongos, repl, poll):
     """
     Display the opcounters for all nodes in the cluster
     "opcounters" : {
@@ -621,7 +615,7 @@ def display_opcounters_for_cluster(mmo, c, inc_mongos, repl=False):
     if repl:
         document = "opcountersRepl"
 
-    serverStatus = mmo.mmo_cluster_serverStatus(c, inc_mongos)
+    serverStatus = mmo.mmo_cluster_serverStatus(c, inc_mongos, poll)
 
     headers = [
         "hostname",
@@ -650,22 +644,40 @@ def display_opcounters_for_cluster(mmo, c, inc_mongos, repl=False):
     format_string = create_format_string(headers, header_lookup, serverStatus)
 
     print_bold_header(format_string, headers)
+
+    previous_state = []
+    if os.path.exists("/tmp/server_status.previous"):
+        previous_state = pickle.load(open("/tmp/server_status.previous", "rb"))
+
     for doc in serverStatus:
+        # Get the previous document for this server
+        previous_server_info = { "command_output": { document: {} } } # Default in case there is no file available
+        for old_data in previous_state:
+            if doc["hostname"] == old_data["hostname"] and doc["port"] == old_data["port"]:
+                if poll: # Ignore unless polling is on
+                    previous_server_info = old_data
         print_colour_data_row(bgcolours.OKGREEN, format_string, [doc["hostname"],
                                                                  doc["shard"],
                                                                  doc["port"],
-                                                                 doc["command_output"][document]["insert"],
-                                                                 doc["command_output"][document]["query"],
-                                                                 doc["command_output"][document]["update"],
-                                                                 doc["command_output"][document]["delete"],
-                                                                 doc["command_output"][document]["getmore"],
-                                                                 doc["command_output"][document]["command"]])
+                                                                 doc["command_output"][document]["insert"] - previous_server_info["command_output"][document].get("insert", 0),
+                                                                 doc["command_output"][document]["query"] - previous_server_info["command_output"][document].get("query", 0),
+                                                                 doc["command_output"][document]["update"] - previous_server_info["command_output"][document].get("update", 0),
+                                                                 doc["command_output"][document]["delete"] - previous_server_info["command_output"][document].get("delete", 0),
+                                                                 doc["command_output"][document]["getmore"] - previous_server_info["command_output"][document].get("getmore", 0),
+                                                                 doc["command_output"][document]["command"] - previous_server_info["command_output"][document].get("command", 0)])
+    if os.path.exists("/tmp/server_status.previous") and poll:
+        last_poll = int(os.path.getmtime("/tmp/server_status.previous"))
+        print("Last poll was {0}".format(pretty_date(last_poll)))
+    elif poll:
+        print("No previous poll data found")
+
 
 def display_globalLock_for_cluster(mmo, c, in_mongos):
     """
     Display the global lock document for the database.
     "globalLock" : {
    "totalTime" : <num>,
+   "currentQueue" : {
    "currentQueue" : {
       "total" : <num>,
       "readers" : <num>,
@@ -1680,6 +1692,50 @@ def launch_mongo_shell(hostname, port, username, password, authentication_db, db
     else:
         print "Failed. {0} was not found in your PATH.".format(mongo_cmd)
 
+def pretty_date(time=False):
+    """
+    Stolen from https://stackoverflow.com/questions/1551382/user-friendly-time-format-in-python
+
+    Get a datetime object or a int() Epoch timestamp and return a
+    pretty string like 'an hour ago', 'Yesterday', '3 months ago',
+    'just now', etc
+    """
+    from datetime import datetime
+    now = datetime.now()
+    if type(time) is int:
+        diff = now - datetime.fromtimestamp(time)
+    elif isinstance(time,datetime):
+        diff = now - time
+    elif not time:
+        diff = now - now
+    second_diff = diff.seconds
+    day_diff = diff.days
+
+    if day_diff < 0:
+        return ''
+
+    if day_diff == 0:
+        if second_diff < 1:
+            return "just now"
+        if second_diff < 60:
+            return str(second_diff) + " seconds ago"
+        if second_diff < 120:
+            return "a minute ago"
+        if second_diff < 3600:
+            return str(second_diff / 60) + " minutes ago"
+        if second_diff < 7200:
+            return "an hour ago"
+        if second_diff < 86400:
+            return str(second_diff / 3600) + " hours ago"
+    if day_diff == 1:
+        return "Yesterday"
+    if day_diff < 7:
+        return str(day_diff) + " days ago"
+    if day_diff < 31:
+        return str(day_diff / 7) + " weeks ago"
+    if day_diff < 365:
+        return str(day_diff / 30) + " months ago"
+    return str(day_diff / 365) + " years ago"
 """
 MAIN SECTION STARTS HERE
 """
@@ -1701,6 +1757,9 @@ server_status_choices = ['instance',
                          'storage_engine',
                          'memory']
 parser.add_argument('--server_status', type=str, default="", choices=server_status_choices, help="Show a summary of the appropriate section from the serverStatus document from all mongod processes.")
+
+parser.add_argument('--poll', action='store_true', default=False, help="Used to change the behaviour of the --server_status screen. When the poll flag is used we display the figures in intervals since the last poll rather than the totals.")
+
 host_info_choices = ["system",
                      "os",
                      "extra",
@@ -1823,32 +1882,36 @@ else:
     sys.tracebacklimit = 0
 
 if c:
-    while args.repeat != 0:
+
+    if args.poll:
+        print("Polling mode is active. Press ctrl + c to escape.")
+
+    while args.repeat != 0 or args.poll == True:
         if args.summary:
             display_cluster_state(mmo, c)
         if args.repl:
             rs = mmo.mmo_replication_status_summary(c)
             print_replication_summary(rs)
         elif args.server_status == "instance":
-            display_instance_info_for_cluster(mmo, c, args.inc_mongos)
+            display_instance_info_for_cluster(mmo, c, args.inc_mongos, args.poll)
         elif args.server_status == "asserts":
-            display_asserts_for_cluster(mmo, c, args.inc_mongos)
+            display_asserts_for_cluster(mmo, c, args.inc_mongos, args.poll)
         elif args.server_status == "flushing":
-            display_backgroundFlushing_for_cluster(mmo, c, args.inc_mongos)
+            display_backgroundFlushing_for_cluster(mmo, c, args.inc_mongos, args.poll)
         elif args.server_status == "journaling":
-            display_journaling_for_cluster(mmo, c, args.inc_mongos)
+            display_journaling_for_cluster(mmo, c, args.inc_mongos, args.poll)
         elif args.server_status == "extra_info":
             display_extra_info_for_cluster(mmo, c, args.inc_mongos)
         elif args.server_status == "connections":
-            display_connections_for_cluster(mmo, c, args.inc_mongos)
+            display_connections_for_cluster(mmo, c, args.inc_mongos, args.poll)
         elif args.server_status == "global_lock":
-            display_globalLock_for_cluster(mmo, c, args.inc_mongos)
+            display_globalLock_for_cluster(mmo, c, args.inc_mongos, args.poll)
         elif args.server_status =="network":
-            display_network_for_cluster(mmo, c, args.inc_mongos)
+            display_network_for_cluster(mmo, c, args.inc_mongos, args.poll)
         elif args.server_status == "opcounters":
-            display_opcounters_for_cluster(mmo, c, args.inc_mongos, False)
+            display_opcounters_for_cluster(mmo, c, args.inc_mongos, False, args.poll)
         elif args.server_status == "opcounters_repl":
-            display_opcounters_for_cluster(mmo, c, args.inc_mongos, True)
+            display_opcounters_for_cluster(mmo, c, args.inc_mongos, True, args.poll)
         elif args.server_status == "security":
             display_security_for_cluster(mmo, c, args.inc_mongos)
         elif args.server_status == "storage_engine":
@@ -2040,7 +2103,7 @@ if c:
                                args.mongo_password,
                                args.mongo_auth_db,
                                args.database)
-        if args.repeat > 0:
+        if args.repeat > 0 or args.poll:
             time.sleep(args.interval)
             os.system('cls' if os.name == 'nt' else 'clear')
 else:

@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 from pymongo import ReturnDocument
 from bson import SON
-import re, socket, json
+import re, socket, json, os, pickle
 
 class MmoMongoCluster:
 
@@ -625,7 +625,7 @@ class MmoMongoCluster:
                 deduped_replication_summary.append(d)
         return deduped_replication_summary
 
-    def mmo_cluster_serverStatus(self, mmo_connection, inc_mongos):
+    def mmo_cluster_serverStatus(self, mmo_connection, inc_mongos, poll=False):
         """
         Return the output of the db.serverStatus() command from all mongod shard servers
         :param self:
@@ -637,7 +637,11 @@ class MmoMongoCluster:
                                             "command_output" <serverStatus doc> }
         See https://docs.mongodb.org/manual/reference/command/serverStatus/#output
         """
-        return self.mmo_execute_on_cluster(mmo_connection, "serverStatus", inc_mongos)
+        serverStatus = self.mmo_execute_on_cluster(mmo_connection, "serverStatus", inc_mongos)
+        if os.path.exists("/tmp/server_status.p"):
+            os.rename("/tmp/server_status.p", "/tmp/server_status.previous")
+        pickle.dump(serverStatus, open("/tmp/server_status.p", "wb"))
+        return serverStatus
 
     def mmo_cluster_hostInfo(self, mmo_connection, inc_mongos):
         """

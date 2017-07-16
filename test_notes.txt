@@ -213,3 +213,9 @@ mmo_kill_replset rs3
 ./mm --repl     # Not currently working. Probably need custom code for the repl screen as it's getting messy
 ./mm --summary  # Works
 
+30. Test polling
+
+./mm --server_status opcounters --poll
+./mm --server_status asserts --poll
+./mm --server_status network --poll
+

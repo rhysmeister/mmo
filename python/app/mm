@@ -473,7 +473,9 @@ def display_connections_for_cluster(mmo, c, inc_mongos):
 
     format_string = create_format_string(headers, header_lookup, serverStatus)
     print_bold_header(format_string, headers)
+
     for doc in serverStatus:
+
         print_colour_data_row(bgcolours.OKGREEN, format_string, [doc["hostname"],
                                                                  doc["shard"],
                                                                  doc["port"],
@@ -481,7 +483,7 @@ def display_connections_for_cluster(mmo, c, inc_mongos):
                                                                  doc["command_output"]["connections"]["available"],
                                                                  doc["command_output"]["connections"]["totalCreated"]])
 
-def display_journaling_for_cluster(mmo, c, inc_mongos):
+def display_journaling_for_cluster(mmo, c, inc_mongos, poll):
     """
     "dur" : {
    "commits" : <num>,
@@ -535,17 +537,30 @@ def display_journaling_for_cluster(mmo, c, inc_mongos):
     format_string = create_format_string(headers, header_lookup, serverStatus)
     print_bold_header(format_string, headers)
     no_journaling_count = 0
+
+    previous_state = []
+    if os.path.exists("/tmp/server_status.previous"):
+        previous_state = pickle.load(open("/tmp/server_status.previous", "rb"))
+
     for doc in serverStatus:
         if "dur" in doc.keys():
+
+            # Get the previous document for this server
+            previous_server_info = {"command_output": {"asserts": {}}}  # Default in case there is no file available
+            for old_data in previous_state:
+                if poll:  # Ignore unless polling is on
+                    if doc["hostname"] == old_data["hostname"] and doc["port"] == old_data["port"]:
+                        previous_server_info = old_data
+
             print_colour_data_row(bgcolours.OKGREEN, format_string, [doc["hostname"],
                                                                      doc["shard"],
                                                                      doc["port"],
-                                                                     doc["dur"]["commits"],
-                                                                     doc["dur"]["journaledMB"],
-                                                                     doc["dur"]["writeToDataFilesMB"],
-                                                                     doc["dur"]["compression"],
-                                                                     doc["dur"]["commitsInWriteLock"],
-                                                                     doc["dur"]["earlyCommits"]])
+                                                                     doc["dur"]["commits"] - previous_server_info["command_output"]["dur"].get("commits", 0),
+                                                                     doc["dur"]["journaledMB"] - previous_server_info["command_output"]["dur"].get("journaledMB", 0),
+                                                                     doc["dur"]["writeToDataFilesMB"]  - previous_server_info["command_output"]["dur"].get("writeToDataFilesMB", 0),
+                                                                     doc["dur"]["compression"]  - previous_server_info["command_output"]["dur"].get("compression", 0),
+                                                                     doc["dur"]["commitsInWriteLock"]  - previous_server_info["command_output"]["dur"].get("commitsInWriteLock", 0),
+                                                                     doc["dur"]["earlyCommits"]  - previous_server_info["command_output"]["dur"].get("earlyCommits", 0)])
         else:
             no_journaling_count = no_journaling_count + 1
             print_colour_data_row(bgcolours.OKGREEN, format_string, [doc["hostname"],
@@ -559,9 +574,13 @@ def display_journaling_for_cluster(mmo, c, inc_mongos):
                                                                      "NA"])
     if no_journaling_count > 0:
         print_colour_data_row(bgcolours.WARNING, "{0:<80}", ["The dur key missing on " + str(no_journaling_count) + " instances. Perhaps MMAPV1 is not used here?"])
+    if os.path.exists("/tmp/server_status.previous") and poll:
+        last_poll = int(os.path.getmtime("/tmp/server_status.previous"))
+        print("Last poll was {0}".format(pretty_date(last_poll)))
+    elif poll:
+        print("No previous poll data found")
 
-
-def display_extra_info_for_cluster(mmo, c, inc_mongos):
+def display_extra_info_for_cluster(mmo, c, inc_mongos, poll):
     """
     Show the stats from the extra_info section of the serverStatus document
     "extra_info" : {
@@ -594,13 +613,31 @@ def display_extra_info_for_cluster(mmo, c, inc_mongos):
 
     format_string = create_format_string(headers, header_lookup, serverStatus)
 
+    previous_state = []
+    if os.path.exists("/tmp/server_status.previous"):
+        previous_state = pickle.load(open("/tmp/server_status.previous", "rb"))
+
     print_bold_header(format_string, headers)
     for doc in serverStatus:
+
+        # Get the previous document for this server
+        previous_server_info = { "command_output": { "extra_info": {} } } # Default in case there is no file available
+        for old_data in previous_state:
+            if poll:  # Ignore unless polling is on
+                if doc["hostname"] == old_data["hostname"] and doc["port"] == old_data["port"]:
+                    previous_server_info = old_data
+
         print_colour_data_row(bgcolours.OKGREEN, format_string, [doc["hostname"],
                                                                  doc["shard"],
                                                                  doc["port"],
                                                                  doc["command_output"]["extra_info"].get("heap_usage_bytes", "NA"),
-                                                                 doc["command_output"]["extra_info"]["page_faults"]])
+                                                                 doc["command_output"]["extra_info"]["page_faults"] - previous_server_info["command_output"]["extra_info"].get("page_faults", 0)])
+
+    if os.path.exists("/tmp/server_status.previous") and poll:
+        last_poll = int(os.path.getmtime("/tmp/server_status.previous"))
+        print("Last poll was {0}".format(pretty_date(last_poll)))
+    elif poll:
+        print("No previous poll data found")
 
 def display_opcounters_for_cluster(mmo, c, inc_mongos, repl, poll):
     """
@@ -752,7 +789,7 @@ def display_globalLock_for_cluster(mmo, c, in_mongos):
                                                                  doc["command_output"]["globalLock"]["activeClients"]["readers"],
                                                                  doc["command_output"]["globalLock"]["activeClients"]["writers"]])
 
-def display_network_for_cluster(mmo, c, inc_mongos):
+def display_network_for_cluster(mmo, c, inc_mongos, poll):
     """
     Print the network stats for the shard mongod process in the cluster
     """
@@ -779,13 +816,32 @@ def display_network_for_cluster(mmo, c, inc_mongos):
     format_string = create_format_string(headers, header_lookup, serverStatus)
 
     print_bold_header(format_string, headers)
+
+    previous_state = []
+    if os.path.exists("/tmp/server_status.previous"):
+        previous_state = pickle.load(open("/tmp/server_status.previous", "rb"))
+
     for doc in serverStatus:
+
+        # Get the previous document for this server
+        previous_server_info = { "command_output": { "network": {} } } # Default in case there is no file available
+        for old_data in previous_state:
+            if poll:  # Ignore unless polling is on
+                if doc["hostname"] == old_data["hostname"] and doc["port"] == old_data["port"]:
+                    previous_server_info = old_data
+
         print_colour_data_row(bgcolours.OKGREEN, format_string, [doc["hostname"],
                                                                  doc["shard"],
                                                                  doc["port"],
-                                                                 doc["command_output"]["network"]["bytesIn"],
-                                                                 doc["command_output"]["network"]["bytesOut"],
-                                                                 doc["command_output"]["network"]["numRequests"]])
+                                                                 doc["command_output"]["network"]["bytesIn"] - previous_server_info["command_output"]["network"].get("bytesIn", 0),
+                                                                 doc["command_output"]["network"]["bytesOut"] - previous_server_info["command_output"]["network"].get("bytesOut", 0),
+                                                                 doc["command_output"]["network"]["numRequests"] - previous_server_info["command_output"]["network"].get("numRequests", 0)])
+    if os.path.exists("/tmp/server_status.previous") and poll:
+        last_poll = int(os.path.getmtime("/tmp/server_status.previous"))
+        print("Last poll was {0}".format(pretty_date(last_poll)))
+    elif poll:
+        print("No previous poll data found")
+
 
 def display_security_for_cluster(mmo, c, inc_mongos):
     """
@@ -1917,15 +1973,15 @@ if c:
         elif args.server_status == "asserts":
             display_asserts_for_cluster(mmo, c, args.inc_mongos, args.poll)
         elif args.server_status == "flushing":
-            display_backgroundFlushing_for_cluster(mmo, c, args.inc_mongos, args.poll)
+            display_backgroundFlushing_for_cluster(mmo, c, args.inc_mongos)
         elif args.server_status == "journaling":
             display_journaling_for_cluster(mmo, c, args.inc_mongos, args.poll)
         elif args.server_status == "extra_info":
-            display_extra_info_for_cluster(mmo, c, args.inc_mongos)
+            display_extra_info_for_cluster(mmo, c, args.inc_mongos, args.poll)
         elif args.server_status == "connections":
-            display_connections_for_cluster(mmo, c, args.inc_mongos, args.poll)
+            display_connections_for_cluster(mmo, c, args.inc_mongos)
         elif args.server_status == "global_lock":
-            display_globalLock_for_cluster(mmo, c, args.inc_mongos, args.poll)
+            display_globalLock_for_cluster(mmo, c, args.inc_mongos)
         elif args.server_status =="network":
             display_network_for_cluster(mmo, c, args.inc_mongos, args.poll)
         elif args.server_status == "opcounters":

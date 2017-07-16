@@ -325,7 +325,7 @@ def display_instance_info_for_cluster(mmo, c, inc_mongos):
                                                                   int(doc["command_output"]["uptime"]),
                                                                   str(doc["command_output"]["localTime"])[:19]])
 
-def display_asserts_for_cluster(mmo, c, inc_mongos):
+def display_asserts_for_cluster(mmo, c, inc_mongos, poll):
     """
     Print the asserts for all the shard mongod processes in the cluster
     """
@@ -352,15 +352,34 @@ def display_asserts_for_cluster(mmo, c, inc_mongos):
     format_string = create_format_string(headers, header_lookup, serverStatus)
 
     print_bold_header(format_string, headers)
+
+    previous_state = []
+    if os.path.exists("/tmp/server_status.previous"):
+        previous_state = pickle.load(open("/tmp/server_status.previous", "rb"))
+
     for doc in serverStatus:
+
+        # Get the previous document for this server
+        previous_server_info = { "command_output": { "asserts": {} } } # Default in case there is no file available
+        for old_data in previous_state:
+            if poll:  # Ignore unless polling is on
+                if doc["hostname"] == old_data["hostname"] and doc["port"] == old_data["port"]:
+                    previous_server_info = old_data
+
         print_colour_data_row(bgcolours.OKGREEN, format_string, [doc["hostname"],
                                                                  doc["shard"],
                                                                  doc["port"],
-                                                                 doc["command_output"]["asserts"]["regular"],
-                                                                 doc["command_output"]["asserts"]["warning"],
-                                                                 doc["command_output"]["asserts"]["msg"],
-                                                                 doc["command_output"]["asserts"]["user"],
-                                                                 doc["command_output"]["asserts"]["rollovers"]])
+                                                                 doc["command_output"]["asserts"]["regular"] - previous_server_info["command_output"]["asserts"].get("regular", 0),
+                                                                 doc["command_output"]["asserts"]["warning"] - previous_server_info["command_output"]["asserts"].get("warning", 0),
+                                                                 doc["command_output"]["asserts"]["msg"] - previous_server_info["command_output"]["asserts"].get("msg", 0),
+                                                                 doc["command_output"]["asserts"]["user"] - previous_server_info["command_output"]["asserts"].get("user", 0),
+                                                                 doc["command_output"]["asserts"]["rollovers"] - previous_server_info["command_output"]["asserts"].get("rollovers", 0)])
+    if os.path.exists("/tmp/server_status.previous") and poll:
+        last_poll = int(os.path.getmtime("/tmp/server_status.previous"))
+        print("Last poll was {0}".format(pretty_date(last_poll)))
+    elif poll:
+        print("No previous poll data found")
+
 def display_backgroundFlushing_for_cluster(mmo, c, inc_mongos):
     """
     "backgroundFlushing" : {
@@ -403,6 +422,7 @@ def display_backgroundFlushing_for_cluster(mmo, c, inc_mongos):
     format_string = create_format_string(headers, header_lookup, serverStatus)
     print_bold_header(format_string, headers)
     key_not_present_count = 0
+
     for doc in serverStatus:
         if "backgroundFlushing" in doc["command_output"].keys():
             print_colour_data_row(bgcolours.OKGREEN, format_string, [doc["hostname"],
@@ -1893,7 +1913,7 @@ if c:
             rs = mmo.mmo_replication_status_summary(c)
             print_replication_summary(rs)
         elif args.server_status == "instance":
-            display_instance_info_for_cluster(mmo, c, args.inc_mongos, args.poll)
+            display_instance_info_for_cluster(mmo, c, args.inc_mongos)
         elif args.server_status == "asserts":
             display_asserts_for_cluster(mmo, c, args.inc_mongos, args.poll)
         elif args.server_status == "flushing":

@@ -1,4 +1,3 @@
-
 #!/usr/bin/env bash
 ################################################################
 # Author: Rhys Campbell                                        #
@@ -13,8 +12,8 @@
 # version probably won't correctly. Should work unmodifed on   #
 # GNU/Linux as well. Let me know if not.                       #
 # Usage:                                                       #
-#			#1 - source file to make mmo functions available   #
-#			linux> . mmo_mongodb_cluster.sh                    #
+#	    #1 - source file to make mmo functions available   #
+#	    linux> . mmo_mongodb_cluster.sh                    #
 #           #2 - Setup the cluster                             #
 #           linux> mmo_setup_cluster                           #
 #           #3 - Destory the cluster (gets rid of ALL data)    #
@@ -27,9 +26,9 @@
 #               9 x mongod servers. Split into 3 replicasets.  #
 #               rs0 30001, 30002 & 30003                       #
 #               rs1 30004, 30005 & 30006                       #
-#				rs2 30007, 30008 & 30009 (Can be turned off).  #
+#		rs2 30007, 30008 & 30009 (Can be turned off).  #
 #               WiredTiger Storage Engine 200MB Cache.         #
-# Users details: u: admin pw: admin                            #
+# Users details: u: admin pw: admin                            #
 #                u: pytest pw: secret                          # 
 ################################################################  
 
@@ -123,7 +122,7 @@ function mmo_create_mongod_shard_servers()
 
 function mmo_configure_replicaset_rs0()
 {
-	mongo --port 30001 <<EOF
+	mongo  --port 30001 <<EOF
 	var done = false;
 	rs.initiate();
 	while(rs.status()['myState'] != 1) {
@@ -133,8 +132,8 @@ function mmo_configure_replicaset_rs0()
 		}
 		sleep(10000);
 	}	
-	rs.add("$(hostname):30002");
-	rs.add("$(hostname):30003");
+	rs.add("localhost:30002");
+	rs.add("localhost:30003");
 EOF
 	STATUS=$?;
 	return $STATUS;
@@ -142,7 +141,7 @@ EOF
 
 function mmo_configure_replicaset_rs1()
 {
-	mongo --port 30004 <<EOF
+	mongo  --port 30004 <<EOF
 	var done = false;
 	rs.initiate();
 	while(rs.status()['myState'] != 1) {
@@ -152,14 +151,14 @@ function mmo_configure_replicaset_rs1()
 		}
 		sleep(10000);
 	}	
-	rs.add("$(hostname):30005");
-	rs.add("$(hostname):30006");
+	rs.add("localhost:30005");
+	rs.add("localhost:30006");
 EOF
 }
 
 function mmo_configure_replicaset_rs2()
 {
-	mongo --port 30007 <<EOF
+	mongo  --port 30007 <<EOF
 	var done = false;
 	rs.initiate();
 	while(rs.status()['myState'] != 1) {
@@ -169,22 +168,22 @@ function mmo_configure_replicaset_rs2()
 		}
 		sleep(10000);
 	}	
-	rs.add("$(hostname):30008");
-	rs.add("$(hostname):30009");
+	rs.add("localhost:30008");
+	rs.add("localhost:30009");
 EOF
 }
 
 function mmo_configure_replicaset_cfgsrv()
 {
-	mongo --port 27019 <<EOF
+	mongo  --port 27019 <<EOF
 	rs.initiate({
 					_id: "csReplSet",
 					configsvr: true,
 					version: 1,
 					members: [ 
-								{ _id: 0, host: "$(hostname):27019" },
-								{ _id: 1, host: "$(hostname):27020" },
-								{ _id: 2, host: "$(hostname):27021" }   
+								{ _id: 0, host: "localhost:27019" },
+								{ _id: 1, host: "localhost:27020" },
+								{ _id: 2, host: "localhost:27021" }   
 							]
 				});
 EOF
@@ -192,7 +191,7 @@ EOF
 
 function mmo_configure_sharding()
 {
-	mongo <<EOF 
+	mongo  <<EOF 
 	sh.addShard( "rs0/$(hostname):30001" );
 	sh.addShard( "rs1/$(hostname):30004" );
 	sh.enableSharding("test");
@@ -208,7 +207,7 @@ EOF
 function mmo_create_admin_user()
 {
 	PORT=$1;
-	mongo --port ${PORT} admin<<EOF
+	mongo  --port ${PORT} admin<<EOF
 	db.createUser(
 	{
 		user: "admin",
@@ -222,10 +221,10 @@ EOF
 function mmo_wait_for_slaves()
 {
 		PORT=$1;
-		while [ "$(echo "db.printSlaveReplicationInfo()" | mongo --port ${PORT} admin | grep "behind the primary" | uniq | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' | sort -r)" != "0 secs (0 hrs) behind the primary" ];
+		while [ "$(echo "db.printSlaveReplicationInfo()" | mongo  --port ${PORT} admin | grep "behind the primary" | uniq | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' | sort -r)" != "0 secs (0 hrs) behind the primary" ];
 		do
 			echo "Slaves have not yet caught up....";
-			echo "db.printSlaveReplicationInfo()" | mongo --port ${PORT} admin;
+			echo "db.printSlaveReplicationInfo()" | mongo  --port ${PORT} admin;
 			sleep 10;
 		done;
 	
@@ -234,7 +233,7 @@ function mmo_wait_for_slaves()
 function mmo_create_pytest_user()
 {
 	PORT=$1;
-	mongo --port ${PORT} admin<<EOF
+	mongo  --port ${PORT} admin<<EOF
 	db.createUser( 
 	{ 
 			"user": "pytest", 
@@ -283,7 +282,7 @@ function mmo_start_with_existing_data()
 function mmo_shutdown_server()
 {
 	PORT=$1;
-	mongo --username "admin" --password "admin" --port ${PORT} admin<<EOF
+	mongo  --username "admin" --password "admin" --port ${PORT} admin<<EOF
 	db.shutdownServer({force: true});
 EOF
 }

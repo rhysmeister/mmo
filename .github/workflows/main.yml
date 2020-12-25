@@ -53,7 +53,17 @@ jobs:
     - name: Install the mongodb package
       run: sudo apt install mongodb-org
 
-    - name: Setup a MongoB Sharded Cluster
-      run: |
-        source bash/mmo_mongodb_cluster.sh;
-        mmo_setup_cluster;
+    # Deprecated
+    #- name: Setup a MongoB Sharded Cluster
+    #  run: |
+    #    source bash/mmo_mongodb_cluster.sh;
+    #    mmo_setup_cluster;
+
+    - name: Install mtools
+      run: pip install --user mtools[all]
+
+    - name: Setup a MongoDB Sharded Cluster
+      run: mlaunch --replicaset --sharded shard01 shard02 shard03 --auth
+
+    - name: Debug step
+      run: ls -lh

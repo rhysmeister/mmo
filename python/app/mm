@@ -1239,7 +1239,7 @@ def profile_and_display(mmo, c, profile, slowms, database):
     prof = mmo.mmo_change_profiling_level(c, profile, slowms, database)
     max_hostname_length = length_of_longest_element(prof, "hostname") + 2
     format_string = "{0:<" + str(max_hostname_length) + "} {1:<10} {2:<10} {3:<10} {4:<10}"
-    if prof is not -1:
+    if prof != -1:
         prof = mmo.mmo_change_profiling_level(c, -1, None, database)
     headers = ["hostname", "shard", "port", "db", "profile", "slowms"]
     header_lookup = [{"hostname": "hostname"},
@@ -1288,17 +1288,17 @@ def print_validate_indexes(mmo, c, validate_indexes):
     for server in indexes:
         index_count = len(server["command_output"])
         index_hash_md5 = hashlib.md5(str(server["command_output"])).hexdigest() if index_count > 0 else server["msg"]
-	if index_count > 0:
-		for index in server["command_output"]:
-			index_versions_in_cluster.add(index["v"])
+    if index_count > 0:
+      for index in server["command_output"]:
+        index_versions_in_cluster.add(index["v"])
         print_colour_data_row(bgcolours.OKGREEN, format_string, [server["hostname"],
                                                                  server["port"],
                                                                  str(index_count),
                                                                  index_hash_md5])
-    iv = ""
-    for v in index_versions_in_cluster:
-        iv = iv + str(v) + ","
-    print("Index versions: " + iv[:-1])
+      iv = ""
+      for v in index_versions_in_cluster:
+          iv = iv + str(v) + ","
+      print("Index versions: " + iv[:-1])
 
 def print_collection_stats(mmo, c, namespace):
     execution_database, collection = namespace.split(".")

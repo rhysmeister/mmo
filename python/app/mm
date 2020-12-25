@@ -22,10 +22,6 @@ from subprocess import call, PIPE
 execfile(os.path.dirname(os.path.abspath(inspect.stack()[0][1]))  + "/../pymmo/pymmo.py")
 execfile(os.path.dirname(os.path.abspath(inspect.stack()[0][1]))  + "/CSVWriter.py")
 
-# Let's insist on this
-assert sys.version_info[0] == (2)
-assert sys.version_info[1] >= (6)
-
 MEGABYTE=1048576.0 # Needs to be a float or python floors the result
 
 # Stolen from http://stackoverflow.com/questions/4048651/python-function-to-convert-seconds-into-minutes-hours-and-days
@@ -183,14 +179,14 @@ def print_replication_summary(replication_summary):
             if len(state_changes_list) > 1:
                 change = "changes"
                 has = "have"
-            print "There {0} been {1} {2} in the cluster state since the last check".format(has, len(state_changes_list), change)
+            print("There {0} been {1} {2} in the cluster state since the last check".format(has, len(state_changes_list), change))
             for change in state_changes_list:
-                print change
+                print(change)
         else:
             if len(replicasets_down) == 0:
-                print "There have been no state changes in the cluster since the last check"
+                print("There have been no state changes in the cluster since the last check")
             else:
-                print "The following replicasets are entirely down: " + " ".join(replicasets_down)
+                print("The following replicasets are entirely down: " + " ".join(replicasets_down))
         if len(uptime_reset_list) > 0:
             host = "host"
             have = "has"
@@ -199,9 +195,9 @@ def print_replication_summary(replication_summary):
                 host = "hosts"
                 have = "have"
                 _is = "are"
-            print "The following {0} {1} an uptime that {2} less than previously logged:".format(host, have, _is)
+            print("The following {0} {1} an uptime that {2} less than previously logged:".format(host, have, _is))
             for host in uptime_reset_list:
-                print host
+                print(host)
 
 def print_colour_data_row(colour, format_string, string_data):
     """
@@ -1059,7 +1055,7 @@ def display_host_info_for_cluster(mmo, c, inc_mongos, sub_command):
         else: # python 2.6
             diff = diff.seconds * 1000
         line = "Time difference in milliseconds between the cluster nodes: " + str(diff) + " ms (not concurrently sampled)"
-        print line
+        print(line)
     elif sub_command == "os":
         headers = ["hostname",
                    "shard",
@@ -1126,9 +1122,9 @@ def display_host_info_for_cluster(mmo, c, inc_mongos, sub_command):
         for v in versionStrings:
 
             line = " ".join(format_string.split(" ")[:2]) + " {2:<100}" # Code gets the first two elements from the format_string
-            print line.format(v["hostname"],
+            print(line.format(v["hostname"],
                               v["port"],
-                              v["versionString"])
+                              v["versionString"]))
 
 def display_db_hash_info_for_cluster(mmo, c, verbose_display=False):
     """
@@ -1214,11 +1210,11 @@ def sharding_status(mmo, c):
 
     print_bold_header(format_string, headers)
     for doc in sh["shards"]:
-        print format_string.format(doc["_id"], doc["host"])
+        print(format_string.format(doc["_id"], doc["host"]))
     if sh["ok"] == 1:
-        print "Sharding state is OK"
-    print "Balancing host is {0:<30}".format(sharding_host)
-    print "The following databases are sharded"
+        print("Sharding state is OK")
+    print("Balancing host is {0:<30}".format(sharding_host))
+    print("The following databases are sharded")
     sharded_databases = mmo.mmo_execute_query_on_mongos(c, { "partitioned": True }, "config", "databases", False)
     headers = ["database", "primary shard"]
     print_bold_header("{0:<10} {1:<10}", headers)
@@ -1302,7 +1298,7 @@ def print_validate_indexes(mmo, c, validate_indexes):
     iv = ""
     for v in index_versions_in_cluster:
         iv = iv + str(v) + ","
-    print "Index versions: " + iv[:-1]
+    print("Index versions: " + iv[:-1])
 
 def print_collection_stats(mmo, c, namespace):
     execution_database, collection = namespace.split(".")
@@ -1314,20 +1310,20 @@ def print_collection_stats(mmo, c, namespace):
                                                                         "size (mb)",
                                                                         "storageSize (mb)",
                                                                         "IndexSize (mb)"])
-    print "{0:<9} {1:<8} {2:<10} {3:<10.2f} {4:<15.2f} {5:<15.2f}".format(stats["sharded"],
+    print("{0:<9} {1:<8} {2:<10} {3:<10.2f} {4:<15.2f} {5:<15.2f}".format(stats["sharded"],
                                                                             stats["capped"],
                                                                             stats["count"],
                                                                             stats["size"] / MEGABYTE,
                                                                             stats["storageSize"] / MEGABYTE,
-                                                                            stats["totalIndexSize"] / MEGABYTE)
+                                                                            stats["totalIndexSize"] / MEGABYTE))
     print_bold_header("{0:<15} {1:<10} {2:<8} {3:<8}", ["avgObjSize (b)", "nindexes", "nchunks", "shards"])
-    print "{0:<15.2f} {1:<10} {2:<8} {3:<8}".format(stats["avgObjSize"],
+    print("{0:<15.2f} {1:<10} {2:<8} {3:<8}".format(stats["avgObjSize"],
                                              stats["nindexes"],
                                              stats.get("nchunks", "NA"),
-                                             len(stats.get("shards", "")))
+                                             len(stats.get("shards", ""))))
     print_bold_header("{0:<20} {1:<20}", ["index name", "size (mb)"])
     for index in stats["indexSizes"]:
-        print "{0:<20} {1:<20.2f}".format(index, stats["indexSizes"][index] / MEGABYTE)
+        print("{0:<20} {1:<20.2f}".format(index, stats["indexSizes"][index] / MEGABYTE))
 
 def print_database_stats(mmo, c, database):
     dbstats = mmo.mmo_database_stats(c, database)
@@ -1355,7 +1351,7 @@ def print_database_stats(mmo, c, database):
     print_bold_header("{0:<100}", ["Database stats by shard"])
     for shard in dbstats["raw"]:
         if dbstats["raw"][shard]["collections"] == 0:
-            print "0 collections on: " + shard
+            print("0 collections on: " + shard)
         else:
             print_bold_header("{0:<100}", [shard])
             format_string = "{0:<12} {1:<8} {2:<15} {3:<15} {4:<17} {5:<11} {6:<8} {7:<15} {8:<9}"
@@ -1383,33 +1379,33 @@ def print_schema_summary(mmo, c, collection, limit):
     key_count = len(schema.keys())
     #pp = pprint.PrettyPrinter(indent=4)
     print_bold_header("{0:<100}", ["Schema summary for " + collection + " based on a sample of " + str(limit) + " documents"])
-    print "There are " + str(key_count) + " keys in this dictionary."
+    print("There are " + str(key_count) + " keys in this dictionary.")
     #print ""
     print_bold_header("{0:<100}", ["Data types"])
     #print ""
     for item in sorted(schema.keys()):
-        print "{0:<20} {1:<20}".format(item, type(schema[item]))
+        print("{0:<20} {1:<20}".format(item, type(schema[item])))
         if type(schema[item]) == dict:
             for sub_item in sorted(schema[item].keys()):
-                print "  - {0:<20} {1:<20}".format(sub_item, type(sub_item))
+                print("  - {0:<20} {1:<20}".format(sub_item, type(sub_item)))
                 if type(sub_item) == dict:
                     for sub_sub_item in sub_item.keys():
-                        print "    - {0:<20} {1:<20}".format(sub_sub_item, type(sub_sub_item))
+                        print("    - {0:<20} {1:<20}".format(sub_sub_item, type(sub_sub_item)))
                 if type(sub_item) == list:
                     data_types = set()
                     for list_item in schema[item]:
                         data_types.add(type(list_item))
                     data_types = " ".join(['%-2s' % (i,) for i in data_types])
-                    print "  - List data types: " + data_types
+                    print("  - List data types: " + data_types)
         if type(schema[item]) == list:
             data_types = set()
             for list_item in schema[item]:
                 data_types.add(type(list_item))
             data_types = " ".join(['%-2s' % (i,) for i in data_types])
-            print "  - List data types: " + data_types
+            print("  - List data types: " + data_types)
             if type(schema[item][0]) == dict:
                 for i in schema[item][0].keys():
-                    print "    - {0:<20} {1:<20}".format(i, type(i))
+                    print("    - {0:<20} {1:<20}".format(i, type(i)))
 
     #print ""
     print_bold_header("{0:<100}", ["Sample Document"])
@@ -1458,7 +1454,7 @@ def print_plan_cache_summary(mmo, c, database, collection):
                                   doc["shard"],
                                   doc["plan_count"]])
     else:
-        print "No plans found for this collection."
+        print("No plans found for this collection.")
 
 def print_plan_cache_shapes(mmo, c, database, collection):
     plan_cache_summary = mmo.mmo_plan_cache(c, database, collection)
@@ -1467,7 +1463,6 @@ def print_plan_cache_shapes(mmo, c, database, collection):
     if len(plan_cache_summary) > 0:
         for doc in plan_cache_summary:
             for shape in doc["command_output"]["shapes"]:
-                print "I am here"
                 summarized_data.append({"#": shape_id,
                                         "hostname": doc["hostname"],
                                         "port": doc["port"],
@@ -1510,9 +1505,9 @@ def print_plan_cache_shapes(mmo, c, database, collection):
                                        doc["projection"]])
             write_query_plan_file(summarized_data)
         else:
-            print "No plans found for this collection."
+            print("No plans found for this collection.")
     else:
-        print "No plans found for this collection."
+        print("No plans found for this collection.")
 
 def print_plan_cache_query_stats(mmo, c, database, collection, query, sort={}, projection={}):
     query_data = mmo.mmo_plan_cache_query(c, database, collection, query, sort, projection)
@@ -1559,7 +1554,7 @@ def print_plan_cache_query_stats(mmo, c, database, collection, query, sort={}, p
     format_string = create_format_string(headers, header_lookup, plans)
 
     print_bold_header("{0:<100}", ["There are {0} cached plans for this query shape".format(len(plans))])
-    print bgcolours.BOLD + json.dumps(query, sort_keys=True, indent=4, separators=(',', ': ')) + bgcolours.ENDC
+    print(bgcolours.BOLD + json.dumps(query, sort_keys=True, indent=4, separators=(',', ': ')) + bgcolours.ENDC)
     print_bold_header(format_string, headers)
     for doc in plans:
         print_colour_data_row(bgcolours.OKGREEN,
@@ -1626,7 +1621,7 @@ def create_format_string(headers, header_lookup, list_of_documents):
     isinstance(list_of_documents, list)
     isinstance(list_of_documents[0], dict)
     if args.debug:
-        print list_of_documents
+        print(list_of_documents)
     format_string = ""
     header_lengths = {}
     for item in headers:
@@ -1647,8 +1642,8 @@ def create_format_string(headers, header_lookup, list_of_documents):
                             sys.exit(-1)
                     except Exception as excep:
                         if args.debug:
-                            print "This is here for the situation when certain keys don't exist. For example if the MMAP engine is used or not"
-                            print excep
+                            print("This is here for the situation when certain keys don't exist. For example if the MMAP engine is used or not")
+                            print(excep)
                         pass
                 else:
                     if len(str(doc[mydict[item]])) > header_lengths[item]:
@@ -1660,52 +1655,52 @@ def create_format_string(headers, header_lookup, list_of_documents):
             field_counter += 1 # Add so we can support python 2.6
     format_string = format_string.strip()
     if args.debug:
-        print format_string
+        print(format_string)
     return format_string
 
 
 def print_server_status_help():
-    print "Extracts and displays certain bits of information from the serverStatus document produced in the mongo shell command db.serverStatus()"
-    print "Usage: mm --server_status <option>"
-    print "Options: "
-    print "{0:<30} {1:<100}".format("instance", "Show the instance info from all the shard mongod processes")
-    print "{0:<30} {1:<100}".format("asserts", "Show the asserts stats from all the shard mongod processes")
-    print "{0:<30} {1:<100}\n{2:<30} {3:<100}".format("flushing",
+    print("Extracts and displays certain bits of information from the serverStatus document produced in the mongo shell command db.serverStatus()")
+    print("Usage: mm --server_status <option>")
+    print("Options: ")
+    print("{0:<30} {1:<100}".format("instance", "Show the instance info from all the shard mongod processes"))
+    print("{0:<30} {1:<100}".format("asserts", "Show the asserts stats from all the shard mongod processes"))
+    print("{0:<30} {1:<100}\n{2:<30} {3:<100}".format("flushing",
                                                   "Show the flushing stats from all the shard mongod processes.",
                                                   "",
-                                                  "Only applies to the MMAPv1 engine.")
-    print "{0:<30} {1:<100}\n{2:<30} {3:<100}".format("journaling",
+                                                  "Only applies to the MMAPv1 engine."))
+    print("{0:<30} {1:<100}\n{2:<30} {3:<100}".format("journaling",
                                                   "Show the journal stats from all the shard mongod processes.",
                                                   "",
-                                                  "Only applies to the MMAPv1 engine and journaling must be enabled.")
-    print "{0:<30} {1:<100}".format("extra_info", "Show the extra_info section from the serverStatus document.")
-    print "{0:<30} {1:<100}".format("connections", "Show the connection stats from all the shard mongod processes")
-    print "{0:<30} {1:<100}".format("global_lock", "Show the global locks stats from all the shard mongod processes")
-    print "{0:<30} {1:<100}".format("network", "Show the network stats from all the shard mongod processes")
-    print "{0:<30} {1:<100}".format("opcounters", "Show the opcounters stats from all the shard mongod processes")
-    print "{0:<30} {1:<100}".format("opcounters_repl", "Show the opcountersRepl stats from all the shard mongod processes")
-    print "{0:<30} {1:<100}".format("security", "Show the security info from all the shard mongod processes")
-    print "{0:<30} {1:<100}".format("storage_engine", "Show the storage engine info from all the shard mongod processes")
-    print "{0:<30} {1:<100}".format("memory", "Show the memory info from all the shard mongod processes")
-    print "{0:<30} {1:<100}".format("help", "Show this help message")
+                                                  "Only applies to the MMAPv1 engine and journaling must be enabled."))
+    print("{0:<30} {1:<100}".format("extra_info", "Show the extra_info section from the serverStatus document."))
+    print("{0:<30} {1:<100}".format("connections", "Show the connection stats from all the shard mongod processes"))
+    print("{0:<30} {1:<100}".format("global_lock", "Show the global locks stats from all the shard mongod processes"))
+    print("{0:<30} {1:<100}".format("network", "Show the network stats from all the shard mongod processes"))
+    print("{0:<30} {1:<100}".format("opcounters", "Show the opcounters stats from all the shard mongod processes"))
+    print("{0:<30} {1:<100}".format("opcounters_repl", "Show the opcountersRepl stats from all the shard mongod processes"))
+    print("{0:<30} {1:<100}".format("security", "Show the security info from all the shard mongod processes"))
+    print("{0:<30} {1:<100}".format("storage_engine", "Show the storage engine info from all the shard mongod processes"))
+    print("{0:<30} {1:<100}".format("memory", "Show the memory info from all the shard mongod processes"))
+    print("{0:<30} {1:<100}".format("help", "Show this help message"))
 
 def print_host_info_help():
-    print "Extracts and displays information from the hostInfo document produced in the mongo shell by the mongo shell command db.hostInfo()"
-    print "Usage: mm --host_info <option>"
-    print "Options: "
-    print "{0:<30} {1:<100}".format("system", "An embedded document providing information about the ",
-                                            "underlying environment of the system running the mongod or mongos")
-    print "{0:<30} {1:<100}\n{2:<30} {3:<100}".format("os",
+    print("Extracts and displays information from the hostInfo document produced in the mongo shell by the mongo shell command db.hostInfo()")
+    print("Usage: mm --host_info <option>")
+    print("Options: ")
+    print("{0:<30} {1:<100}".format("system", "An embedded document providing information about the ",
+                                            "underlying environment of the system running the mongod or mongos"))
+    print("{0:<30} {1:<100}\n{2:<30} {3:<100}".format("os",
                                                   "An embedded document that contains information about the operating system ",
                                                   "",
-                                                  "running the mongod and mongos.")
-    print "{0:<30} {1:<100}\n{2:<30} {3:<100}\n{4:<30} {5:<100}".format("extra",
+                                                  "running the mongod and mongos."))
+    print("{0:<30} {1:<100}\n{2:<30} {3:<100}\n{4:<30} {5:<100}".format("extra",
                                                                   "An embedded document with extra information about the operating ",
                                                                   "",
                                                                 "system and the underlying hardware. The content of the extra embedded ",
                                                                   "",
-                                                                "document  depends on the operating system.")
-    print "{0:<30} {1:<100}".format("help", "Show this help message")
+                                                                "document  depends on the operating system."))
+    print("{0:<30} {1:<100}".format("help", "Show this help message"))
 
 def print_chunks(mmo, c):
     """
@@ -1766,7 +1761,7 @@ def launch_mongo_shell(hostname, port, username, password, authentication_db, db
             cmd.append(db)
         call(cmd)
     else:
-        print "Failed. {0} was not found in your PATH.".format(mongo_cmd)
+        print("Failed. {0} was not found in your PATH.".format(mongo_cmd))
 
 def pretty_date(time=False):
     """
@@ -1919,10 +1914,10 @@ if len(sys.argv)==1:
 # If a configuration file exists use that to connect
 config_file = os.path.dirname(os.path.realpath(__file__)) + "/config.cnf"
 if args.debug:
-    print "configuration file: " + config_file
-    print "Exists?: " + str(os.path.isfile(config_file))
+    print("configuration file: " + config_file)
+    print("Exists?: " + str(os.path.isfile(config_file)))
 if os.path.isfile(config_file):
-    if args.debug: print "Reading configuration file " + config_file
+    if args.debug: print("Reading configuration file " + config_file)
     Config = ConfigParser.ConfigParser()
     Config.read(config_file)
     section="Default"
@@ -1932,7 +1927,7 @@ if os.path.isfile(config_file):
         else:
             raise Exception("No entry for the provided connection in config.cnf")
     options = Config.options(section)
-    if args.debug: print options
+    if args.debug: print(options)
     if Config.getboolean(section, "active"):
         args.mongo_hostname = Config.get(section, "mongo_host")
         args.mongo_port = int(Config.get(section, "mongo_port"))
@@ -1940,14 +1935,14 @@ if os.path.isfile(config_file):
         args.mongo_password = Config.get(section, "mongo_password")
         args.mongo_auth_db = Config.get(section, "mongo_auth_db")
         if args.debug:
-          print "Finished settings args from configuration file"
-          print args.mongo_hostname
-          print args.mongo_port
-          print args.mongo_username
-          print args.mongo_password
-          print args.mongo_auth_db
+          print("Finished settings args from configuration file")
+          print(args.mongo_hostname)
+          print(args.mongo_port)
+          print(args.mongo_username)
+          print(args.mongo_password)
+          print(args.mongo_auth_db)
     else:
-        if args.debug: print "{:<10} section is not active so ignoring".format(section)
+        if args.debug: print("{:<10} section is not active so ignoring".format(section))
 
 mmo = MmoMongoCluster(args.mongo_hostname, args.mongo_port, args.mongo_username, args.mongo_password, args.mongo_auth_db)
 c = mmo.mmo_connect()
@@ -1998,8 +1993,8 @@ if c:
             print_server_status_help()
         # print out help for using this feature correctly
         if args.step_down == "" and (args.step_down_nominate_host is not None or args.step_down_nominate_port is not None):
-            print "You must supply a replicaset name with the --step_down flag to use this command:"
-            print "Usage: ./mm --step_down_nominate_host rhysmacbook.local --step_down_nominate_port 30001 --step_down rs0"
+            print("You must supply a replicaset name with the --step_down flag to use this command:")
+            print("Usage: ./mm --step_down_nominate_host rhysmacbook.local --step_down_nominate_port 30001 --step_down rs0")
         if args.step_down != "":
             # Count of server so we can tell when the election has completed
             rs = mmo.mmo_replication_status_summary(c)
@@ -2033,13 +2028,13 @@ if c:
                                 if doc['replicaset'] == args.step_down and doc['state'] == 'PRIMARY':
                                     new_primary = doc
                             if new_primary is not None and old_primary["hostname"] != new_primary["hostname"]:
-                                print "PRIMARY changed from {0:<0} to {1:<1}".format(old_primary['hostname'],
-                                                                                     new_primary['hostname'])
+                                print("PRIMARY changed from {0:<0} to {1:<1}".format(old_primary['hostname'],
+                                                                                     new_primary['hostname']))
                             else:
-                                print "A new PRIMARY has not yet been elected. Try mm --repl again in a few moments to see if a new PRIMARY is elected."
+                                print("A new PRIMARY has not yet been elected. Try mm --repl again in a few moments to see if a new PRIMARY is elected.")
                         else:
                             # Timeout has happened or something is wrong
-                            print "There has been a problem or a timeout. Perhaps try the command again."
+                            print("There has been a problem or a timeout. Perhaps try the command again.")
                 else:
                     raise exception
         if args.profiling in profiling_choices: # This wouldn't return true when set to zero unless done like this
@@ -2084,16 +2079,16 @@ if c:
                     update_doc = { "$set" : { "noBalance" : True } }
                     o = mmo.mmo_execute_update_on_mongos(c, query, update_doc, "config", "collections", True)
                     if o is None:
-                        print "Collection was not updated. Please check the collection name provided."
+                        print("Collection was not updated. Please check the collection name provided.")
                         exit(1)
                     if o.get("noBalance", False) == True:
-                        print "Balancing for " + collection + " is enabled"
+                        print("Balancing for " + collection + " is enabled")
                 else:
                     query = {"_id": collection }
                     update_doc = {"$set": {"noBalance": False} }
                     o = mmo.mmo_execute_update_on_mongos(c, query, update_doc, "config", "collections", True)
                     if not o.get("noBalance", False):
-                        print "Balancing for " + collection + " is disabled"
+                        print("Balancing for " + collection + " is disabled")
         if args.balancing_state is not None:
             if args.balancing_state == "enable":
                 query = { "_id": "balancer" }
@@ -2107,14 +2102,14 @@ if c:
                 query = { "_id": "balancer" }
                 o = mmo.mmo_execute_query_on_mongos(c, query, "config", "settings", True)
                 if o == None: # If the document is not there the balancer is running
-                    print "true"
+                    print("true")
                 else:
                     if o["stopped"] == True: # If stopped is true the balancer is stopped (false)
-                        print "false"
+                        print("false")
                     elif o["stopped"] == False:
-                        print "true"
+                        print("true")
                     else:
-                        print "Invalid vaue for stopped: " + str(o["stopped"])
+                        print("Invalid vaue for stopped: " + str(o["stopped"]))
         if args.collection_stats is not None:
             print_collection_stats(mmo, c, args.collection_stats)
         if args.database_stats is not None:
@@ -2150,7 +2145,7 @@ if c:
                                                  q["sort"],
                                                  q["projection"])
             if not found:
-                print "The query with id {0} was not found".format(args.plan_cache_query_id)
+                print("The query with id {0} was not found".format(args.plan_cache_query_id))
         if args.plan_cache_clear_query_id:
             queries = open_query_plan_cache_file()
             found = False
@@ -2164,12 +2159,12 @@ if c:
                                              q["sort"],
                                              q["projection"])
             if not found:
-                print "The query with id {0} was not found".format(args.plan_cache_clear_query_id)
+                print("The query with id {0} was not found".format(args.plan_cache_clear_query_id))
         if args.plan_cache_purge_data:
             if os.path.exists("/tmp/mmo_temp_query.txt"):
                 os.remove("/tmp/mmo_temp_query.txt")
             else:
-                print "File does not exist: /tmp/mmo_temp_query.txt"
+                print("File does not exist: /tmp/mmo_temp_query.txt")
         if args.chunks:
             print_chunks(mmo, c)
         if args.shell:
@@ -2183,5 +2178,5 @@ if c:
             time.sleep(args.interval)
             os.system('cls' if os.name == 'nt' else 'clear')
 else:
-    print "Unable to connect to a MongoDB Cluster"
+    print("Unable to connect to a MongoDB Cluster")
     exit(1)

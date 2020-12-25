@@ -9,7 +9,7 @@ import os
 import sys
 import argparse
 import time
-import ConfigParser
+import configparser
 import hashlib
 import ast
 import json
@@ -1918,7 +1918,7 @@ if args.debug:
     print("Exists?: " + str(os.path.isfile(config_file)))
 if os.path.isfile(config_file):
     if args.debug: print("Reading configuration file " + config_file)
-    Config = ConfigParser.ConfigParser()
+    Config = configparser.ConfigParser()
     Config.read(config_file)
     section="Default"
     if args.connection is not None:

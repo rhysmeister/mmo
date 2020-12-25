@@ -199,16 +199,16 @@ class MmoMongoCluster:
         """
         s = None
         if self.mmo_is_configsrv(mmo_connection):
-	    try:
-            	r =  mmo_connection["admin"].command("replSetGetStatus")
-		s = True
+            try:
+                r =  mmo_connection["admin"].command("replSetGetStatus")
+                s = True
             except Exception as exception:
-		if "not running with --replSet" in str(exception):
-			s = False
-		else:
-			raise exception
-	else:
-            raise Exception("Not a config server")
+                if "not running with --replSet" in str(exception):
+                    s = False
+                else:
+                    raise exception
+        else:
+                raise Exception("Not a config server")
         return s
 
     def mmo_mongo_version(self, mmo_connection):
@@ -494,10 +494,10 @@ class MmoMongoCluster:
                                	        password=auth_dic["password"],
                                        	authentication_db=auth_dic["authentication_database"]
                                        	)
-	    if self.mmo_is_cfg_rs(c):
-            	command_output = c["admin"].command("replSetGetStatus")
-            	shard = command_output["set"]
-           	replication_state.append({"hostname": configsrv["hostname"], "port": configsrv["port"], "shard": shard, "command_output": command_output})
+        if self.mmo_is_cfg_rs(c):
+            command_output = c["admin"].command("replSetGetStatus")
+            shard = command_output["set"]
+            replication_state.append({"hostname": configsrv["hostname"], "port": configsrv["port"], "shard": shard, "command_output": command_output})
         else:
             raise Exception("Not a mongos process")
         return replication_state
@@ -844,11 +844,11 @@ class MmoMongoCluster:
 
 
     def mmo_replicaset_conf(self, mmo_connection):
-	"""
-	Get the output of rs.conf()
-	"""
-	command = {"replSetGetConfig" : 1}
-	return self.mmo_execute_on_primaries(mmo_connection, command)
+        """
+        Get the output of rs.conf()
+        """
+        command = {"replSetGetConfig" : 1}
+        return self.mmo_execute_on_primaries(mmo_connection, command)
 
     def mmo_plan_cache(self, mmo_connection, database, collection):
         """

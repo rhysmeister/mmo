@@ -71,4 +71,4 @@ jobs:
       run: cat data/.mlaunch_startup
 
     - name: Run mm command
-      run: python/app/mm --mongo_username user --mongo_password password --repl
+      run: python/app/mm --mongo_auth_db admin --mongo_username user --mongo_password password --repl

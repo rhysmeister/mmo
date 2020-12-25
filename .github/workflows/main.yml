@@ -1,25 +1,59 @@
 name: CI
 on:
-  push:
+  pull_request:
+  schedule:
+    - cron: "0 6 * * *"
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+  mmo:
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
+    strategy:
+      matrix:
+        python_version:
+          - "2.7"
+          - "3.6"
+          - "3.8"
+        mongodb_version:
+          - "4.2"
+          - "4.4"
+        ansible_version:
+          - stable-2.10
     steps:
-    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+
     - uses: actions/checkout@v2
 
-    # Runs a single command using the runners shell
-    - name: Run a one-line script
-      run: echo Hello, world!
+    - name: Set up Python ${{ matrix.python_version }}
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python_version }}
 
-    # Runs a set of commands using the runners shell
-    - name: Run a multi-line script
+    - name: Install ansible-base (${{ matrix.ansible_version }})
+      run: pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible_version }}.tar.gz --disable-pip-version-check
+
+    - name: Install community.general
+      run: ansible-galaxy collection install community.general
+
+    - name: Install community.crypto
+      run: ansible-galaxy collection install community.crypto
+
+    - name: Install community.mongodb
+      run: ansible-galaxy collection install community.mongodb
+
+    - name: Create playbook to install repo for ${{ matrix.ansible_version }}
       run: |
-        echo Add other actions to build,
-        echo test, and deploy your project.
+         cat << EOF > /tmp/mongodb.yml
+            - hosts: servers
+              roles:
+                - { role: mongodb_repository, mongodb_version: "${{ matrix.mongodb_version }}" }
+         EOF
+
+    - name: Execute playbook
+      run: ansible-playbook localhost --become /tmp/mongodb.yml
+
+    - name: Install the mongodb package
+      run: apt install mongodb-org
+
+    - name: Setup a MongoB Sharded Cluster
+      run: |
+        source bash/mmop_mongodb_cluster.sh;
+        mmo_setup_cluster;

@@ -67,5 +67,5 @@ jobs:
     - name: Setup a MongoDB Sharded Cluster
       run: mlaunch --replicaset --sharded shard01 shard02 shard03 --auth
 
-    - name: Debug step
-      run: ls -lh
+    - name: Run mm command
+      run: python/app/mm --user user --password password --repl

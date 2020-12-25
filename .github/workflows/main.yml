@@ -44,7 +44,7 @@ jobs:
          cat << EOF > /tmp/mongodb.yml
             - hosts: servers
               roles:
-                - { role: mongodb_repository, mongodb_version: "${{ matrix.mongodb_version }}" }
+                - { role: community.mongodb.mongodb_repository, mongodb_version: "${{ matrix.mongodb_version }}" }
          EOF
 
     - name: Execute playbook

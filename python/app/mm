@@ -19,8 +19,8 @@ import pickle
 from bgcolours import bgcolours
 from subprocess import call, PIPE
 
-execfile(os.path.dirname(os.path.abspath(inspect.stack()[0][1]))  + "/../pymmo/pymmo.py")
-execfile(os.path.dirname(os.path.abspath(inspect.stack()[0][1]))  + "/CSVWriter.py")
+exec(open(os.path.dirname(os.path.abspath(inspect.stack()[0][1]))  + "/../pymmo/pymmo.py").read())
+exec(open(os.path.dirname(os.path.abspath(inspect.stack()[0][1]))  + "/CSVWriter.py").read())
 
 MEGABYTE=1048576.0 # Needs to be a float or python floors the result
 

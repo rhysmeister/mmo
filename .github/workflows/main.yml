@@ -48,7 +48,7 @@ jobs:
          EOF
 
     - name: Execute playbook
-      run: ansible-playbook localhost --become /tmp/mongodb.yml
+      run: ansible-playbook -c local --become /tmp/mongodb.yml
 
     - name: Install the mongodb package
       run: apt install mongodb-org

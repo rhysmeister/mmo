@@ -39,7 +39,7 @@ jobs:
     - name: Install community.mongodb
       run: ansible-galaxy collection install community.mongodb
 
-    - name: Create playbook to install repo for ${{ matrix.ansible_version }}
+    - name: Create playbook to install repo for MongoDB ${{ matrix.ansible_version }}
       run: |
          cat << EOF > /tmp/mongodb.yml
             - hosts: servers
@@ -55,5 +55,5 @@ jobs:
 
     - name: Setup a MongoB Sharded Cluster
       run: |
-        source bash/mmop_mongodb_cluster.sh;
+        source bash/mmo_mongodb_cluster.sh;
         mmo_setup_cluster;

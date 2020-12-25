@@ -68,4 +68,4 @@ jobs:
       run: mlaunch --replicaset --sharded shard01 shard02 shard03 --auth
 
     - name: Run mm command
-      run: python/app/mm --user user --password password --repl
+      run: python/app/mm --mongo_username user --mongo_password password --repl

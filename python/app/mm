@@ -34,7 +34,7 @@ def nice_time_display(seconds, granularity=2):
         ('s', 1),
     )
     result = []
-    if isinstance(seconds, ( int, long )):
+    if isinstance(seconds, int):
         for name, count in intervals:
             value = seconds // count
             if value:

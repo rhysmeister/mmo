@@ -82,24 +82,24 @@ jobs:
         output="${output//$'\r'/'%0D'}"
         echo "::set-output name=mm::$output"
 
-    - name: Validate output of the repl command shard001
+    - name: Validate output of the repl command shard01
       uses: nick-invision/assert-action@v1
       with:
-        expected: shard001
+        expected: shard01
         actual: ${{ steps.mm.outputs.mm }}
         comparison: Contains
 
-    - name: Validate output of the repl command shard002
+    - name: Validate output of the repl command shard02
       uses: nick-invision/assert-action@v1
       with:
-        expected: shard002
+        expected: shard02
         actual: ${{ steps.mm.outputs.mm }}
         comparison: Contains
 
-    - name: Validate output of the repl command shard003
+    - name: Validate output of the repl command shard03
       uses: nick-invision/assert-action@v1
       with:
-        expected: shard003
+        expected: shard03
         actual: ${{ steps.mm.outputs.mm }}
         comparison: Contains
 

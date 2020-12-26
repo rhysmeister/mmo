@@ -73,7 +73,7 @@ jobs:
     - name: Pause to all a little time for replicaset to stablise
       run: sleep 10
 
-    - name: Run mm command and get output
+    - name: Run mm command and get output from repl cmd
       id: mm
       run: |
         output=$(python/app/mm -D admin -u user -p password --repl)
@@ -123,4 +123,63 @@ jobs:
       with:
         expected: SECONDARY
         actual: ${{ steps.mm.outputs.mm }}
+        comparison: Contains
+
+    - name: Run mm command and get output from summary cmd
+      id: mm2
+      run: |
+        output=$(python/app/mm -D admin -u user -p password --summary)
+        echo "$output"
+        output="${output//'%'/'%25'}"
+        output="${output//$'\n'/'%0A'}"
+        output="${output//$'\r'/'%0D'}"
+        echo "::set-output name=mm::$output"
+
+    - name: Validate output of the summary command 1
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "MongoDB Config Servers"
+        actual: ${{ steps.mm2.outputs.mm }}
+        comparison: Contains
+
+    - name: Validate output of the summary command 2
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "MongoDB mongos servers"
+        actual: ${{ steps.mm2.outputs.mm }}
+        comparison: Contains
+
+    - name: Validate output of the summary command 3
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "MongoDB mongod shard servers"
+        actual: ${{ steps.mm2.outputs.mm }}
+        comparison: Contains
+
+    - name: Validate output of the summary command 3
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "MongoDB shards"
+        actual: ${{ steps.mm2.outputs.mm }}
+        comparison: Contains
+
+    - name: Validate output of the summary command 4
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "shard01"
+        actual: ${{ steps.mm2.outputs.mm }}
+        comparison: Contains
+
+    - name: Validate output of the summary command 5
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "shard02"
+        actual: ${{ steps.mm2.outputs.mm }}
+        comparison: Contains
+
+    - name: Validate output of the summary command 5
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "shard03"
+        actual: ${{ steps.mm2.outputs.mm }}
         comparison: Contains

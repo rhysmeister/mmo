@@ -76,6 +76,10 @@ jobs:
       id: mm
       run: |
         output=$(python/app/mm -D admin -u user -p password --repl)
+        echo "$output"
+        output="${output//'%'/'%25'}"
+        output="${output//$'\n'/'%0A'}"
+        output="${output//$'\r'/'%0D'}"
         echo "::set-output name=mm::$output"
 
     - name: Validate output of the repl command shard001

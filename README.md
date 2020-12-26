@@ -1,3 +1,5 @@
+![CI](https://github.com/rhysmeister/mmo/workflows/CI/badge.svg)
+
 mm              mm User Manual              mm
 
 NAME

@@ -67,8 +67,55 @@ jobs:
     - name: Setup a MongoDB Sharded Cluster
       run: mlaunch --replicaset --sharded shard01 shard02 shard03 --auth --username admin --password admin
 
-    - name: Debug
-      run: cat data/.mlaunch_startup
+    #- name: Debug
+    #  run: cat data/.mlaunch_startup
+    - name: Pause to all a little time for replicaset to stablise
+      run: sleep 10
 
-    - name: Run mm command
-      run: python/app/mm -D admin -u user -p password --repl
+    - name: Run mm command and get output
+      id: mm
+      run: |
+        output=$(python/app/mm -D admin -u user -p password --repl)
+        echo "::set-output name=mm::$output"
+
+    - name: Validate output of the repl command shard001
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: shard001
+        actual: ${{ steps.mm.outputs.mm }}
+        comparison: Contains
+
+    - name: Validate output of the repl command shard002
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: shard002
+        actual: ${{ steps.mm.outputs.mm }}
+        comparison: Contains
+
+    - name: Validate output of the repl command shard003
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: shard003
+        actual: ${{ steps.mm.outputs.mm }}
+        comparison: Contains
+
+    - name: Validate output of the repl command shard001
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: configRepl
+        actual: ${{ steps.mm.outputs.mm }}
+        comparison: Contains
+
+    - name: Validate output of the repl command PRIMARY
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: PRIMARY
+        actual: ${{ steps.mm.outputs.mm }}
+        comparison: Contains
+
+    - name: Validate output of the repl command SECONDARY
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: SECONDARY
+        actual: ${{ steps.mm.outputs.mm }}
+        comparison: Contains

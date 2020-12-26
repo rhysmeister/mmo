@@ -13,3 +13,11 @@ mongo_username: admin
 mongo_password: admin
 mongo_auth_db: admin
 active: False
+
+[Vagrant]
+mongo_host: 192.168.43.101
+mongo_port: 27017
+mongo_username: admin
+mongo_password: secret
+mongo_auth_db: admin
+active: True

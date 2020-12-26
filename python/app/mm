@@ -110,6 +110,7 @@ def display_cluster_state(mmo, c):
                                    replicaset["command_output"]["config"]["settings"].get("catchUpTimeoutMillis", "NA"),
                                    replicaset["command_output"]["config"]["settings"].get("replicaSetId", "NA")])
             replicasets_done.append(replicaset["shard"])
+
     for replicaset in mmo.mmo_shards():
         if replicaset not in replicasets_done:
             print_colour_data_row(bgcolours.FAIL,
@@ -207,6 +208,7 @@ def print_colour_data_row(colour, format_string, string_data):
     :param string_data:  Should be a list, in order, of the items you want to print out
     :return:
     """
+    string_data = map(str, string_data)
     sys.stdout.write(colour + format_string.format(*string_data) + bgcolours.ENDC + "\n")
 
 def print_list_of_hosts(title, host_list, colour, replicaset_options):

@@ -65,7 +65,7 @@ jobs:
       run: echo "/home/runner/.local/bin" >> $GITHUB_PATH
 
     - name: Setup a MongoDB Sharded Cluster
-      run: mlaunch --replicaset --sharded shard01 shard02 shard03 --auth
+      run: mlaunch --replicaset --sharded shard01 shard02 shard03 --auth --username admin --password admin
 
     - name: Debug
       run: cat data/.mlaunch_startup

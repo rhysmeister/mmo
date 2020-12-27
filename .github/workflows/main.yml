@@ -70,10 +70,10 @@ jobs:
 
     #- name: Debug
     #  run: cat data/.mlaunch_startup
-    - name: Pause to all a little time for replicaset to stablise
-      run: sleep 10
+    - name: Install wheel
+      run: pip install wheel
 
-    - name: Build and install the mm app
+    - name: Build and install the mm python app
       run: python setup.py bdist_wheel && python -m pip install dist/mongodbmanager-*-py3-none-any.whl
       working-directory: python
 

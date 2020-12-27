@@ -80,7 +80,7 @@ jobs:
     - name: Run mm command and get output from repl cmd
       id: mm
       run: |
-        output=$(mm -D admin -u user -p password --repl)
+        output=$(mm -D admin -u user -p password --repl --debug)
         echo "$output"
         output="${output//'%'/'%25'}"
         output="${output//$'\n'/'%0A'}"

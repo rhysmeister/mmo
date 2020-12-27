@@ -242,7 +242,7 @@ jobs:
     - name: Run mm command and get output from step_down cmd
       id: mm5
       run: |
-        output=$(python/app/mm -D admin -u user -p password --step_down shard01)
+        output=$(python/app/mm -D admin -u user -p password --step_down shard01 2>&1)
         echo "$output"
         output="${output//'%'/'%25'}"
         output="${output//$'\n'/'%0A'}"

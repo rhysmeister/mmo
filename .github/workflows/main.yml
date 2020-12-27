@@ -228,7 +228,7 @@ jobs:
     - name: Validate output of the host_info command 1
       uses: nick-invision/assert-action@v1
       with:
-        expected: "Linux release"
+        expected: "Linux Ubuntu"
         actual: ${{ steps.mm4.outputs.mm }}
         comparison: Contains
 

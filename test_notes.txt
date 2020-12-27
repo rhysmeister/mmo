@@ -223,6 +223,6 @@ mmo_kill_replset rs3
 ```bash
 cd python
 rm dist/*
-python setup.py bdist_wheel && python -m pip install dist/mongodbmanager-0.1-py3-none-any.whl --force-reinstall
+python setup.py bdist_wheel && python -m pip install dist/mongodbmanager-*-py3-none-any.whl --force-reinstall
 python -m twine upload dist/*  # Prompts for pypi.org password
 ```

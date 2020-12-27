@@ -183,3 +183,92 @@ jobs:
         expected: "shard03"
         actual: ${{ steps.mm2.outputs.mm }}
         comparison: Contains
+
+    - name: Run mm command and get output from server_status instance cmd
+      id: mm3
+      run: |
+        output=$(python/app/mm -D admin -u user -p password --server_status instance)
+        echo "$output"
+        output="${output//'%'/'%25'}"
+        output="${output//$'\n'/'%0A'}"
+        output="${output//$'\r'/'%0D'}"
+        echo "::set-output name=mm::$output"
+
+    - name: Validate output of the server_status command 1
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "mongod"
+        actual: ${{ steps.mm3.outputs.mm }}
+        comparison: Contains
+
+    - name: Validate output of the server_status command 2
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "pid"
+        actual: ${{ steps.mm3.outputs.mm }}
+        comparison: Contains
+
+    - name: Validate output of the server_status command 3
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "uptime"
+        actual: ${{ steps.mm3.outputs.mm }}
+        comparison: Contains
+
+    - name: Run mm command and get output from host_info os cmd
+      id: mm4
+      run: |
+        output=$(python/app/mm -D admin -u user -p password --host_info os)
+        echo "$output"
+        output="${output//'%'/'%25'}"
+        output="${output//$'\n'/'%0A'}"
+        output="${output//$'\r'/'%0D'}"
+        echo "::set-output name=mm::$output"
+
+    - name: Validate output of the host_info command 1
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "Linux release"
+        actual: ${{ steps.mm4.outputs.mm }}
+        comparison: Contains
+
+    - name: Validate output of the host_info command 2
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "Kernel"
+        actual: ${{ steps.mm4.outputs.mm }}
+        comparison: Contains
+
+    - name: Run mm command and get output from step_down cmd
+      id: mm5
+      run: |
+        output=$(python/app/mm -D admin -u user -p password --step_down rs0)
+        echo "$output"
+        output="${output//'%'/'%25'}"
+        output="${output//$'\n'/'%0A'}"
+        output="${output//$'\r'/'%0D'}"
+        echo "::set-output name=mm::$output"
+
+    - name: Validate output of the step_down command 1
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "A new PRIMARY has not yet been elected. Try mm --repl again in a few moments to see if a new PRIMARY is elected."
+        actual: ${{ steps.mm5.outputs.mm }}
+        comparison: Contains
+
+    - name: Run mm command and get output from repl cmd with repeat
+      id: mm6
+      run: |
+        output=$(python/app/mm -D admin -u user -p password --repl --repeat 5)
+        echo "$output"
+        output="${output//'%'/'%25'}"
+        output="${output//$'\n'/'%0A'}"
+        output="${output//$'\r'/'%0D'}"
+        echo "::set-output name=mm::$output"
+
+    - name: Validate output of the repl cmd with repeat 1
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "There have been no state changes in the cluster since the last check"
+        actual: ${{ steps.mm6.outputs.mm }}
+        comparison: Contains

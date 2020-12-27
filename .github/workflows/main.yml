@@ -239,23 +239,10 @@ jobs:
         actual: ${{ steps.mm4.outputs.mm }}
         comparison: Contains
 
-    - name: Run mm command and get output from step_down cmd
+    - name: Run mm command with step_down
       id: mm5
       run: |
-        python/app/mm -D admin -u user -p password --step_down shard01 > output.log 2>&1
-        output=$(cat output.log)
-        echo "$output"
-        output="${output//'%'/'%25'}"
-        output="${output//$'\n'/'%0A'}"
-        output="${output//$'\r'/'%0D'}"
-        echo "::set-output name=mm::$output"
-
-    - name: Validate output of the step_down command 1
-      uses: nick-invision/assert-action@v1
-      with:
-        expected: "A new PRIMARY has not yet been elected. Try mm --repl again in a few moments to see if a new PRIMARY is elected."
-        actual: ${{ steps.mm5.outputs.mm }}
-        comparison: Contains
+        python/app/mm -D admin -u user -p password --step_down shard01
 
     - name: Run mm command and get output from repl cmd with repeat
       id: mm6

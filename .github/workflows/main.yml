@@ -242,7 +242,8 @@ jobs:
     - name: Run mm command and get output from step_down cmd
       id: mm5
       run: |
-        output=$(python/app/mm -D admin -u user -p password --step_down shard01 2>&1)
+        python/app/mm -D admin -u user -p password --step_down shard01 > output.log 2>&1
+        output=$(cat output.log)
         echo "$output"
         output="${output//'%'/'%25'}"
         output="${output//$'\n'/'%0A'}"
@@ -259,7 +260,8 @@ jobs:
     - name: Run mm command and get output from repl cmd with repeat
       id: mm6
       run: |
-        output=$(python/app/mm -D admin -u user -p password --repl --repeat 5)
+        python/app/mm -D admin -u user -p password --repl --repeat 5 > output2.log 2>&1
+        output=$(cat output2.log)
         echo "$output"
         output="${output//'%'/'%25'}"
         output="${output//$'\n'/'%0A'}"

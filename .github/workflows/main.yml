@@ -235,7 +235,7 @@ jobs:
     - name: Validate output of the host_info command 2
       uses: nick-invision/assert-action@v1
       with:
-        expected: "Kernel"
+        expected: "shard03"
         actual: ${{ steps.mm4.outputs.mm }}
         comparison: Contains
 

@@ -19,8 +19,11 @@ import pickle
 from bgcolours import bgcolours
 from subprocess import call, PIPE
 
-exec(open(os.path.dirname(os.path.abspath(inspect.stack()[0][1]))  + "/../pymmo/pymmo.py").read())
-exec(open(os.path.dirname(os.path.abspath(inspect.stack()[0][1]))  + "/CSVWriter.py").read())
+from pymmo import MmoMongoCluster
+import CSVWriter
+#exec(open(os.path.dirname(os.path.abspath(inspect.stack()[0][1]))  + "/../pymmo/pymmo.py").read())
+#exec(open(os.path.dirname(os.path.abspath(inspect.stack()[0][1]))  + "/CSVWriter.py").read())
+from os.path import expanduser
 
 MEGABYTE=1048576.0 # Needs to be a float or python floors the result
 
@@ -1914,7 +1917,7 @@ if len(sys.argv)==1:
     sys.exit(1) # Let's get out of here!
 
 # If a configuration file exists use that to connect
-config_file = os.path.dirname(os.path.realpath(__file__)) + "/config.cnf"
+config_file = "{0}/.mmo/config.cnf".format(expanduser("~"))
 if args.debug:
     print("configuration file: " + config_file)
     print("Exists?: " + str(os.path.isfile(config_file)))

@@ -1,4 +1,3 @@
-
 1. Cluster summary
 
 ./mm --summary
@@ -219,3 +218,11 @@ mmo_kill_replset rs3
 ./mm --server_status asserts --poll
 ./mm --server_status network --poll
 
+# Build & Upload Package
+
+```bash
+cd python
+rm dist/*
+python setup.py bdist_wheel && python -m pip install dist/mongodbmanager-0.1-py3-none-any.whl --force-reinstall
+python -m twine upload dist/*  # Prompts for pypi.org password
+```

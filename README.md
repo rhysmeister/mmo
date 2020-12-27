@@ -96,7 +96,7 @@ SYNOPSYS
       --interval INTERVAL, -i INTERVAL
                             Number of seconds between each repeat
       --connection CONNECTION, -c CONNECTION
-                            Name of MongoDB connection to use as set in config.cnf
+                            Name of MongoDB connection to use as set in $HOME/.mmo/config.cnf
       --debug, -d           Output debug information
       --validate_indexes VALIDATE_INDEXES
                             Collection to validate indexes across all shard
@@ -178,7 +178,7 @@ CONNECTION OPTIONS
 
     Connecting via a configuration file
 
-    By default mm will look for a configuration file in the directory it is executed from. This file must be called config.cnf and contain at least one valid section. Each section must be specified as follows;
+    By default mm will look for a configuration file a directory named .mmo in the user's home directory. This file must be called config.cnf (i.e. $HOME/.mmo/config.cnf) and contain at least one valid section. Each section must be specified as follows;
 
     [Unique name]
     mongo_host: <hostname>

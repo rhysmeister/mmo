@@ -1,2 +1,6 @@
 python/.idea/*
 *.swp
+build/
+dist/
+mm.egg-info/
+**/*.pyc

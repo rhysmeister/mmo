@@ -80,7 +80,7 @@ jobs:
     - name: Run mm command and get output from repl cmd
       id: mm
       run: |
-        output=$(mm -D admin -u user -p password --repl --debug)
+        output=$(mm -D admin -u admin -p admin --repl)
         echo "$output"
         output="${output//'%'/'%25'}"
         output="${output//$'\n'/'%0A'}"
@@ -132,7 +132,7 @@ jobs:
     - name: Run mm command and get output from summary cmd
       id: mm2
       run: |
-        output=$(mm -D admin -u user -p password --summary)
+        output=$(mm -D admin -u admin -p admin --summary)
         echo "$output"
         output="${output//'%'/'%25'}"
         output="${output//$'\n'/'%0A'}"
@@ -191,7 +191,7 @@ jobs:
     - name: Run mm command and get output from server_status instance cmd
       id: mm3
       run: |
-        output=$(mm -D admin -u user -p password --server_status instance)
+        output=$(mm -D admin -u admin -p admin --server_status instance)
         echo "$output"
         output="${output//'%'/'%25'}"
         output="${output//$'\n'/'%0A'}"
@@ -222,7 +222,7 @@ jobs:
     - name: Run mm command and get output from host_info os cmd
       id: mm4
       run: |
-        output=$(mm -D admin -u user -p password --host_info os)
+        output=$(mm -D admin -u admin -p admin --host_info os)
         echo "$output"
         output="${output//'%'/'%25'}"
         output="${output//$'\n'/'%0A'}"
@@ -246,12 +246,12 @@ jobs:
     - name: Run mm command with step_down
       id: mm5
       run: |
-        mm -D admin -u user -p password --step_down shard01
+        mm -D admin -u admin -p admin --step_down shard01
 
     - name: Run mm command and get output from repl cmd with repeat
       id: mm6
       run: |
-        mm -D admin -u user -p password --repl --repeat 5 > output2.log 2>&1
+        mm -D admin -u admin -p admin --repl --repeat 5 > output2.log 2>&1
         output=$(cat output2.log)
         echo "$output"
         output="${output//'%'/'%25'}"

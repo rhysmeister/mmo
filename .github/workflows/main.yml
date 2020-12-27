@@ -258,6 +258,13 @@ jobs:
     - name: Validate output of the repl cmd with repeat 1
       uses: nick-invision/assert-action@v1
       with:
+        expected: "There has been 1 change in the cluster state since the last check"
+        actual: ${{ steps.mm6.outputs.mm }}
+        comparison: Contains
+
+    - name: Validate output of the repl cmd with repeat 2
+      uses: nick-invision/assert-action@v1
+      with:
         expected: "There have been no state changes in the cluster since the last check"
         actual: ${{ steps.mm6.outputs.mm }}
         comparison: Contains

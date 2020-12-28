@@ -409,8 +409,6 @@ jobs:
           output="${output//'%'/'%25'}"
           output="${output//$'\n'/'%0A'}"
           output="${output//$'\r'/'%0D'}"
-          sleep 10
-          output="$(echo $output | grep 27026)"
           echo "::set-output name=mm::$output"
 
     - name: Validate that profiling output look correct 1
@@ -428,8 +426,6 @@ jobs:
           output="${output//'%'/'%25'}"
           output="${output//$'\n'/'%0A'}"
           output="${output//$'\r'/'%0D'}"
-          sleep 10
-          output="$(echo $output | grep 27026)"
           echo "::set-output name=mm::$output"
 
     - name: Validate that profiling output look correct 1
@@ -437,4 +433,101 @@ jobs:
       with:
         expected: "test  0        200"
         actual: ${{ steps.profiling2.outputs.mm }}
+        comparison: Contains
+
+    - name: Test collection stats 1
+      id: collection1
+      run: |
+          output=$(mm -D admin -u admin -p admin --collection_stats config.chunks)
+          echo "$output"
+          output="${output//'%'/'%25'}"
+          output="${output//$'\n'/'%0A'}"
+          output="${output//$'\r'/'%0D'}"
+          echo "::set-output name=mm::$output"
+
+    - name: Validate collection stats 1
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "sharded   capped   count      size (mb)  storageSize (mb) IndexSize (mb)"
+        actual: ${{ steps.collection1.outputs.mm }}
+        comparison: Contains
+
+    - name: Validate collection stats 2
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "ns_1_shard_1_min_1"
+        actual: ${{ steps.collection1.outputs.mm }}
+        comparison: Contains
+
+    - name: Test database stats 1
+      id: database1
+      run: |
+          output=$(mm -D admin -u admin -p admin --database_stats config)
+          echo "$output"
+          output="${output//'%'/'%25'}"
+          output="${output//$'\n'/'%0A'}"
+          output="${output//$'\r'/'%0D'}"
+          echo "::set-output name=mm::$output"
+
+    - name: Validate database stats 1
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "Database stats summary of config"
+        actual: ${{ steps.database1.outputs.mm }}
+        comparison: Contains
+
+    - name: Validate database stats 2
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "shard03/"
+        actual: ${{ steps.database1.outputs.mm }}
+        comparison: Contains
+
+    - name: Test a cmd with --inc_mongos flag 1
+      id: inc1
+      run: |
+          output=$(mm -D admin -u admin -p admin --server_status instance --inc_mongos)
+          echo "$output"
+          output="${output//'%'/'%25'}"
+          output="${output//$'\n'/'%0A'}"
+          output="${output//$'\r'/'%0D'}"
+          echo "::set-output name=mm::$output"
+
+    - name: Validate cmd with --inc_mongos flag 1
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "mongos"
+        actual: ${{ steps.inc1.outputs.mm }}
+        comparison: Contains
+
+    - name: Test a cmd with --inc_mongos flag 2
+      id: inc2
+      run: |
+          output=$(mm -D admin -u admin -p admin --server_status asserts --inc_mongos)
+          echo "$output"
+          output="${output//'%'/'%25'}"
+          output="${output//$'\n'/'%0A'}"
+          output="${output//$'\r'/'%0D'}"
+          echo "::set-output name=mm::$output"
+
+    - name: Validate cmd with --inc_mongos flag 2
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "mongos"
+        actual: ${{ steps.inc2.outputs.mm }}
+        comparison: Contains
+
+    - name: Test a cmd with --repeat and --interval flags
+      id: repeat1
+      run: |
+          output=$(mm -D admin -u admin -p admin -server_status opcounters --repeat 5 --interval 1 >> repeat.txt 2>&1)
+          output=$(cat repeat.txt")
+          echo $output
+          echo "::set-output name=mm::$output"
+
+    - name: Validate repeat output
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "insert  query  update  delete  getmore  command"
+        actual: ${{ steps.repeat1.outputs.mm }}
         comparison: Contains

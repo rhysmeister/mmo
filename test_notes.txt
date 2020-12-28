@@ -2,9 +2,13 @@
 
 ./mm --summary
 
+- CI Test OK
+
 2. Replication state summary
 
 ./mm --repl
+
+- CI Test OK
 
 3. server_status tests
 
@@ -22,6 +26,8 @@
 ./mm --server_status storage_engine
 ./mm --server_status memory
 
+- CI Test OK Only instance
+
 4. host_info
 
 ./mm --host_info system
@@ -29,14 +35,20 @@
 ./mm --host_info extra
 ./mm --host_info help
 
+- CI Test OK Only system
+
 5. db_hashes
 
 ./mm --db_hashes
 ./mm --db_hashes --verbose_display
 
+- CI Test OK
+
 6. databases
 
 ./mm --databases
+
+- CI Test OK
 
 7. --stepdown test
 
@@ -44,13 +56,19 @@
 ./mm --step_down rs1
 ./mm --step_down rs2
 
+- CI test OK.
+
 8. Nominate step down test (specifics probably need changing)
 
 ./mm --step_down_nominate_host rhysmacbook.local --step_down_nominate_port 30001 --step_down rs0
 
+- CI Test NOK
+
 9. Replset freeze (specifics probably need changing)
 
 ./mm --step_down_nominate_host rhysmacbook.local --step_down_nominate_port 30003 --step_down rs0 --replset_freeze 60
+
+- CI test SKIPPED
 
 10. profiling test (with --slowms)
 
@@ -62,9 +80,13 @@
 ./mm --profiling 2 --slowms 100 --database test
 ./mm --profiling 0 --database tests
 
+- CI Test ADDED
+
 11. --sharding test
 
 ./mm --sharding
+
+- CI Test NOK
 
 12. Validate indexes
 
@@ -72,9 +94,13 @@
 ./mm --validate_indexes test.rhys
 ./mm --validate_indexes test.restaurants
 
+- CI Test SKIPPED
+
 13. Collection stats
 
 ./mm --collection_stats test.restaurants
+
+- CI test ADDED
 
 14. Database stats
 
@@ -84,18 +110,26 @@
 
 ./mm --show_collections test
 
+- CI test ADDED
+
 16. Custom command
 
 ./mm --command '{ "profile": -1 }'
+
+- CI test SKIPPED
 
 17. Balancing
 
 ./mm --balancing disable --collection test.sample_messages
 ./mm --balancing enable --collection test.sample_messages
 
+- CI test SKIPPED
+
 18. Verbose display
 
 ./mm --db_hashes --verbose_display
+
+- CI test SKIPPED
 
 19. A few tests with the --inc_mongos flag
 
@@ -104,12 +138,16 @@
 ./mm --host_info os --inc_mongos
 ./mm --host_info extra --inc_mongos
 
+- CI test ADDED
+
 20. A few tests with the repeat & interval flags
 
 ./mm --repl --repeat 5
 ./mm --server_status opcounters --repeat 10
 ./mm --server_status opcounters --repeat 10 --interval 1
 ./mm --server_status opcounters_repl --repeat 3 --interval 3
+
+- CI Test ADDED
 
 21. Test the --balancing_state flag
 
@@ -125,6 +163,8 @@ db.settings.remove( { "_id": "balancer" } );
 ./mm --balancing_state state # should return false
 ./mm --balancing_state enable
 ./mm --balancing_state state # should return true
+
+- CI Test SKIPPED. Problems with cmd
 
 22. Tests host down handling...
 
@@ -152,6 +192,8 @@ mmo_raise_repl_set_from_the_dead rs2
 ./mm --schema_summary test.restaurants --schema_summary_limit 10
 ./mm --schema_summary test.restaurants --schema_summary_limit 1000
 
+- CI TEST SKIPPED. Erir with cmd
+
 24. --plan_cache methods
 
 ./mm --plan_cache test.restaurants
@@ -161,9 +203,13 @@ mongo> db.restaurants.find({ "name": {"$gt": "Rhys"}, "restaurant_id": "12345", 
 mongo> exit
 TODO
 
+- CI TEST SKIPPED
+
 25. --chunks
 
 ./mm --chunks
+
+- CI TEST SKIPPED - Error in cmd
 
 26. Test --repl screen state change detection
 
@@ -217,6 +263,8 @@ mmo_kill_replset rs3
 ./mm --server_status opcounters --poll
 ./mm --server_status asserts --poll
 ./mm --server_status network --poll
+
+- CI TEST SKIPPED
 
 # Build & Upload Package
 

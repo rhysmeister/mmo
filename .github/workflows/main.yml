@@ -30,12 +30,6 @@ jobs:
     - name: Install ansible-base (${{ matrix.ansible_version }})
       run: pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible_version }}.tar.gz --disable-pip-version-check
 
-    - name: Install community.general
-      run: ansible-galaxy collection install community.general
-
-    - name: Install community.crypto
-      run: ansible-galaxy collection install community.crypto
-
     - name: Install community.mongodb
       run: ansible-galaxy collection install community.mongodb
 
@@ -70,13 +64,17 @@ jobs:
 
     #- name: Debug
     #  run: cat data/.mlaunch_startup
-    - name: Pause to all a little time for replicaset to stablise
-      run: sleep 10
+    - name: Install wheel
+      run: pip install wheel
+
+    - name: Build and install the mm python app
+      run: python setup.py bdist_wheel && python -m pip install dist/mongodbmanager-*-py3-none-any.whl
+      working-directory: python
 
     - name: Run mm command and get output from repl cmd
       id: mm
       run: |
-        output=$(python/app/mm -D admin -u user -p password --repl)
+        output=$(mm -D admin -u admin -p admin --repl)
         echo "$output"
         output="${output//'%'/'%25'}"
         output="${output//$'\n'/'%0A'}"
@@ -128,7 +126,7 @@ jobs:
     - name: Run mm command and get output from summary cmd
       id: mm2
       run: |
-        output=$(python/app/mm -D admin -u user -p password --summary)
+        output=$(mm -D admin -u admin -p admin --summary)
         echo "$output"
         output="${output//'%'/'%25'}"
         output="${output//$'\n'/'%0A'}"
@@ -187,7 +185,7 @@ jobs:
     - name: Run mm command and get output from server_status instance cmd
       id: mm3
       run: |
-        output=$(python/app/mm -D admin -u user -p password --server_status instance)
+        output=$(mm -D admin -u admin -p admin --server_status instance)
         echo "$output"
         output="${output//'%'/'%25'}"
         output="${output//$'\n'/'%0A'}"
@@ -218,7 +216,7 @@ jobs:
     - name: Run mm command and get output from host_info os cmd
       id: mm4
       run: |
-        output=$(python/app/mm -D admin -u user -p password --host_info os)
+        output=$(mm -D admin -u admin -p admin --host_info os)
         echo "$output"
         output="${output//'%'/'%25'}"
         output="${output//$'\n'/'%0A'}"
@@ -242,12 +240,12 @@ jobs:
     - name: Run mm command with step_down
       id: mm5
       run: |
-        python/app/mm -D admin -u user -p password --step_down shard01
+        mm -D admin -u admin -p admin --step_down shard01
 
     - name: Run mm command and get output from repl cmd with repeat
       id: mm6
       run: |
-        python/app/mm -D admin -u user -p password --repl --repeat 5 > output2.log 2>&1
+        mm -D admin -u admin -p admin --repl --repeat 5 > output2.log 2>&1
         output=$(cat output2.log)
         echo "$output"
         output="${output//'%'/'%25'}"
@@ -258,7 +256,7 @@ jobs:
     - name: Validate output of the repl cmd with repeat 1
       uses: nick-invision/assert-action@v1
       with:
-        expected: "There has been 1 change in the cluster state since the last check"
+        expected: "in the cluster state since the last check"
         actual: ${{ steps.mm6.outputs.mm }}
         comparison: Contains
 

@@ -30,12 +30,6 @@ jobs:
     - name: Install ansible-base (${{ matrix.ansible_version }})
       run: pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible_version }}.tar.gz --disable-pip-version-check
 
-    - name: Install community.general
-      run: ansible-galaxy collection install community.general
-
-    - name: Install community.crypto
-      run: ansible-galaxy collection install community.crypto
-
     - name: Install community.mongodb
       run: ansible-galaxy collection install community.mongodb
 

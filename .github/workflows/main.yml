@@ -280,11 +280,11 @@ jobs:
     - name: Validate output of the db_hashes cmd 1
       uses: nick-invision/assert-action@v1
       with:
-        expected: "hostname         shard      port       db         coll # s   md5"
+        expected: "md5"
         actual: ${{ steps.mm7.outputs.mm }}
         comparison: Contains
 
-    - name: Validate output of the db_hashes cmd 1
+    - name: Validate output of the db_hashes cmd 2
       uses: nick-invision/assert-action@v1
       with:
         expected: "admin"

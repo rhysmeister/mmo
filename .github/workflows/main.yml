@@ -71,6 +71,66 @@ jobs:
       run: python setup.py bdist_wheel && python -m pip install dist/mongodbmanager-*-py3-none-any.whl
       working-directory: python
 
+
+    - name: Run mm command and get output from summary cmd
+      id: summary
+      run: |
+        output=$(mm -D admin -u admin -p admin --summary)
+        echo "$output"
+        output="${output//'%'/'%25'}"
+        output="${output//$'\n'/'%0A'}"
+        output="${output//$'\r'/'%0D'}"
+        echo "::set-output name=mm::$output"
+
+    - name: Validate output of the summary command 1
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "MongoDB Config Servers"
+        actual: ${{ steps.summary.outputs.mm }}
+        comparison: Contains
+
+    - name: Validate output of the summary command 2
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "MongoDB mongos servers"
+        actual: ${{ steps.summary.outputs.mm }}
+        comparison: Contains
+
+    - name: Validate output of the summary command 3
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "MongoDB mongod shard servers"
+        actual: ${{ steps.summary.outputs.mm }}
+        comparison: Contains
+
+    - name: Validate output of the summary command 3
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "MongoDB shards"
+        actual: ${{ steps.summary.outputs.mm }}
+        comparison: Contains
+
+    - name: Validate output of the summary command 3
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "shard01"
+        actual: ${{ steps.summary.outputs.mm }}
+        comparison: Contains
+
+    - name: Validate output of the summary command 3
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "shard02"
+        actual: ${{ steps.summary.outputs.mm }}
+        comparison: Contains
+
+    - name: Validate output of the summary command 3
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "shard03"
+        actual: ${{ steps.summary.outputs.mm }}
+        comparison: Contains
+
     - name: Run mm command and get output from repl cmd
       id: mm
       run: |

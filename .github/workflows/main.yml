@@ -290,3 +290,53 @@ jobs:
         expected: "admin"
         actual: ${{ steps.mm7.outputs.mm }}
         comparison: Contains
+
+    - name: Run mm cmd with databases flag
+      id: mm8
+      run: |
+          output=$(mm -D admin -u admin -p admin --databases)
+          echo "$output"
+          output="${output//'%'/'%25'}"
+          output="${output//$'\n'/'%0A'}"
+          output="${output//$'\r'/'%0D'}"
+          echo "::set-output name=mm::$output"
+
+    - name: Validate output of the databases cmd 1
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "admin"
+        actual: ${{ steps.mm8.outputs.mm }}
+        comparison: Contains
+
+    - name: Validate output of the databases cmd 2
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "config"
+        actual: ${{ steps.mm8.outputs.mm }}
+        comparison: Contains
+
+    - name: Validate output of the databases cmd 3
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "local"
+        actual: ${{ steps.mm8.outputs.mm }}
+        comparison: Contains
+
+    - name: Test step_down nominate host command
+      id: mm9
+      run: |
+          output=$(mm -D admin -u admin -p admin --step_down_nominate_host localhost --step_down_nominate_port 27026 --step_down shard03)
+          echo "$output"
+          output="${output//'%'/'%25'}"
+          output="${output//$'\n'/'%0A'}"
+          output="${output//$'\r'/'%0D'}"
+          sleep 10
+          output="$(echo $output | grep 27026)"
+          echo "::set-output name=mm::$output"
+
+    - name: Validate that host with port 27026 is now primary
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "localhost:27026  shard03     PRIMARY"
+        actual: ${{ steps.mm9.outputs.mm }}
+        comparison: Contains

@@ -1201,6 +1201,7 @@ def step_down_primary(mmo, c, replicaset, force):
     else:
         raise Exception("Not a valid replicaset name.")
 
+# Starting in version 3.6, the balancer no longer takes a “lock”
 def sharding_status(mmo, c):
     sh = mmo.mmo_sharding_status(c)
     query = { "_id": "balancer" }
@@ -1264,7 +1265,7 @@ def profile_and_display(mmo, c, profile, slowms, database):
                                                                  doc["command_output"]["slowms"]])
 
 def print_database_summary(mmo, c):
-    # create_format_string not viable here ue to format of data again
+    # create_format_string not viable here due to format of data again
     cluster_nodes = mmo.mmo_list_databases_on_cluster(c, False)
     max_hostname_length = length_of_longest_element(cluster_nodes, "hostname") + 2
     for server in cluster_nodes:

@@ -266,3 +266,27 @@ jobs:
         expected: "There have been no state changes in the cluster since the last check"
         actual: ${{ steps.mm6.outputs.mm }}
         comparison: Contains
+
+    - name: Run mm cmd with db_hashes flag
+      id: mm7
+      run: |
+          output=$(mm -D admin -u admin -p admin --db_hashes)
+          echo "$output"
+          output="${output//'%'/'%25'}"
+          output="${output//$'\n'/'%0A'}"
+          output="${output//$'\r'/'%0D'}"
+          echo "::set-output name=mm::$output"
+
+    - name: Validate output of the db_hashes cmd 1
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "hostname         shard      port       db         coll # s   md5"
+        actual: ${{ steps.mm7.outputs.mm }}
+        comparison: Contains
+
+    - name: Validate output of the db_hashes cmd 1
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "admin"
+        actual: ${{ steps.mm7.outputs.mm }}
+        comparison: Contains

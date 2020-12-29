@@ -435,6 +435,9 @@ jobs:
         actual: ${{ steps.profiling2.outputs.mm }}
         comparison: Contains
 
+    - name: Debug step
+      run: netstat -tulpen
+
     - name: Test collection stats 1
       id: collection1
       run: |

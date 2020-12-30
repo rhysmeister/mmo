@@ -1265,7 +1265,7 @@ def profile_and_display(mmo, c, profile, slowms, database):
                                                                  doc["command_output"]["slowms"]])
 
 def print_database_summary(mmo, c):
-    # create_format_string not viable here due to format of data again
+    # create_format_string not viable here dnumExtentsue to format of data again
     cluster_nodes = mmo.mmo_list_databases_on_cluster(c, False)
     max_hostname_length = length_of_longest_element(cluster_nodes, "hostname") + 2
     for server in cluster_nodes:
@@ -1348,7 +1348,7 @@ def print_database_stats(mmo, c, database):
                                                             dbstats["avgObjSize"],
                                                             dbstats["dataSize"] / MEGABYTE,
                                                             dbstats["storageSize"] / MEGABYTE,
-                                                            dbstats["numExtents"],
+                                                            dbstats.get("numExtents", 'NA'),
                                                             dbstats["indexSize"] / MEGABYTE,
                                                             dbstats["fileSize"],
                                                             dbstats["extentFreeList"]["num"]])
@@ -1375,7 +1375,7 @@ def print_database_stats(mmo, c, database):
                                                                     round(dbstats["raw"][shard]["avgObjSize"]),
                                                                     round(dbstats["raw"][shard]["dataSize"] / MEGABYTE, 2),
                                                                     round(dbstats["raw"][shard]["storageSize"] / MEGABYTE, 2),
-                                                                    dbstats["raw"][shard]["numExtents"],
+                                                                    dbstats["raw"][shard].get("numExtents", 'NA'),
                                                                     dbstats["raw"][shard]["indexes"],
                                                                     round(dbstats["raw"][shard]["indexSize"] / MEGABYTE, 2),
                                                                     dbstats["raw"][shard].get("fileSize", "NA")])

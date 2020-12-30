@@ -71,6 +71,66 @@ jobs:
       run: python setup.py bdist_wheel && python -m pip install dist/mongodbmanager-*-py3-none-any.whl
       working-directory: python
 
+
+    - name: Run mm command and get output from summary cmd
+      id: mm0
+      run: |
+        output=$(mm -D admin -u admin -p admin --summary)
+        echo "$output"
+        output="${output//'%'/'%25'}"
+        output="${output//$'\n'/'%0A'}"
+        output="${output//$'\r'/'%0D'}"
+        echo "::set-output name=mm::$output"
+
+    - name: Validate output of the summary command 1
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "MongoDB Config Servers"
+        actual: ${{ steps.mm0.outputs.mm }}
+        comparison: Contains
+
+    - name: Validate output of the summary command 2
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "MongoDB mongos servers"
+        actual: ${{ steps.mm0.outputs.mm }}
+        comparison: Contains
+
+    - name: Validate output of the summary command 3
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "MongoDB mongod shard servers"
+        actual: ${{ steps.mm0.outputs.mm }}
+        comparison: Contains
+
+    - name: Validate output of the summary command 3
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "MongoDB shards"
+        actual: ${{ steps.mm0.outputs.mm }}
+        comparison: Contains
+
+    - name: Validate output of the summary command 3
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "shard01"
+        actual: ${{ steps.mm0.outputs.mm }}
+        comparison: Contains
+
+    - name: Validate output of the summary command 3
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "shard02"
+        actual: ${{ steps.mm0.outputs.mm }}
+        comparison: Contains
+
+    - name: Validate output of the summary command 3
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "shard03"
+        actual: ${{ steps.mm0.outputs.mm }}
+        comparison: Contains
+
     - name: Run mm command and get output from repl cmd
       id: mm
       run: |
@@ -266,3 +326,214 @@ jobs:
         expected: "There have been no state changes in the cluster since the last check"
         actual: ${{ steps.mm6.outputs.mm }}
         comparison: Contains
+
+    - name: Run mm cmd with db_hashes flag
+      id: mm7
+      run: |
+          output=$(mm -D admin -u admin -p admin --db_hashes)
+          echo "$output"
+          output="${output//'%'/'%25'}"
+          output="${output//$'\n'/'%0A'}"
+          output="${output//$'\r'/'%0D'}"
+          echo "::set-output name=mm::$output"
+
+    - name: Validate output of the db_hashes cmd 1
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "md5"
+        actual: ${{ steps.mm7.outputs.mm }}
+        comparison: Contains
+
+    - name: Validate output of the db_hashes cmd 2
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "admin"
+        actual: ${{ steps.mm7.outputs.mm }}
+        comparison: Contains
+
+    - name: Run mm cmd with databases flag
+      id: mm8
+      run: |
+          output=$(mm -D admin -u admin -p admin --databases)
+          echo "$output"
+          output="${output//'%'/'%25'}"
+          output="${output//$'\n'/'%0A'}"
+          output="${output//$'\r'/'%0D'}"
+          echo "::set-output name=mm::$output"
+
+    - name: Validate output of the databases cmd 1
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "admin"
+        actual: ${{ steps.mm8.outputs.mm }}
+        comparison: Contains
+
+    - name: Validate output of the databases cmd 2
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "config"
+        actual: ${{ steps.mm8.outputs.mm }}
+        comparison: Contains
+
+    - name: Validate output of the databases cmd 3
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "local"
+        actual: ${{ steps.mm8.outputs.mm }}
+        comparison: Contains
+
+#    - name: Test step_down nominate host command
+#      id: mm9
+#      run: |
+#          output=$(mm -D admin -u admin -p admin --step_down_nominate_host localhost --step_down_nominate_port 27026 --step_down shard03)
+#          echo "$output"
+#          output="${output//'%'/'%25'}"
+#          output="${output//$'\n'/'%0A'}"
+#          output="${output//$'\r'/'%0D'}"
+#          sleep 10
+#          output="$(echo $output | grep 27026)"
+#          echo "::set-output name=mm::$output"
+
+#    - name: Validate that host with port 27026 is now primary
+#      uses: nick-invision/assert-action@v1
+#      with:
+#        expected: "localhost:27026  shard03     PRIMARY"
+#        actual: ${{ steps.mm9.outputs.mm }}
+#        comparison: Contains
+
+    - name: Test profiling 1
+      id: profiling1
+      run: |
+          output=$(mm -D admin -u admin -p admin --profiling 1 --database test --slowms 200)
+          echo "$output"
+          output="${output//'%'/'%25'}"
+          output="${output//$'\n'/'%0A'}"
+          output="${output//$'\r'/'%0D'}"
+          echo "::set-output name=mm::$output"
+
+    - name: Validate that profiling output looks correct 1
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "test  1        200"
+        actual: ${{ steps.profiling1.outputs.mm }}
+        comparison: Contains
+
+    - name: Test profiling 2
+      id: profiling2
+      run: |
+          output=$(mm -D admin -u admin -p admin --profiling 0 --database test)
+          echo "$output"
+          output="${output//'%'/'%25'}"
+          output="${output//$'\n'/'%0A'}"
+          output="${output//$'\r'/'%0D'}"
+          echo "::set-output name=mm::$output"
+
+    - name: Validate that profiling output looks correct 1
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "test  0        200"
+        actual: ${{ steps.profiling2.outputs.mm }}
+        comparison: Contains
+
+    - name: Debug step
+      run: netstat -tulpen
+
+    - name: Ensure hostname resolves to localhost
+      run: echo "127.0.0.1 $(hostname)" | sudo tee -a /etc/hosts
+
+    - name: Test collection stats 1
+      id: collection1
+      run: |
+          output=$(mm -D admin -u admin -p admin --collection_stats config.chunks)
+          echo "$output"
+          output="${output//'%'/'%25'}"
+          output="${output//$'\n'/'%0A'}"
+          output="${output//$'\r'/'%0D'}"
+          echo "::set-output name=mm::$output"
+
+    - name: Validate collection stats 1
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "sharded   capped   count      size (mb)  storageSize (mb) IndexSize (mb)"
+        actual: ${{ steps.collection1.outputs.mm }}
+        comparison: Contains
+
+    - name: Validate collection stats 2
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "ns_1_shard_1_min_1"
+        actual: ${{ steps.collection1.outputs.mm }}
+        comparison: Contains
+
+    - name: Test database stats 1
+      id: database1
+      run: |
+          output=$(mm -D admin -u admin -p admin --database_stats config)
+          echo "$output"
+          output="${output//'%'/'%25'}"
+          output="${output//$'\n'/'%0A'}"
+          output="${output//$'\r'/'%0D'}"
+          echo "::set-output name=mm::$output"
+
+    - name: Validate database stats 1
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "Database stats summary of config"
+        actual: ${{ steps.database1.outputs.mm }}
+        comparison: Contains
+
+    - name: Validate database stats 2
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "shard03/"
+        actual: ${{ steps.database1.outputs.mm }}
+        comparison: Contains
+
+    - name: Test a cmd with --inc_mongos flag 1
+      id: inc1
+      run: |
+          output=$(mm -D admin -u admin -p admin --server_status instance --inc_mongos)
+          echo "$output"
+          output="${output//'%'/'%25'}"
+          output="${output//$'\n'/'%0A'}"
+          output="${output//$'\r'/'%0D'}"
+          echo "::set-output name=mm::$output"
+
+    - name: Validate cmd with --inc_mongos flag 1
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "mongos"
+        actual: ${{ steps.inc1.outputs.mm }}
+        comparison: Contains
+
+    - name: Test a cmd with --inc_mongos flag 2
+      id: inc2
+      run: |
+          output=$(mm -D admin -u admin -p admin --server_status asserts --inc_mongos)
+          echo "$output"
+          output="${output//'%'/'%25'}"
+          output="${output//$'\n'/'%0A'}"
+          output="${output//$'\r'/'%0D'}"
+          echo "::set-output name=mm::$output"
+
+    - name: Validate cmd with --inc_mongos flag 2
+      uses: nick-invision/assert-action@v1
+      with:
+        expected: "27017"  # mongos port
+        actual: ${{ steps.inc2.outputs.mm }}
+        comparison: Contains
+
+  #  - name: Test a cmd with --repeat and --interval flags
+  #    id: repeat1
+  #    run: |
+  #        output=$(mm -D admin -u admin -p admin -server_status opcounters --repeat 5 --interval 1 --stacktrace >> repeat.txt 2>&1)
+  #        output=$(cat repeat.txt)
+  #        echo "$output"
+  #        echo "::set-output name=mm::$output"
+
+  #  - name: Validate repeat output
+  #    uses: nick-invision/assert-action@v1
+  #    with:
+  #      expected: "insert  query  update  delete  getmore  command"
+  #      actual: ${{ steps.repeat1.outputs.mm }}
+  #      comparison: Contains

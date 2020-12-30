@@ -28,10 +28,18 @@ jobs:
         python-version: ${{ matrix.python_version }}
 
     - name: Install ansible-base (${{ matrix.ansible_version }})
-      run: pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible_version }}.tar.gz --disable-pip-version-check
+      uses: nick-invision/retry@v2
+      with:
+        timeout_minutes: 2
+        max_attempts: 3
+        command: pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible_version }}.tar.gz --disable-pip-version-check
 
     - name: Install community.mongodb
-      run: ansible-galaxy collection install community.mongodb
+      uses: nick-invision/retry@v2
+      with:
+        timeout_minutes: 2
+        max_attempts: 3
+        command: ansible-galaxy collection install community.mongodb
 
     - name: Create playbook to install repo for MongoDB ${{ matrix.ansible_version }}
       run: |
@@ -45,7 +53,11 @@ jobs:
       run: ansible-playbook -c local --become /tmp/mongodb.yml
 
     - name: Install the mongodb package
-      run: sudo apt install mongodb-org
+      uses: nick-invision/retry@v2
+      with:
+        timeout_minutes: 5
+        max_attempts: 3
+        command: sudo apt install mongodb-org
 
     # Deprecated
     #- name: Setup a MongoB Sharded Cluster
@@ -54,7 +66,11 @@ jobs:
     #    mmo_setup_cluster;
 
     - name: Install mtools
-      run: pip install --user mtools[all]
+      uses: nick-invision/retry@v2
+      with:
+        timeout_minutes: 5
+        max_attempts: 3
+        command: pip install --user mtools[all]
 
     - name: Add mtools location to path
       run: echo "/home/runner/.local/bin" >> $GITHUB_PATH
@@ -65,7 +81,11 @@ jobs:
     #- name: Debug
     #  run: cat data/.mlaunch_startup
     - name: Install wheel
-      run: pip install wheel
+      uses: nick-invision/retry@v2
+      with:
+        timeout_minutes: 5
+        max_attempts: 3
+        command: pip install wheel
 
     - name: Build and install the mm python app
       run: python setup.py bdist_wheel && python -m pip install dist/mongodbmanager-*-py3-none-any.whl

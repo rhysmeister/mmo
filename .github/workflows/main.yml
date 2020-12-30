@@ -523,17 +523,17 @@ jobs:
         actual: ${{ steps.inc2.outputs.mm }}
         comparison: Contains
 
-    - name: Test a cmd with --repeat and --interval flags
-      id: repeat1
-      run: |
-          output=$(mm -D admin -u admin -p admin -server_status opcounters --repeat 5 --interval 1 --stacktrace >> repeat.txt 2>&1)
-          output=$(cat repeat.txt)
-          echo "$output"
-          echo "::set-output name=mm::$output"
+  #  - name: Test a cmd with --repeat and --interval flags
+  #    id: repeat1
+  #    run: |
+  #        output=$(mm -D admin -u admin -p admin -server_status opcounters --repeat 5 --interval 1 --stacktrace >> repeat.txt 2>&1)
+  #        output=$(cat repeat.txt)
+  #        echo "$output"
+  #        echo "::set-output name=mm::$output"
 
-    - name: Validate repeat output
-      uses: nick-invision/assert-action@v1
-      with:
-        expected: "insert  query  update  delete  getmore  command"
-        actual: ${{ steps.repeat1.outputs.mm }}
-        comparison: Contains
+  #  - name: Validate repeat output
+  #    uses: nick-invision/assert-action@v1
+  #    with:
+  #      expected: "insert  query  update  delete  getmore  command"
+  #      actual: ${{ steps.repeat1.outputs.mm }}
+  #      comparison: Contains

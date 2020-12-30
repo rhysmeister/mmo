@@ -526,7 +526,7 @@ jobs:
     - name: Test a cmd with --repeat and --interval flags
       id: repeat1
       run: |
-          output=$(mm -D admin -u admin -p admin -server_status opcounters --repeat 5 --interval 1 >> repeat.txt 2>&1)
+          output=$(mm -D admin -u admin -p admin -server_status opcounters --repeat 5 --interval 1 --stacktrace >> repeat.txt 2>&1)
           output=$(cat repeat.txt")
           echo $output
           echo "::set-output name=mm::$output"

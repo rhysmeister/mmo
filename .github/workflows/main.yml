@@ -439,7 +439,7 @@ jobs:
       run: netstat -tulpen
 
     - name: Ensure hostname resolves to localhost
-      run: sudo echo "127.0.0.1 $(hostname)" >> /etc/hosts
+      run: echo "127.0.0.1 $(hostname)" | sudo tee -a /etc/hosts
 
     - name: Test collection stats 1
       id: collection1

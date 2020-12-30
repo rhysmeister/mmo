@@ -411,7 +411,7 @@ jobs:
           output="${output//$'\r'/'%0D'}"
           echo "::set-output name=mm::$output"
 
-    - name: Validate that profiling output look correct 1
+    - name: Validate that profiling output looks correct 1
       uses: nick-invision/assert-action@v1
       with:
         expected: "test  1        200"
@@ -428,7 +428,7 @@ jobs:
           output="${output//$'\r'/'%0D'}"
           echo "::set-output name=mm::$output"
 
-    - name: Validate that profiling output look correct 1
+    - name: Validate that profiling output looks correct 1
       uses: nick-invision/assert-action@v1
       with:
         expected: "test  0        200"
@@ -437,6 +437,9 @@ jobs:
 
     - name: Debug step
       run: netstat -tulpen
+
+    - name: Ensure hostname resolves to localhost
+      run: sudo echo "127.0.0.1 $(hostname)" >> /etc/hosts
 
     - name: Test collection stats 1
       id: collection1

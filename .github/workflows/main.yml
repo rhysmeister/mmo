@@ -519,7 +519,7 @@ jobs:
     - name: Validate cmd with --inc_mongos flag 2
       uses: nick-invision/assert-action@v1
       with:
-        expected: "mongos"
+        expected: "27017"  # mongos port
         actual: ${{ steps.inc2.outputs.mm }}
         comparison: Contains
 

@@ -1351,7 +1351,7 @@ def print_database_stats(mmo, c, database):
                                                             dbstats.get("numExtents", 'NA'),
                                                             dbstats["indexSize"] / MEGABYTE,
                                                             dbstats["fileSize"],
-                                                            dbstats["extentFreeList"]["num"]])
+                                                            dbstats.get("extentFreeList.num", 'NA')
                     #dbstats["extentFreeList"]["totalSize"] removed
     # Now print shard details. Don't both if the shard collection count = 0
     print_bold_header("{0:<100}", ["Database stats by shard"])

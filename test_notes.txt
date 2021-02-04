@@ -190,7 +190,7 @@ mmo_raise_repl_set_from_the_dead rs2
 
 ./mm --schema_summary test.restaurants
 ./mm --schema_summary test.restaurants --schema_summary_limit 10
-./mm --schema_summary test.restaurants --schema_summary_limit 1000
+./mm --schema_summary test.restaurants --schema_summary_limit 1000 
 
 - CI TEST SKIPPED. Erir with cmd
 

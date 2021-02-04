@@ -455,9 +455,6 @@ jobs:
         actual: ${{ steps.profiling2.outputs.mm }}
         comparison: Contains
 
-    - name: Debug step
-      run: netstat -tulpen
-
     - name: Ensure hostname resolves to localhost
       run: echo "127.0.0.1 $(hostname)" | sudo tee -a /etc/hosts
 

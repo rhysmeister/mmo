@@ -16,6 +16,7 @@ jobs:
           - "4.0"
           - "4.2"
           - "4.4"
+          - "5.0"
         ansible_version:
           - stable-2.10
     steps:
@@ -478,7 +479,8 @@ jobs:
     - name: Validate collection stats 2
       uses: nick-invision/assert-action@v1
       with:
-        expected: "ns_1_shard_1_min_1"
+        expected: "uuid_1_shard_1_min_1"
+        #expected: "ns_1_shard_1_min_1"
         actual: ${{ steps.collection1.outputs.mm }}
         comparison: Contains
 

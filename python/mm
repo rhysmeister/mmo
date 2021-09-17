@@ -249,8 +249,10 @@ def print_list_of_hosts(title, host_list, colour, replicaset_options):
                                 attribute_list.append("priority=" +  str(member["priority"]))
                                 if len(member["tags"]) > 0:
                                     attribute_list.append(str(member["tags"]))
-                                if member["slaveDelay"] > 0:
+                                if member.get("slaveDelay", 0) > 0:
                                     attribute_list.append("slaveDelay=" + str(member["slaveDelay"]))
+                                if member.get("secondaryDelaySecs", 0) > 0:
+                                    attribute_list.append("secondaryDelaySecs=" + str(member["secondaryDelaySecs"]))
                                 attribute_list.append("votes=" + str(member["votes"]))
                                 rs = shard["command_output"]["config"]["_id"]
                                 #if member["host"] == host["hostname"] + ":" + str(host["port"]):

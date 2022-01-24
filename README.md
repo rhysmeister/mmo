@@ -489,6 +489,8 @@ EXAMPLES
 
 SEE ALSO
 
+.
+
 BUGS
 
     See https://github.com/rhysmeister/mmo/issues

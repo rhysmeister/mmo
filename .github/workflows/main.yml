@@ -16,7 +16,7 @@ jobs:
           - "4.0"
           - "4.2"
           - "4.4"
-          #- "5.0"
+          - "5.0"
         ansible_version:
           - stable-2.10
     steps:

@@ -72,6 +72,13 @@ jobs:
         max_attempts: 3
         command: pip install pymongo
 
+    - name: Install dateutil
+      uses: nick-invision/retry@v2
+      with:
+        timeout_minutes: 5
+        max_attempts: 3
+        command: pip install python-dateutil
+  
     - name: Install mtools - mlaunch only
       uses: nick-invision/retry@v2
       with:

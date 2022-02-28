@@ -66,12 +66,12 @@ jobs:
     #    source bash/mmo_mongodb_cluster.sh;
     #    mmo_setup_cluster;
 
-    - name: Install mtools
+    - name: Install mtools - mlaunch only
       uses: nick-invision/retry@v2
       with:
         timeout_minutes: 5
         max_attempts: 3
-        command: pip install --user mtools[all]
+        command: pip install --user mtools[mlaunch]
 
     - name: Add mtools location to path
       run: echo "/home/runner/.local/bin" >> $GITHUB_PATH

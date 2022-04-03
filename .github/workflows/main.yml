@@ -70,7 +70,7 @@ jobs:
       with:
         timeout_minutes: 5
         max_attempts: 3
-        command: pip install pymongo
+        command: pip install pymongo==3.12.3
 
     - name: Install dateutil
       uses: nick-invision/retry@v2

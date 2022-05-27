@@ -485,7 +485,7 @@ EXAMPLES
         ./mm --balancing disable --collection test.restaurants
         Balancing for test.restaurants is disabled
         ./mm --balancing enable --collection test.restaurants
-        Balancing for test.restaurants is enabled.
+        Balancing for test.restaurants is enabled
 
 SEE ALSO
 

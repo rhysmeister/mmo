@@ -45,7 +45,7 @@ jobs:
     - name: Create playbook to install repo for MongoDB ${{ matrix.ansible_version }}
       run: |
          cat << EOF > /tmp/mongodb.yml
-            - hosts: servers
+            - hosts: localhost
               roles:
                 - { role: community.mongodb.mongodb_repository, mongodb_version: "${{ matrix.mongodb_version }}" }
          EOF
